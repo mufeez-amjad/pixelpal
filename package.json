@@ -1,5 +1,5 @@
 {
-  "name": "electron-react",
+  "name": "pixelpal",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -7,18 +7,20 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "@typescript-eslint/parser": "^4.31.2",
     "bootstrap": "^5.0.0-beta1",
     "electron-is-dev": "^1.2.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.1",
+    "typescript": "^4.4.3",
     "web-vitals": "^0.2.4"
   },
-  "main": "public/main.js",
+  "main": "build/main.js",
   "homepage": "./",
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && tsc -p ./electron",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src/**/*.js src/**/*.jsx",
@@ -58,6 +60,7 @@
     ]
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.31.2",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.3",
     "electron": "^11.2.1",
@@ -70,7 +73,7 @@
     "wait-on": "^5.2.1"
   },
   "lint-staged": {
-    "*.{js,jsx}": "eslint --cache --fix",
-    "*.{js,jsx,css,md}": "prettier --write"
+    "*.{js,ts,jsx}": "eslint --cache --fix",
+    "*.{js,ts,jsx,css,md}": "prettier --write"
   }
 }

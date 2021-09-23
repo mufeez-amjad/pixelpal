@@ -4,6 +4,18 @@
             "version": "latest"
         }
     },
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "overrides": [
+        {
+            "files": ["*.js", "*.jsx"],
+            "rules": {
+                "@typescript-eslint/explicit-function-return-type": "off"
+            }
+        }
+    ],
     "env": {
         "browser": true,
         "es2021": true,
@@ -23,7 +35,7 @@
     "rules": {
         "indent": [
             "error",
-            "tab"
+            4
         ],
         "linebreak-style": [
             "error",
