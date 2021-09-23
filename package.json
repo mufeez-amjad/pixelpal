@@ -24,7 +24,8 @@
     "lint": "eslint src/**/*.js src/**/*.jsx",
     "electron:serve": "concurrently -k \"cross-env BROWSER=none yarn start\" \"yarn electron:start\"",
     "electron:build": "yarn build && electron-builder -c.extraMetadata.main=build/main.js",
-    "electron:start": "wait-on tcp:3000 && electron ."
+    "electron:start": "wait-on tcp:3000 && electron .",
+    "prepare": "husky install"
   },
   "build": {
     "extends": null,
@@ -63,7 +64,13 @@
     "electron-builder": "^22.9.1",
     "eslint": "^7.32.0",
     "eslint-plugin-react": "^7.26.0",
+    "husky": ">=6",
+    "lint-staged": ">=10",
     "prettier": "^2.2.1",
     "wait-on": "^5.2.1"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": "eslint --cache --fix",
+    "*.{js,jsx,css,md}": "prettier --write"
   }
 }
