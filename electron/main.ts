@@ -11,15 +11,13 @@ let tray: AppTray;
 /* eslint-disable no-unused-vars */
 
 function init() {
-    tray = new AppTray();
-    window = new AppWindow({ tray });
-
-    // window.hide()
+	tray = new AppTray();
+	window = new AppWindow({ tray });
 }
 
 app.whenReady().then(() => {
-    init();
-    if (app.dock) {
-        app.dock.hide();
-    }
+	init();
+	if (app.dock) {
+		app.dock.hide();
+	}
 });
