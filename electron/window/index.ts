@@ -24,7 +24,7 @@ class AppWindow extends BrowserWindow {
 			fullscreenable: false,
 			resizable: false,
 			useContentSize: true,
-			transparent: true,
+			transparent: false,
 			// backgroundColor: options.transparent ? '#00ffffff' : '#ffffff',
 			alwaysOnTop: true,
 			webPreferences: {
