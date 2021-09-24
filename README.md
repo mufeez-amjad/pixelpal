@@ -1,4 +1,6 @@
-Setup Project:
+# Pixel Pals
+
+## Setup Project:
 
 ```
 yarn
@@ -6,7 +8,7 @@ yarn build
 yarn electron:serve
 ```
 
-Structure
+## Structure
 
 `electron/` - electron app
 `src/` - web app
