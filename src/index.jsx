@@ -5,6 +5,8 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import Overview from './Overview';
 import ReminderForm from './ReminderForm';
 
+import 'bootstrap/dist/css/bootstrap.css';
+
 ReactDOM.render(
 	<BrowserRouter>
 		<Switch>

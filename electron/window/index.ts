@@ -4,7 +4,7 @@ import path from 'path';
 const isDev = require('electron-is-dev');
 
 const WINDOW_WIDTH = 500;
-const WINDOW_HEIGHT = 300;
+const WINDOW_HEIGHT = 400;
 
 interface IOptions {
 	transparent?: boolean;
