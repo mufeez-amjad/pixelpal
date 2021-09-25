@@ -60,7 +60,9 @@ class DatabaseService {
 	// TODO: use ORM or sql builder library :)?
 	insertHabit(habit: {
 		name: string;
-		interval: number;
+		frequency: number;
+		startTime: number;
+		endTime: number;
 		days: string;
 	}): Promise<boolean> {
 		console.log(habit);
@@ -72,10 +74,12 @@ class DatabaseService {
                     null
                 );
                 
-            INSERT INTO habit_triggers(habit_id, interval, days) 
+            INSERT INTO habit_triggers(habit_id, frequency, start_time, end_time, days) 
                 VALUES(
                     (SELECT id FROM habits WHERE name = '${habit.name}'),
-                    ${habit.interval},
+                    ${habit.frequency},
+					'${habit.startTime}',
+					'${habit.endTime}',
                     '${habit.days}'
                 )`;
 

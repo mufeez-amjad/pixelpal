@@ -15,7 +15,7 @@
     habit_triggers:
         id: unique id
         habit_id: FK to habit
-        interval: how often the reminders appear (in minutes)
+        frequency: how often the reminders appear (in minutes)
         days: string representing days to trigger on (TODO: find better solution)
                 eg: MWRSU = trigger on mondays, wednesdays, thursdays, saturdays, and sundays
                 M = Monday
@@ -25,6 +25,8 @@
                 F = Friday
                 S = Saturday
                 U = Sunday
+        start_time: earliest time of day user can get reminder 
+        end_time: latest time of day user can get reminder
 */
 
 CREATE TABLE IF NOT EXISTS habits (
@@ -36,7 +38,9 @@ CREATE TABLE IF NOT EXISTS habits (
 CREATE TABLE IF NOT EXISTS habit_triggers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     habit_id INTEGER,
-    interval INTEGER,
+    frequency INTEGER,
     days TEXT,
+    start_time INTEGER,
+    end_time INTEGER,
     FOREIGN KEY(habit_id) REFERENCES habits(id)
 );
