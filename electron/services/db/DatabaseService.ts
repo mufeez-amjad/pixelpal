@@ -33,27 +33,9 @@ class DatabaseService {
 	findAllHabits(): Promise<Array<object>> {
 		return new Promise((res, rej) => {
 			this.connection.all('SELECT * FROM habits;', (err, rows) => {
-				if (err) {
-					rej(err);
-				} else {
-					res(rows);
-				}
+				if (err) rej(err);
+				res(rows);
 			});
-		});
-	}
-
-	findAllHabitTriggers(): Promise<Array<object>> {
-		return new Promise((res, rej) => {
-			this.connection.all(
-				'SELECT * FROM habit_triggers;',
-				(err, rows) => {
-					if (err) {
-						rej(err);
-					} else {
-						res(rows);
-					}
-				}
-			);
 		});
 	}
 
@@ -68,20 +50,16 @@ class DatabaseService {
 		console.log(habit);
 		return new Promise((res, rej) => {
 			const query = `
-            INSERT INTO habits(name, last_completed_at) 
+            INSERT INTO habits(name, frequency, days, start_time, end_time, last_completed_at) 
                 VALUES(
                     '${habit.name}',
-                    null
-                );
-                
-            INSERT INTO habit_triggers(habit_id, frequency, start_time, end_time, days) 
-                VALUES(
-                    (SELECT id FROM habits WHERE name = '${habit.name}'),
-                    ${habit.frequency},
+					${habit.frequency},
+					'${habit.days}',
 					'${habit.startTime}',
 					'${habit.endTime}',
-                    '${habit.days}'
-                )`;
+                    null
+                );
+			`;
 
 			this.connection.exec(query, err => {
 				if (err) rej(err);

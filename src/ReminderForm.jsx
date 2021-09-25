@@ -79,17 +79,66 @@ function ReminderForm() {
 
 	return (
 		<div style={{ margin: '1em' }}>
-			<FormGroup
-				label="Add new Habit"
-				labelFor="habit-name"
-				labelInfo="(required)"
-			>
-				<InputGroup
-					id="habit-name"
-					placeholder="Drink water"
-					onChange={setNameState}
-				/>
-			</FormGroup>
+			<div style={{ display: 'flex', 'flex-direction': 'row' }}>
+				<FormGroup label="Name" labelFor="habit-name">
+					<InputGroup
+						id="habit-name"
+						placeholder="Drink water"
+						onChange={setNameState}
+					/>
+				</FormGroup>
+				<FormGroup
+					label="Days"
+					labelFor="day-buttons"
+					style={{ 'margin-left': 'auto' }}
+				>
+					<ButtonGroup minimal={true}>
+						<Button
+							active={daysState.Mo}
+							onClick={handleDaysButtonClick}
+						>
+							Mo
+						</Button>
+						<Button
+							active={daysState.Tu}
+							onClick={handleDaysButtonClick}
+						>
+							Tu
+						</Button>
+						<Button
+							active={daysState.We}
+							onClick={handleDaysButtonClick}
+						>
+							We
+						</Button>
+						<Button
+							active={daysState.Th}
+							onClick={handleDaysButtonClick}
+						>
+							Th
+						</Button>
+						<Button
+							active={daysState.Fr}
+							onClick={handleDaysButtonClick}
+						>
+							Fr
+						</Button>
+						<Button
+							active={daysState.Sa}
+							onClick={handleDaysButtonClick}
+						>
+							Sa
+						</Button>
+						<Button
+							active={daysState.Su}
+							onClick={handleDaysButtonClick}
+						>
+							Su
+						</Button>
+					</ButtonGroup>
+				</FormGroup>
+			</div>
+
 			<FormGroup label="Time Window" labelFor="habit-window">
 				<RangeSlider
 					id="habit-window"
@@ -114,54 +163,13 @@ function ReminderForm() {
 					onChange={setFrequencyState}
 				/>
 			</FormGroup>
-			<FormGroup label="Days" labelFor="day-buttons">
-				<ButtonGroup minimal={true}>
-					<Button
-						active={daysState.Mo}
-						onClick={handleDaysButtonClick}
-					>
-						Mo
-					</Button>
-					<Button
-						active={daysState.Tu}
-						onClick={handleDaysButtonClick}
-					>
-						Tu
-					</Button>
-					<Button
-						active={daysState.We}
-						onClick={handleDaysButtonClick}
-					>
-						We
-					</Button>
-					<Button
-						active={daysState.Th}
-						onClick={handleDaysButtonClick}
-					>
-						Th
-					</Button>
-					<Button
-						active={daysState.Fr}
-						onClick={handleDaysButtonClick}
-					>
-						Fr
-					</Button>
-					<Button
-						active={daysState.Sa}
-						onClick={handleDaysButtonClick}
-					>
-						Sa
-					</Button>
-					<Button
-						active={daysState.Su}
-						onClick={handleDaysButtonClick}
-					>
-						Su
-					</Button>
-				</ButtonGroup>
-			</FormGroup>
 			<FormGroup labelFor="submit-button">
-				<Button type="submit" text="Add Habit" onClick={submitHabit} />
+				<Button
+					type="submit"
+					text="Add Habit"
+					intent="success"
+					onClick={submitHabit}
+				/>
 			</FormGroup>
 		</div>
 	);
