@@ -15,12 +15,17 @@ let db: DatabaseService;
 function init() {
 	tray = new AppTray();
 	window = new AppWindow({ tray });
-	db = new DatabaseService();
+	db = new DatabaseService('.db/pixelpal.db');
 }
 
-ipcMain.handle('t', (event, a1) => {
-	db.query('hello');
-	return 'test';
+ipcMain.handle('getHabits', async event => {
+	const habits = await db.findAllHabits();
+	console.log(habits);
+});
+
+ipcMain.handle('addHabit', (event, habit) => {
+	db.insertHabit(habit);
+	console.log('inserted habit ' + habit);
 });
 
 app.whenReady().then(() => {

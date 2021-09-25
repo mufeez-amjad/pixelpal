@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom';
 const { ipcRenderer } = window.require('electron');
 
 function test() {
-	ipcRenderer.invoke('t', 'hello').then(() => {
-		console.log('got response');
-	});
+	ipcRenderer.invoke('getHabits');
 }
 
 function ReminderForm() {
