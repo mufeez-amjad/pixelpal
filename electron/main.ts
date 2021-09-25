@@ -20,11 +20,13 @@ function init() {
 
 ipcMain.handle('getHabits', async event => {
 	const habits = await db.findAllHabits();
+	const habit_triggers = await db.findAllHabitTriggers();
 	console.log(habits);
+	console.log(habit_triggers);
 });
 
-ipcMain.handle('addHabit', (event, habit) => {
-	db.insertHabit(habit);
+ipcMain.handle('insertHabit', async (event, habit) => {
+	await db.insertHabit(habit);
 	console.log('inserted habit ' + habit);
 });
 
