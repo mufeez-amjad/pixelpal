@@ -1,5 +1,6 @@
 import type { Database } from 'sqlite3';
 const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 
 class DatabaseService {
 	connection: Database;
@@ -13,55 +14,20 @@ class DatabaseService {
 					console.error(err.message);
 				} else {
 					console.log('Connected to the pixelpal database.');
-					console.log(`db file: ${file}`);
+					console.log(`	db file: ${file}`);
 				}
 			}
 		);
 
+		// set up db (create tables if they don't exist, etc)
 		this.init();
 	}
 
-	// TODO: use ORM or sql builder library :)?
 	private init() {
-		// TODO: make better schema system (migrations?)
-
-		// habits:
-		//      id: unique id
-		//      name: habit name
-		//      last_completed_at: timestamp (text, sqlite does not have date/time types)
-		//                         that habit was most recently completed at
-
-		// habit_triggers:
-		//      id: unique id
-		//      habit_id: FK to habit
-		//      interval: how often the reminders appear (in minutes)
-		//      days: string representing days to trigger on (TODO: find better solution)
-		//            eg: MWRSU = trigger on mondays, wednesdays, thursdays, saturdays, and sundays
-
-		// M = Monday
-		// T = Tuesday
-		// W = Wednesday
-		// R = Thursday
-		// F = Friday
-		// S = Saturday
-		// U = Sunday
-
-		const sql = `
-            CREATE TABLE IF NOT EXISTS habits (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE,
-                last_completed_at TEXT
-            );
-            
-            CREATE TABLE IF NOT EXISTS habit_triggers (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                habit_id INTEGER,
-                interval INTEGER,
-                days TEXT,
-                FOREIGN KEY(habit_id) REFERENCES habits(id)
-            );
-            `;
-		return this.connection.exec(sql);
+		const initQuery = fs
+			.readFileSync('electron/services/db/sql/init.sql')
+			.toString();
+		this.connection.exec(initQuery);
 	}
 
 	findAllHabits(): Promise<Array<object>> {
@@ -91,6 +57,7 @@ class DatabaseService {
 		});
 	}
 
+	// TODO: use ORM or sql builder library :)?
 	insertHabit(habit: {
 		name: string;
 		interval: number;
@@ -111,7 +78,6 @@ class DatabaseService {
                     ${habit.interval},
                     '${habit.days}'
                 )`;
-			console.log(query);
 
 			this.connection.exec(query, err => {
 				if (err) rej(err);

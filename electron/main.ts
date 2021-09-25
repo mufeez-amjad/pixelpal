@@ -2,7 +2,7 @@ import { ipcMain, app } from 'electron';
 
 import AppTray from './tray';
 import AppWindow from './window';
-import DatabaseService from './services/DatabaseService';
+import DatabaseService from './services/db/DatabaseService';
 
 require('@electron/remote/main').initialize();
 
