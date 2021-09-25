@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 function Reminder(props) {
 	var reminderStyle = {
 		borderRadius: 50,
-		marginBottom: 15,
+		marginTop: 20,
+		marginBottom: 20,
 		padding: 15
 	};
 
@@ -27,10 +28,14 @@ function Reminder(props) {
 		</Link>
 	) : (
 		<div className="card" style={reminderStyle}>
-			<div className="row">
-				<div className="col-8">{props.text}</div>
-				<div className="col-4">
-					{props.done} / {props.total}
+			<div className="row" style={{ marginBottom: 5 }}>
+				<div className="col-8">
+					<h6>{props.text}</h6>
+				</div>
+				<div className="col-4 text-end">
+					<h6>
+						{props.done} / {props.total}
+					</h6>
 				</div>
 			</div>
 			<div className="bp3-progress-bar bp3-intent-success .modifier">

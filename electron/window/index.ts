@@ -3,8 +3,8 @@ import path from 'path';
 
 const isDev = require('electron-is-dev');
 
-const WINDOW_WIDTH = 500;
-const WINDOW_HEIGHT = 400;
+const WINDOW_WIDTH = 600;
+const WINDOW_HEIGHT = 600;
 
 interface IOptions {
 	transparent?: boolean;
@@ -22,7 +22,7 @@ class AppWindow extends BrowserWindow {
 			show: false,
 			frame: false,
 			fullscreenable: false,
-			resizable: false,
+			resizable: true,
 			useContentSize: true,
 			transparent: false,
 			// backgroundColor: options.transparent ? '#00ffffff' : '#ffffff',
