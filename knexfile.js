@@ -6,6 +6,6 @@ module.exports = {
 		filename: '.db/pixelpal.db'
 	},
 	migrations: {
-		tableName: 'knex_migrations'
+		tableName: 'migrations'
 	}
 };
