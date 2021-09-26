@@ -2,10 +2,11 @@ import styled from 'styled-components';
 
 export const StyledButton = styled.button`
 	background-color: ${({ color }) => color};
-	color: white;
+	color: ${({ fontColor }) => fontColor || 'white'};
 	font-size: 14px;
-	padding: 5px 2px;
-	width: 64px;
+	padding: 5px 0px;
+	flex-grow: 1;
+	margin: 2px;
 	text-align: center;
 
 	border: none;
@@ -24,5 +25,5 @@ export const StyledButton = styled.button`
 export const ButtonGroup = styled.div`
 	display: flex;
 	justify-content: space-evenly;
-	margin: 5px;
+	margin: 5px 0px;
 `;

@@ -25,11 +25,10 @@ function init() {
 		dimensions: { width, height: 150 }
 	});
 
-	ipcMain.on('mouse', (event, isEnter) => {
-		notificationWindow.setSize(
-			isEnter ? 300 : 100,
-			notificationWindow.height
-		);
+	ipcMain.on('close-window', (event, arg) => {
+		if (arg == 'notification') {
+			notificationWindow.close();
+		}
 	});
 
 	notificationWindow.show();

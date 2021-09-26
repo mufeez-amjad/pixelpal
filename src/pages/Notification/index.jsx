@@ -1,19 +1,48 @@
 import React from 'react';
 import styled from 'styled-components';
-import { ButtonGroup, StyledButton } from './styles';
+const { ipcRenderer } = window.require('electron');
 
+import { IoCheckmarkSharp, IoTimerOutline } from 'react-icons/io5';
 import wavingGif from './waving.gif';
+
+import { StyledButton, ButtonGroup } from './styles';
 
 function Notification() {
 	return (
 		<Container>
 			<Content>
 				<SpeechBubble>
-					Hey Mufeez, it's time to drink your water!
+					Hey Mufeez, it's time to drink some water!
 				</SpeechBubble>
 				<ButtonGroup>
-					<StyledButton color="green">Done</StyledButton>
-					<StyledButton color="grey">Snooze</StyledButton>
+					<StyledButton
+						color="#4BB543"
+						style={{
+							flex: 4,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center'
+						}}
+						onClick={() =>
+							ipcRenderer.sendSync('close-window', 'notification')
+						}
+					>
+						<IoCheckmarkSharp />
+						<span style={{ marginLeft: 5 }}>Done</span>
+					</StyledButton>
+					<StyledButton
+						color="#808080"
+						fontColor="white"
+						style={{
+							flex: 3,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center'
+						}}
+					>
+						<IoTimerOutline />
+						<span style={{ marginLeft: 5 }}>Snooze</span>
+					</StyledButton>
 				</ButtonGroup>
 			</Content>
 			<Character style={{ width: 90, height: 80 }} src={wavingGif} />
