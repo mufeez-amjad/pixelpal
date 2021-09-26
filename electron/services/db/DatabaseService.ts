@@ -1,6 +1,5 @@
 import type { Database } from 'sqlite3';
 const sqlite3 = require('sqlite3').verbose();
-const fs = require('fs');
 
 class DatabaseService {
 	connection: Database;
@@ -18,16 +17,6 @@ class DatabaseService {
 				}
 			}
 		);
-
-		// set up db (create tables if they don't exist, etc)
-		this.init();
-	}
-
-	private init() {
-		const initQuery = fs
-			.readFileSync('electron/services/db/sql/init.sql')
-			.toString();
-		this.connection.exec(initQuery);
 	}
 
 	findAllHabits(): Promise<Array<object>> {
@@ -47,7 +36,6 @@ class DatabaseService {
 		endTime: number;
 		days: string;
 	}): Promise<boolean> {
-		console.log(habit);
 		return new Promise((res, rej) => {
 			const query = `
             INSERT INTO habits(name, frequency, days, start_time, end_time, last_completed_at) 
