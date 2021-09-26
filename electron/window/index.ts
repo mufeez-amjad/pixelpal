@@ -12,6 +12,7 @@ interface IOptions {
 	tray?: Tray;
 	position?: { x: number; y: number };
 	dimensions?: { width: number; height: number };
+	path?: string;
 }
 
 class AppWindow extends BrowserWindow {
@@ -52,18 +53,20 @@ class AppWindow extends BrowserWindow {
 			this.setAutoHide();
 		}
 		this.setMenu(null);
-		this.setURL();
+		this.setURL(options.path);
 		this.align(options.position);
 	}
 
-	setURL = (url?: string) => {
-		if (url) this.loadURL(url);
-		else
+	setURL = (urlPath?: string) => {
+		if (urlPath) {
+			this.loadURL(`http://localhost:3000/${urlPath}`);
+		} else {
 			this.loadURL(
 				isDev
 					? 'http://localhost:3000'
 					: `file://${path.join(__dirname, '../build/index.html')}`
 			);
+		}
 	};
 
 	private setAutoHide = () => {

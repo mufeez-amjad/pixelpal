@@ -18,4 +18,5 @@ ReactDOM.render(
 			<Route exact path="/notification" component={Notification} />
 		</Switch>
 	</BrowserRouter>,
+	document.getElementById('root')
 );

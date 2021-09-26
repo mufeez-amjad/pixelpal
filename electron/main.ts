@@ -22,7 +22,8 @@ function init() {
 	notificationWindow = new AppWindow({
 		position: { x: screenBounds.width + width, y: 0 },
 		transparent: true,
-		dimensions: { width, height: 150 }
+		dimensions: { width, height: 150 },
+		path: 'notification'
 	});
 
 	ipcMain.on('close-window', (event, arg) => {
