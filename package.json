@@ -48,17 +48,22 @@
 	"dependencies": {
 		"@blueprintjs/core": "^3.50.2",
 		"@electron/remote": "^1.0.2",
+		"bootstrap": "^5.1.1",
 		"electron-is-dev": "^1.2.0",
+		"knex": "^0.95.11",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-icons": "^4.2.0",
 		"react-router-dom": "^5.3.0",
 		"react-scripts": "4.0.1",
+		"snakecase-keys": "^5.0.0",
+		"sqlite3": "^5.0.2",
 		"styled-components": "^5.3.1",
 		"typescript": "^4.4.3",
 		"web-vitals": "^0.2.4"
 	},
 	"devDependencies": {
+		"@types/sqlite3": "^3.1.7",
 		"@typescript-eslint/eslint-plugin": "^4.31.2",
 		"@typescript-eslint/parser": "^4.31.2",
 		"concurrently": "^5.3.0",
