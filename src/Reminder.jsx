@@ -1,44 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { Intent, ProgressBar } from '@blueprintjs/core';
+import { Intent, ProgressBar, Card, Button } from '@blueprintjs/core';
 
 function Reminder(props) {
+	const [hover, setHover] = useState(false);
 	var reminderStyle = {
-		borderRadius: 50,
 		marginTop: 20,
 		marginBottom: 20,
 		padding: 15
 	};
 
 	return props.addReminder ? (
-		<Link to="/reminderform" style={{ textDecoration: 'none' }}>
-			<div className="card" style={reminderStyle}>
-				<a
-					className="card-block stretched-link text-decoration-none"
-					style={{ color: 'black' }}
-				>
-					<b>Add Reminder</b>
-				</a>
-			</div>
+		<Link
+			to="/reminderform"
+			style={{
+				textDecoration: 'none',
+				color: 'black',
+				textAlign: 'center'
+			}}
+		>
+			<Card style={reminderStyle}>
+				<b>Add Reminder</b>
+			</Card>
 		</Link>
 	) : (
-		<div className="card" style={reminderStyle}>
+		<Card
+			style={reminderStyle}
+			onMouseEnter={() => setHover(true)}
+			onMouseLeave={() => setHover(false)}
+		>
 			<div className="row" style={{ marginBottom: 5 }}>
-				<div className="col-8">
+				<div
+					className="col-8"
+					style={{ display: 'flex', flexDirection: 'row' }}
+				>
 					<h6>{props.text}</h6>
+					{hover ? (
+						<Button
+							style={{ height: 5, width: 10 }}
+							small={true}
+							minimal={true}
+							className="col-3"
+							icon="delete"
+						></Button>
+					) : null}
 				</div>
 				<div className="col-4 text-end">
-					<h6>
-						{props.done} / {props.total}
-					</h6>
+					<div className="row">
+						<h6>
+							{props.done} / {props.total}
+						</h6>
+					</div>
 				</div>
 			</div>
 			<ProgressBar
 				value={props.done / props.total}
 				intent={Intent.SUCCESS}
 			/>
-		</div>
+		</Card>
 	);
 }
 

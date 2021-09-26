@@ -1,4 +1,5 @@
 import React from 'react';
+import { Intent, Callout, Button } from '@blueprintjs/core';
 
 import Reminder from './Reminder';
 
@@ -22,76 +23,79 @@ function Overview() {
 	];
 
 	var missed = {
-		// text: 'Breathe',
-		// time: '2pm'
+		text: 'Breathe',
+		time: '2pm'
 	};
 
 	return (
-		<div
-			className="container"
-			style={{ padding: 20, height: '100%', width: '100%', margin: 0 }}
-		>
+		<div style={{ padding: 20, height: '100%', width: '100%', margin: 0 }}>
 			<h1 className="row" style={{ marginBottom: 20, marginLeft: 0 }}>
 				<b>Overview</b>
 			</h1>
 			{missed && Object.keys(missed).length !== 0 ? (
-				<div
-					className="row"
+				<Callout
+					intent={Intent.WARNING}
 					style={{
-						display: 'flex',
-						verticalAlign: 'middle',
-						paddingRight: 20,
-						paddingLeft: 20,
-						marginBottom: 20,
-						background: '#e3bfb9',
-						paddingTop: 5,
-						paddingBottom: 5,
-						borderRadius: 25
+						height: 40,
+						marginBottom: 20
 					}}
 				>
-					<p className="col-7">
-						<b>Missed:</b> {missed.text} at {missed.time}
-					</p>
-					<button
-						className="col-2 btn-sm btn-primary"
-						style={{ marginRight: 10 }}
-					>
-						Done
-					</button>
-					<button className="col-2 btn-sm btn-secondary">
-						Dismiss
-					</button>
-				</div>
+					<div className="row">
+						<div className="col-8">
+							<p className="col-7">
+								<b>Missed:</b> {missed.text} at {missed.time}
+							</p>
+						</div>
+						<div className="col-4 text-end">
+							<Button
+								className="col-2"
+								small={true}
+								intent={Intent.SUCCESS}
+								style={{
+									marginRight: 10,
+									height: 20,
+									width: 50,
+									fontSize: '90%'
+								}}
+							>
+								Done
+							</Button>
+							<Button
+								className="col-2"
+								small={true}
+								style={{
+									height: 20,
+									width: 60,
+									fontSize: '90%'
+								}}
+							>
+								Dismiss
+							</Button>
+						</div>
+					</div>
+				</Callout>
 			) : (
-				<div
-					className="row"
+				<Callout
+					intent={Intent.PRIMARY}
 					style={{
-						marginLeft: 0,
-						display: 'flex',
-						verticalAlign: 'middle',
-						paddingRight: 20,
-						paddingLeft: 20,
-						marginBottom: 20,
-						background: '#c8e3b9',
-						paddingTop: 5,
-						paddingBottom: 5,
-						borderRadius: 25
+						height: 40,
+						marginBottom: 20
 					}}
 				>
 					<p>
 						<b>Up Next:</b> Drink Water in 5min
 					</p>
-				</div>
+				</Callout>
 			)}
 			<div
 				className="row"
 				style={{ marginLeft: 0, height: '88%', marginBottom: 30 }}
 			>
 				<div
-					className="col-8"
+					className="col-7"
 					style={{
-						background: '#b9dde3',
-						borderRadius: 25,
+						background: '#e7e8ec',
+						borderRadius: 5,
 						paddingLeft: 15,
 						paddingRight: 15,
 						marginBottom: 50,
@@ -113,12 +117,12 @@ function Overview() {
 						<Reminder addReminder={true} />
 					) : null}
 				</div>
-				<div className="col-4 align-bottom">
+				<div className="col-5" style={{ position: 'relative' }}>
 					<img
-						src="https://i.pinimg.com/236x/33/24/0b/33240b660976088a4e43f8a0b620f966.jpg"
+						src="https://www.pngkit.com/png/full/349-3491696_hamtaro-cute-food-pixel-art.png"
 						width="200"
 						height="200"
-						style={{ verticalAlign: 'bottom' }}
+						style={{ position: 'absolute', bottom: 50 }}
 					/>
 				</div>
 			</div>
