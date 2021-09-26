@@ -22,7 +22,7 @@ class AppWindow extends BrowserWindow {
 			show: false,
 			frame: false,
 			fullscreenable: false,
-			resizable: true,
+			resizable: false,
 			useContentSize: true,
 			transparent: false,
 			// backgroundColor: options.transparent ? '#00ffffff' : '#ffffff',

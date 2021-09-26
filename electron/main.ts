@@ -13,7 +13,6 @@ let tray: AppTray;
 function init() {
 	tray = new AppTray();
 	window = new AppWindow({ tray });
-	window.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
