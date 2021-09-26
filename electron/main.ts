@@ -1,5 +1,4 @@
 import { ipcMain, app } from 'electron';
-
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
