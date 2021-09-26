@@ -79,7 +79,7 @@ function ReminderForm() {
 
 	return (
 		<div style={{ margin: '1em' }}>
-			<div style={{ display: 'flex', 'flex-direction': 'row' }}>
+			<div style={{ display: 'flex', flexDirection: 'row' }}>
 				<FormGroup label="Name" labelFor="habit-name">
 					<InputGroup
 						id="habit-name"
@@ -90,7 +90,7 @@ function ReminderForm() {
 				<FormGroup
 					label="Days"
 					labelFor="day-buttons"
-					style={{ 'margin-left': 'auto' }}
+					style={{ marginLeft: 'auto' }}
 				>
 					<ButtonGroup minimal={true}>
 						<Button
