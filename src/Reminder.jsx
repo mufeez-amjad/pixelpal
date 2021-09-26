@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { Intent, ProgressBar } from '@blueprintjs/core';
 
 function Reminder(props) {
 	var reminderStyle = {
@@ -9,11 +10,6 @@ function Reminder(props) {
 		marginBottom: 20,
 		padding: 15
 	};
-
-	var percentage;
-	if (!props.addReminder) {
-		percentage = (props.done / props.total) * 100 + '%';
-	}
 
 	return props.addReminder ? (
 		<Link to="/reminderform" style={{ textDecoration: 'none' }}>
@@ -38,12 +34,10 @@ function Reminder(props) {
 					</h6>
 				</div>
 			</div>
-			<div className="bp3-progress-bar bp3-intent-success .modifier">
-				<div
-					className="bp3-progress-meter"
-					style={{ width: percentage }}
-				></div>
-			</div>
+			<ProgressBar
+				value={props.done / props.total}
+				intent={Intent.SUCCESS}
+			/>
 		</div>
 	);
 }
