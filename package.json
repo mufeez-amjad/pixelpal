@@ -46,10 +46,12 @@
 		]
 	},
 	"dependencies": {
+		"@blueprintjs/core": "^3.50.2",
 		"@electron/remote": "^1.0.2",
 		"electron-is-dev": "^1.2.0",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
+		"react-icons": "^4.2.0",
 		"react-router-dom": "^5.3.0",
 		"react-scripts": "4.0.1",
 		"styled-components": "^5.3.1",

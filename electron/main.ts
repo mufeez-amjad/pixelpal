@@ -22,7 +22,7 @@ function init() {
 	notificationWindow = new AppWindow({
 		position: { x: screenBounds.width + width, y: 0 },
 		transparent: true,
-		dimensions: { width, height: 100 }
+		dimensions: { width, height: 150 }
 	});
 
 	ipcMain.on('mouse', (event, isEnter) => {
