@@ -1,4 +1,5 @@
 import { ipcMain, app } from 'electron';
+import path from 'path';
 
 import AppTray from './tray';
 import AppWindow from './window';
@@ -15,7 +16,7 @@ let db: DatabaseService;
 function init() {
 	tray = new AppTray();
 	window = new AppWindow({ tray });
-	db = new DatabaseService('.db/pixelpal.db');
+	db = new DatabaseService(path.join(app.getPath('userData'), 'pixelpal.db'));
 }
 
 ipcMain.handle('getHabits', async event => {
