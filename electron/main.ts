@@ -1,4 +1,4 @@
-import { ipcMain, app } from 'electron';
+import { app, screen, ipcMain } from 'electron';
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
@@ -21,12 +21,25 @@ require('@electron/remote/main').initialize();
 let window: AppWindow;
 let tray: AppTray;
 let db: DatabaseService;
+let notificationWindow: AppWindow;
 /* eslint-disable no-unused-vars */
 
 async function init() {
 	tray = new AppTray();
-	window = new AppWindow({ tray });
-	db = new DatabaseService(knex);
+	window = new AppWindow({ tray, autoHide: true });
+
+	const screenBounds = screen.getPrimaryDisplay().size;
+
+	let width = 300;
+	notificationWindow = new AppWindow({
+		position: { x: screenBounds.width + width, y: 0 },
+		transparent: true,
+		dimensions: { width, height: 150 },
+		path: 'notification'
+	});
+
+	notificationWindow.show();
+  db = new DatabaseService(knex);
 	if (!fs.existsSync('.db')) fs.mkdirSync('.db');
 	await knex.migrate.latest();
 }
@@ -39,6 +52,12 @@ ipcMain.handle('getHabits', async event => {
 ipcMain.handle('insertHabit', async (event, habit) => {
 	await db.insertHabit(habit);
 	console.log('inserted habit ' + habit);
+});
+
+ipcMain.handle('close-window', (event, arg) => {
+		if (arg == 'notification') {
+			notificationWindow.close();
+		}
 });
 
 app.whenReady().then(() => {
