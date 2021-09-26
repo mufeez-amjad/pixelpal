@@ -55,6 +55,7 @@ function Reminder(props) {
 				</div>
 			</div>
 			<ProgressBar
+				stripes={false}
 				value={props.done / props.total}
 				intent={Intent.SUCCESS}
 			/>
