@@ -19,6 +19,21 @@ function Overview() {
 			text: 'Go Running',
 			done: 1,
 			total: 2
+		},
+		{
+			text: 'Go Running',
+			done: 1,
+			total: 2
+		},
+		{
+			text: 'Go Running',
+			done: 1,
+			total: 2
+		},
+		{
+			text: 'Go Running',
+			done: 1,
+			total: 2
 		}
 	];
 
@@ -99,29 +114,36 @@ function Overview() {
 						paddingLeft: 15,
 						paddingRight: 15,
 						marginBottom: 50,
-						verticalAlign: 'middle'
+						verticalAlign: 'middle',
+						overflow: 'hidden'
 					}}
 				>
-					{reminders.map(function (reminder, i) {
-						return (
-							<Reminder
-								key={i}
-								addReminder={false}
-								text={reminder.text}
-								done={reminder.done}
-								total={reminder.total}
-							/>
-						);
-					})}
-					{reminders.length < 5 ? (
-						<Reminder addReminder={true} />
-					) : null}
+					<div
+						className="scrollView"
+						style={{
+							overflowY: 'scroll',
+							height: 300
+						}}
+					>
+						{reminders.map(function (reminder, i) {
+							return (
+								<Reminder
+									key={i}
+									addReminder={false}
+									text={reminder.text}
+									done={reminder.done}
+									total={reminder.total}
+								/>
+							);
+						})}
+					</div>
+					<Reminder addReminder={true} />
 				</div>
 				<div className="col-5" style={{ position: 'relative' }}>
 					<img
 						src="https://www.pngkit.com/png/full/349-3491696_hamtaro-cute-food-pixel-art.png"
-						width="200"
-						height="200"
+						width="250"
+						height="250"
 						style={{ position: 'absolute', bottom: 50 }}
 					/>
 				</div>
