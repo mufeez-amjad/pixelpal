@@ -1,4 +1,5 @@
 import { app, BrowserWindow, screen, Tray } from 'electron';
+import { Display, Point } from 'electron/main';
 import path from 'path';
 
 const WINDOW_WIDTH = 650;
@@ -118,7 +119,10 @@ class AppWindow extends BrowserWindow {
 	};
 
 	private calculatePosition = () => {
-		const screenBounds = screen.getPrimaryDisplay().size;
+		const cursorPos: Point = screen.getCursorScreenPoint();
+		const display: Display = screen.getDisplayNearestPoint(cursorPos);
+
+		const screenBounds = display.size;
 		if (!this.tray) {
 			throw Error('Tray is undefined!');
 		}
