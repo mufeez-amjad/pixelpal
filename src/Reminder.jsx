@@ -30,12 +30,16 @@ function Reminder(props) {
 			onMouseEnter={() => setHover(true)}
 			onMouseLeave={() => setHover(false)}
 		>
-			<div className="row" style={{ marginBottom: 5 }}>
+			<div style={{ display: 'flex', flexDirection: 'row' }}>
 				<div
-					className="col-8"
-					style={{ display: 'flex', flexDirection: 'row' }}
+					style={{
+						width: '80%',
+						display: 'flex',
+						flexDirection: 'row'
+					}}
 				>
-					<h6>{props.name}</h6>
+					<p style={{ fontSize: 18 }}>{props.name}</p>
+
 					{hover ? (
 						<Button
 							style={{ height: 5, width: 10 }}
@@ -47,12 +51,10 @@ function Reminder(props) {
 						></Button>
 					) : null}
 				</div>
-				<div className="col-4 text-end">
-					<div className="row">
-						<h6>
-							{props.done} / {props.total}
-						</h6>
-					</div>
+				<div style={{ width: '20%', textAlign: 'right' }}>
+					<p style={{ fontSize: 18 }}>
+						{props.done} / {props.total}
+					</p>
 				</div>
 			</div>
 			<ProgressBar
