@@ -2,13 +2,18 @@ import { app, screen, ipcMain } from 'electron';
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
+import path from 'path';
+
+const dbFile = app.isPackaged
+	? path.join(app.getPath('userData'), 'pixelpal.db')
+	: '.db/pixelpal.db';
 
 const fs = require('fs');
 
 const knex = require('knex')({
 	client: 'sqlite3',
 	connection: {
-		filename: '.db/pixelpal.db'
+		filename: dbFile
 	},
 	migrations: {
 		tableName: 'migrations'
@@ -40,7 +45,9 @@ async function init() {
 
 	notificationWindow.show();
 	db = new DatabaseService(knex);
-	if (!fs.existsSync('.db')) fs.mkdirSync('.db');
+
+	const dbDir = path.dirname(dbFile);
+	if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 	await knex.migrate.latest();
 }
 

@@ -1,7 +1,5 @@
-import { BrowserWindow, screen, Tray } from 'electron';
+import { app, BrowserWindow, screen, Tray } from 'electron';
 import path from 'path';
-
-const isDev = require('electron-is-dev');
 
 const WINDOW_WIDTH = 650;
 const WINDOW_HEIGHT = 540;
@@ -62,9 +60,9 @@ class AppWindow extends BrowserWindow {
 			this.loadURL(`http://localhost:3000/${urlPath}`);
 		} else {
 			this.loadURL(
-				isDev
-					? 'http://localhost:3000'
-					: `file://${path.join(__dirname, '../build/index.html')}`
+				app.isPackaged
+					? `file://${path.join(__dirname, '../build/index.html')}`
+					: 'http://localhost:3000'
 			);
 		}
 	};
