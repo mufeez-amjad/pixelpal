@@ -39,7 +39,7 @@ async function init() {
 	});
 
 	notificationWindow.show();
-  db = new DatabaseService(knex);
+	db = new DatabaseService(knex);
 	if (!fs.existsSync('.db')) fs.mkdirSync('.db');
 	await knex.migrate.latest();
 }
@@ -49,15 +49,25 @@ ipcMain.handle('getHabits', async event => {
 	return habits;
 });
 
+ipcMain.handle('getHabitsForDay', async (event, day) => {
+	const habits = await db.getAllHabits(day);
+	console.log(habits);
+	return habits;
+});
+
 ipcMain.handle('insertHabit', async (event, habit) => {
 	await db.insertHabit(habit);
 	console.log('inserted habit ' + habit);
 });
 
+ipcMain.handle('deleteHabit', async (event, habitId) => {
+	await db.deleteHabit(habitId);
+});
+
 ipcMain.handle('close-window', (event, arg) => {
-		if (arg == 'notification') {
-			notificationWindow.close();
-		}
+	if (arg == 'notification') {
+		notificationWindow.close();
+	}
 });
 
 app.whenReady().then(() => {

@@ -1,45 +1,39 @@
 import React from 'react';
 import { Intent, Callout, Button } from '@blueprintjs/core';
+const { ipcRenderer } = window.require('electron');
 
 import Reminder from './Reminder';
 
 function Overview() {
-	var reminders = [
-		{
-			text: 'Drink Water',
-			done: 5,
-			total: 8
-		},
-		{
-			text: 'Stretch',
-			done: 2,
-			total: 16
-		},
-		{
-			text: 'Go Running',
-			done: 1,
-			total: 2
-		},
-		{
-			text: 'Go Running',
-			done: 1,
-			total: 2
-		},
-		{
-			text: 'Go Running',
-			done: 1,
-			total: 2
-		},
-		{
-			text: 'Go Running',
-			done: 1,
-			total: 2
-		}
-	];
-
 	var missed = {
-		text: 'Breathe',
+		name: 'Breathe',
 		time: '2pm'
+	};
+
+	const [habits, setHabits] = React.useState(null);
+
+	const getCurrentDay = () => {
+		const dayOfWeek = new Date().getDay();
+		const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S'];
+		return days[dayOfWeek];
+	};
+
+	React.useEffect(async () => {
+		let rawHabits = await ipcRenderer.invoke(
+			'getHabitsForDay',
+			getCurrentDay()
+		);
+		rawHabits.map(rh => {
+			rh['done'] = 5;
+			rh['total'] = 6;
+		});
+		setHabits(rawHabits);
+	}, []);
+
+	const handleDelete = id => {
+		ipcRenderer.invoke('deleteHabit', id);
+		const nextHabits = habits.filter(h => h.id != id);
+		setHabits(nextHabits);
 	};
 
 	return (
@@ -58,7 +52,7 @@ function Overview() {
 					<div className="row">
 						<div className="col-8">
 							<p className="col-7">
-								<b>Missed:</b> {missed.text} at {missed.time}
+								<b>Missed:</b> {missed.name} at {missed.time}
 							</p>
 						</div>
 						<div className="col-4 text-end">
@@ -125,17 +119,21 @@ function Overview() {
 							height: 300
 						}}
 					>
-						{reminders.map(function (reminder, i) {
-							return (
-								<Reminder
-									key={i}
-									addReminder={false}
-									text={reminder.text}
-									done={reminder.done}
-									total={reminder.total}
-								/>
-							);
-						})}
+						{habits &&
+							habits.map(function (habit, i) {
+								console.log(habit);
+								return (
+									<Reminder
+										key={i}
+										id={habit.id}
+										addReminder={false}
+										name={habit ? habit.name : 'Hello'}
+										done={habit.done}
+										total={habit.total}
+										handleDelete={handleDelete}
+									/>
+								);
+							})}
 					</div>
 					<Reminder addReminder={true} />
 				</div>

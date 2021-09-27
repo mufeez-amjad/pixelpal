@@ -35,7 +35,7 @@ function Reminder(props) {
 					className="col-8"
 					style={{ display: 'flex', flexDirection: 'row' }}
 				>
-					<h6>{props.text}</h6>
+					<h6>{props.name}</h6>
 					{hover ? (
 						<Button
 							style={{ height: 5, width: 10 }}
@@ -43,6 +43,7 @@ function Reminder(props) {
 							minimal={true}
 							className="col-3"
 							icon="delete"
+							onClick={() => props.handleDelete(props.id)}
 						></Button>
 					) : null}
 				</div>
@@ -65,9 +66,11 @@ function Reminder(props) {
 
 Reminder.propTypes = {
 	addReminder: PropTypes.bool,
-	text: PropTypes.string,
+	name: PropTypes.string,
 	done: PropTypes.number,
-	total: PropTypes.number
+	total: PropTypes.number,
+	id: PropTypes.number,
+	handleDelete: PropTypes.func
 };
 
 export default Reminder;

@@ -24,7 +24,7 @@ function Notification() {
 							justifyContent: 'center'
 						}}
 						onClick={() =>
-							ipcRenderer.sendSync('close-window', 'notification')
+							ipcRenderer.invoke('close-window', 'notification')
 						}
 					>
 						<IoCheckmarkSharp />

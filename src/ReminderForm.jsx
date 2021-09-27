@@ -7,7 +7,8 @@ import {
 	Button,
 	ButtonGroup
 } from '@blueprintjs/core';
-import '../node_modules/@blueprintjs/core/lib/css/blueprint.css';
+
+import { Link } from 'react-router-dom';
 const { ipcRenderer } = window.require('electron');
 
 function ReminderForm() {
@@ -164,12 +165,14 @@ function ReminderForm() {
 				/>
 			</FormGroup>
 			<FormGroup labelFor="submit-button">
-				<Button
-					type="submit"
-					text="Add Habit"
-					intent="success"
-					onClick={submitHabit}
-				/>
+				<Link to="/">
+					<Button
+						type="submit"
+						text="Add Habit"
+						intent="success"
+						onClick={submitHabit}
+					/>
+				</Link>
 			</FormGroup>
 		</div>
 	);

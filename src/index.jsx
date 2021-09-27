@@ -7,10 +7,7 @@ import ReminderForm from './ReminderForm';
 import Notification from './pages/Notification';
 
 import 'normalize.css';
-import '@blueprintjs/core/lib/css/blueprint.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
-
-import 'bootstrap/dist/css/bootstrap.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
 import './index.css';
 

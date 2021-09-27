@@ -7,8 +7,12 @@ class DatabaseService {
 		this.knex = knex;
 	}
 
-	getAllHabits(): Promise<Array<object>> {
-		return this.knex.select().table('habits');
+	getAllHabits(day?: string): Promise<Array<object>> {
+		let query = this.knex.select().table('habits');
+		if (day) {
+			query = query.where('days', 'like', `%${day}%`);
+		}
+		return query;
 	}
 
 	// TODO: use ORM :)?
@@ -20,6 +24,10 @@ class DatabaseService {
 		days: string;
 	}): Promise<boolean> {
 		return this.knex('habits').insert(snake(habit));
+	}
+
+	deleteHabit(id: number) {
+		return this.knex('habits').delete(id);
 	}
 }
 
