@@ -37,9 +37,24 @@ function Overview() {
 	};
 
 	return (
-		<div style={{ padding: 20, height: '100%', width: '100%', margin: 0 }}>
-			<h1 className="row" style={{ marginBottom: 20, marginLeft: 0 }}>
-				<b>Overview</b>
+		<div
+			style={{
+				paddingLeft: 20,
+				paddingRight: 20,
+				height: '100%',
+				width: '100%',
+				margin: 0
+			}}
+		>
+			<h1
+				style={{
+					display: 'flex',
+					flexDirection: 'row',
+					marginBottom: 20,
+					marginLeft: 0
+				}}
+			>
+				Overview
 			</h1>
 			{missed && Object.keys(missed).length !== 0 ? (
 				<Callout
@@ -49,15 +64,14 @@ function Overview() {
 						marginBottom: 20
 					}}
 				>
-					<div className="row">
-						<div className="col-8">
+					<div style={{ display: 'flex', flexDirection: 'row' }}>
+						<div style={{ width: '67%' }}>
 							<p className="col-7">
 								<b>Missed:</b> {missed.name} at {missed.time}
 							</p>
 						</div>
-						<div className="col-4 text-end">
+						<div style={{ textAlign: 'right', width: '33%' }}>
 							<Button
-								className="col-2"
 								small={true}
 								intent={Intent.SUCCESS}
 								style={{
@@ -70,7 +84,6 @@ function Overview() {
 								Done
 							</Button>
 							<Button
-								className="col-2"
 								small={true}
 								style={{
 									height: 20,
@@ -97,11 +110,15 @@ function Overview() {
 				</Callout>
 			)}
 			<div
-				className="row"
-				style={{ marginLeft: 0, height: '88%', marginBottom: 30 }}
+				style={{
+					display: 'flex',
+					flexDirection: 'row',
+					marginLeft: 0,
+					height: '80%',
+					marginBottom: 30
+				}}
 			>
 				<div
-					className="col-7"
 					style={{
 						background: '#e7e8ec',
 						borderRadius: 5,
@@ -109,7 +126,8 @@ function Overview() {
 						paddingRight: 15,
 						marginBottom: 50,
 						verticalAlign: 'middle',
-						overflow: 'hidden'
+						overflow: 'hidden',
+						width: '60%'
 					}}
 				>
 					<div
@@ -137,7 +155,7 @@ function Overview() {
 					</div>
 					<Reminder addReminder={true} />
 				</div>
-				<div className="col-5" style={{ position: 'relative' }}>
+				<div style={{ position: 'relative', width: '40%' }}>
 					<img
 						src="https://www.pngkit.com/png/full/349-3491696_hamtaro-cute-food-pixel-art.png"
 						width="250"
