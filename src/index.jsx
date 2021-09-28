@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
-import Overview from './Overview';
+import Overview from './pages/Overview';
 import ReminderForm from './ReminderForm';
 import Notification from './pages/Notification';
 
