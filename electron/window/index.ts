@@ -1,7 +1,7 @@
 import { app, BrowserWindow, screen, Tray } from 'electron';
 import path from 'path';
 
-const WINDOW_WIDTH = 650;
+const WINDOW_WIDTH = 480;
 const WINDOW_HEIGHT = 540;
 
 interface IOptions {
