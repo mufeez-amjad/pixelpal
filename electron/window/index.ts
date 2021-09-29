@@ -4,7 +4,7 @@ import path from 'path';
 
 import { getCurrentDisplay } from '../util';
 
-const WINDOW_WIDTH = 650;
+const WINDOW_WIDTH = 480;
 const WINDOW_HEIGHT = 540;
 
 interface IOptions {
