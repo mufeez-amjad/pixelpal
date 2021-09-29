@@ -95,8 +95,6 @@ ipcMain.handle('getHabitEventCountsForDay', async (event, day) => {
 		};
 	});
 
-	console.log(counts);
-
 	return counts;
 });
 
