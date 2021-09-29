@@ -46,6 +46,6 @@ export class SchedulerService {
 
 		console.log(`Habit ${habit.name} reminder!`);
 
-		notifWindow.showWindow();
+		notifWindow.show();
 	}
 }
