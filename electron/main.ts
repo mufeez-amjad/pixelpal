@@ -47,8 +47,6 @@ async function init() {
 		path: 'notification'
 	});
 
-	notificationWindow.show();
-
 	db = new DatabaseService(knex);
 
 	const dbDir = path.dirname(dbFile);
