@@ -27,7 +27,7 @@ class DatabaseService {
 	}
 
 	deleteHabit(id: number) {
-		return this.knex('habits').delete(id);
+		return this.knex('habits').where({ id }).del();
 	}
 }
 

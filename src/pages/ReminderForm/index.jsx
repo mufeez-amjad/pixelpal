@@ -7,11 +7,16 @@ import {
 	Button,
 	ButtonGroup
 } from '@blueprintjs/core';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 
-import { Link } from 'react-router-dom';
 const { ipcRenderer } = window.require('electron');
 
+import { IoCloseCircleOutline } from 'react-icons/io5';
+
 function ReminderForm() {
+	const history = useHistory();
+
 	const [timeSliderState, setTimeSliderState] = useState([6, 18]);
 	const [nameState, setNameState] = useState({ target: { value: '' } });
 	const [frequencyState, setFrequencyState] = useState(3);
@@ -75,11 +80,43 @@ function ReminderForm() {
 			days: buildDayString()
 		};
 
-		ipcRenderer.invoke('insertHabit', habit);
+		if (habit.name && habit.days && habit.frequency) {
+			ipcRenderer.invoke('insertHabit', habit);
+			history.push('/');
+		}
 	};
 
 	return (
-		<div style={{ margin: '1em' }}>
+		<div style={{ padding: '1em', width: '460px' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					marginBottom: '20px'
+				}}
+			>
+				<CircleButton
+					style={{ marginRight: '10px' }}
+					onClick={() => history.push('/')}
+				>
+					<IoCloseCircleOutline
+						color="black"
+						style={{ display: 'block' }}
+						fontSize={18}
+					/>
+				</CircleButton>
+				<div
+					style={{
+						fontSize: '20px',
+						fontWeight: '800',
+						marginTop: '10px',
+						marginBottom: '10px'
+					}}
+				>
+					Create habit
+				</div>
+			</div>
+
 			<div style={{ display: 'flex', flexDirection: 'row' }}>
 				<FormGroup label="Name" labelFor="habit-name">
 					<InputGroup
@@ -91,7 +128,7 @@ function ReminderForm() {
 				<FormGroup
 					label="Days"
 					labelFor="day-buttons"
-					style={{ marginLeft: 'auto' }}
+					style={{ marginLeft: '20px' }}
 				>
 					<ButtonGroup minimal={true}>
 						<Button
@@ -165,17 +202,52 @@ function ReminderForm() {
 				/>
 			</FormGroup>
 			<FormGroup labelFor="submit-button">
-				<Link to="/">
-					<Button
-						type="submit"
-						text="Add Habit"
-						intent="success"
-						onClick={submitHabit}
-					/>
-				</Link>
+				<Button
+					type="submit"
+					text="Add Habit"
+					intent="success"
+					onClick={submitHabit}
+				/>
 			</FormGroup>
 		</div>
 	);
 }
 
 export default ReminderForm;
+
+const CircleButton = styled.div`
+	background-color: ${({ backgroundColor }) =>
+		backgroundColor ? backgroundColor : 'white'};
+	border-radius: 20px;
+	padding: 10px;
+	height: fit-content;
+	width: fit-content;
+
+	border: none;
+	cursor: default;
+
+	a {
+		cursor: default;
+		padding: 0;
+		margin: 0;
+	}
+
+	text-decoration: none;
+	&:focus,
+	&:hover,
+	&:visited,
+	&:link,
+	&:active {
+		text-decoration: none;
+	}
+
+	filter: brightness(100%);
+
+	:hover {
+		filter: brightness(85%);
+	}
+
+	:focus {
+		outline: 0;
+	}
+`;
