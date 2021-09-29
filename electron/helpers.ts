@@ -62,10 +62,7 @@ export function calculateNextReminderAt(
 	// frequency until the reminder time is after right now, or we reach the end of the window.
 	let reminderMinutes = getDayMinutes(reminderAt);
 	const nowMinutes = getDayMinutes(new Date());
-	while (
-		reminderMinutes <= nowMinutes ||
-		reminderMinutes > 60 * habit.end_time
-	) {
+	while (reminderMinutes <= Math.min(nowMinutes, habit.end_time)) {
 		reminderMinutes += habit.frequency;
 	}
 	reminderAt.setHours(reminderMinutes / 60, reminderMinutes % 60);
