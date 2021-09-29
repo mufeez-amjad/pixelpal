@@ -3,7 +3,7 @@ import styled from 'styled-components';
 const { ipcRenderer } = window.require('electron');
 
 import { IoCheckmarkSharp, IoTimerOutline } from 'react-icons/io5';
-import wavingGif from './waving.gif';
+import wave from './wave.gif';
 
 import { StyledButton, ButtonGroup } from './styles';
 
@@ -49,7 +49,7 @@ function Notification() {
 					</StyledButton>
 				</ButtonGroup>
 			</Content>
-			<Character style={{ width: 90, height: 80 }} src={wavingGif} />
+			<Character style={{ width: 120, height: 120 }} src={wave} />
 		</Container>
 	);
 }

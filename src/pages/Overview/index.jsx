@@ -9,7 +9,7 @@ import { IoMenu } from 'react-icons/io5';
 import { ImPencil } from 'react-icons/im';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 
-import walking from './walking.gif';
+import stand from './stand.gif';
 import Habit from './Habit';
 import Banner from './Banner';
 
@@ -66,7 +66,7 @@ function Overview() {
 					<div>Completed</div>
 				</Summary>
 				<Character>
-					<img style={{ width: 400, height: 200 }} src={walking} />
+					<img style={{ width: 240, height: 240 }} src={stand} />
 				</Character>
 			</Top>
 			<Bottom>
