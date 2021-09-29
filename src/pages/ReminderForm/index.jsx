@@ -31,6 +31,7 @@ function ReminderForm() {
 	});
 
 	const frequencyLabels = [
+		'1 minute',
 		'5 minutes',
 		'10 minutes',
 		'30 minutes',
@@ -52,7 +53,7 @@ function ReminderForm() {
 		Su: 'U'
 	};
 
-	const frequencies = [5, 10, 30, 60, 120, 240, 360, 720, 1440];
+	const frequencies = [1, 5, 10, 30, 60, 120, 240, 360, 720, 1440];
 
 	const renderLabel = val => {
 		return val > 9 ? `${val}:00` : `0${val}:00`;
@@ -96,7 +97,7 @@ function ReminderForm() {
 	};
 
 	return (
-		<div style={{ padding: '1em', width: '460px' }}>
+		<div style={{ padding: '2em', width: '460px' }}>
 			<div
 				style={{
 					display: 'flex',
@@ -174,7 +175,7 @@ function ReminderForm() {
 				<Slider
 					id="habit-frequency"
 					min={0}
-					max={8}
+					max={9}
 					stepSize={1}
 					labelValues={frequencyLabels}
 					value={frequencyState}

@@ -109,6 +109,7 @@ ipcMain.handle('deleteHabit', async (event, habitId) => {
 ipcMain.handle('notification', async (event, action) => {
 	notificationWindow.hide();
 	await db.createHabitEvent(action.status, action.habit_id);
+	await window.webContents.send('overview:update-habit-counts');
 });
 
 ipcMain.handle('getSurvey', async (event, surveyId) => {
