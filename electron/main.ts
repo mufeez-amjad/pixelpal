@@ -1,8 +1,10 @@
-import { app, screen, ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
 import path from 'path';
+
+import { getCurrentDisplay } from './util';
 
 const dbFile = app.isPackaged
 	? path.join(app.getPath('userData'), 'pixelpal.db')
@@ -33,11 +35,11 @@ async function init() {
 	tray = new AppTray();
 	window = new AppWindow({ tray, autoHide: true });
 
-	const screenBounds = screen.getPrimaryDisplay().size;
+	const screenBounds = getCurrentDisplay().bounds;
 
 	let width = 300;
 	notificationWindow = new AppWindow({
-		position: { x: screenBounds.width + width, y: 0 },
+		position: { x: screenBounds.width + screenBounds.x - width, y: 0 },
 		transparent: true,
 		dimensions: { width, height: 150 },
 		path: 'notification'
