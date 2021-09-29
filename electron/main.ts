@@ -85,6 +85,21 @@ ipcMain.handle('notification', (event, action) => {
 	}
 });
 
+ipcMain.handle('getSurvey', async (event, surveyId) => {
+	const survey = db.getSurvey(surveyId);
+	return survey;
+});
+
+ipcMain.handle('insertSurvey', async (event, surveyId) => {
+	await db.insertSurvey(surveyId);
+	console.log('inserted survey');
+});
+
+ipcMain.handle('completeSurvey', async (event, surveyId) => {
+	await db.completeSurvey(surveyId);
+	console.log('completed survey');
+});
+
 app.whenReady().then(() => {
 	init();
 	if (app.dock) {
