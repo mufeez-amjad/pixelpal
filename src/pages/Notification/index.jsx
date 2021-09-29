@@ -5,7 +5,7 @@ const { ipcRenderer } = window.require('electron');
 import { IoCheckmarkSharp, IoTimerOutline } from 'react-icons/io5';
 import wave from './wave_crop.gif';
 import popup from './pop_up_crop.gif';
-import celebrateImg from './celebrate_noloop.gif';
+import celebrateImg from './celebrate.gif';
 
 import { StyledButton, ButtonGroup } from './styles';
 
@@ -30,7 +30,7 @@ function Notification() {
 			setTimeout(() => {
 				setCelebrate(false);
 				ipcRenderer.invoke('notification', action);
-			}, 1000);
+			}, 2000);
 		} else {
 			ipcRenderer.invoke('notification', action);
 		}
