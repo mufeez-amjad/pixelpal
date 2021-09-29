@@ -78,7 +78,7 @@ function Overview() {
 		<Container>
 			<Top>
 				<BannerContainer>
-					{!completedMP1Survey && total >= { mp1SurveyThreshold } ? (
+					{!completedMP1Survey && total >= mp1SurveyThreshold ? (
 						<SurveyBanner />
 					) : (
 						banner && <Banner banner={banner} />

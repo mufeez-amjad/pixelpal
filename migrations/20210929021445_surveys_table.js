@@ -4,3 +4,5 @@ exports.up = function (knex) {
 		table.boolean('completed').notNullable();
 	});
 };
+
+exports.down = function () {};
