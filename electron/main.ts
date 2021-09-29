@@ -76,11 +76,18 @@ ipcMain.handle('getHabitEventCountsForDay', async (event, day) => {
 		const total = minutes / h.frequency;
 
 		// ugly mvp code
-		const completed = eventCounts.find(e => e.type == 'completed');
-		const missed = eventCounts.find(e => e.type == 'missed');
-		const triggered = eventCounts.find(e => e.type == 'triggered');
+		const completed = eventCounts.find(
+			e => e.type == 'completed' && e.habit_id == h.id
+		);
+		const missed = eventCounts.find(
+			e => e.type == 'missed' && e.habit_id == h.id
+		);
+		const triggered = eventCounts.find(
+			e => e.type == 'triggered' && e.habit_id == h.id
+		);
 
 		return {
+			habit_id: h.id,
 			total: total,
 			completed: completed ? completed.num_events : 0,
 			missed: missed ? missed.num_events : 0,
