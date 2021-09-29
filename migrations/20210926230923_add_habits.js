@@ -6,7 +6,7 @@ exports.up = function (knex) {
 		table.string('days', 7).notNullable();
 		table.int('start_time').notNullable();
 		table.int('end_time').notNullable();
-		table.string('last_completed_at', 255);
+		table.int('last_completed_at');
 	});
 };
 

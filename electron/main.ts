@@ -64,24 +64,44 @@ ipcMain.handle('getHabits', async event => {
 
 ipcMain.handle('getHabitsForDay', async (event, day) => {
 	const habits = await db.getAllHabits(day);
-	console.log(habits);
 	return habits;
+});
+
+ipcMain.handle('getHabitEventCountsForDay', async (event, day) => {
+	const habits = await db.getAllHabits(day);
+	const eventCounts = await db.getHabitEventCountsForDay();
+
+	const counts = habits.map(h => {
+		const minutes = (h.end_time - h.start_time) * 60;
+		const total = minutes / h.frequency;
+
+		// ugly mvp code
+		const completed = eventCounts.find(e => e.type == 'completed');
+		const missed = eventCounts.find(e => e.type == 'missed');
+		const triggered = eventCounts.find(e => e.type == 'triggered');
+
+		return {
+			total: total,
+			completed: completed ? completed.num_events : 0,
+			missed: missed ? missed.num_events : 0,
+			triggered: triggered ? triggered.num_events : 0
+		};
+	});
+
+	return counts;
 });
 
 ipcMain.handle('insertHabit', async (event, habit) => {
 	await db.insertHabit(habit);
-	console.log('inserted habit ' + habit);
 });
 
 ipcMain.handle('deleteHabit', async (event, habitId) => {
 	await db.deleteHabit(habitId);
 });
 
-ipcMain.handle('notification', (event, action) => {
+ipcMain.handle('notification', async (event, action) => {
 	notificationWindow.hide();
-	if (action == 'done') {
-		// store completion
-	}
+	await db.createHabitEvent(action.status, action.habit_id);
 });
 
 ipcMain.handle('getSurvey', async (event, surveyId) => {

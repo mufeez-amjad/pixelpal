@@ -6,8 +6,8 @@ exports.up = function (knex) {
 			.references('id')
 			.inTable('habits')
 			.onDelete('cascade');
-		table.string('timestamp', 255);
-		table.enu('type', ['completed', 'triggered', 'missed']);
+		table.int('timestamp').notNullable();
+		table.enu('type', ['completed', 'triggered', 'missed']).notNullable();
 		table.primary(['habit_id', 'timestamp']);
 		table.index(['timestamp'], 'ix_timestamp');
 	});

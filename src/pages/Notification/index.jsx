@@ -10,13 +10,13 @@ import celebrateImg from './celebrate.gif';
 import { StyledButton, ButtonGroup } from './styles';
 
 function Notification() {
-	const [body, setBody] = useState();
+	const [body, setBody] = useState({ name: '' });
 	const [popUp, setPopUp] = useState(true);
 	const [celebrate, setCelebrate] = useState(false);
 
 	ipcRenderer.on('notification', (event, habit) => {
 		console.log('hello');
-		setBody(habit.name);
+		setBody({ name: habit.name, id: habit.id });
 		setPopUp(true);
 		setTimeout(() => {
 			setPopUp(false);
@@ -40,7 +40,7 @@ function Notification() {
 		<Container>
 			{!celebrate && (
 				<Content>
-					<SpeechBubble>Hey, it's time to {body}!</SpeechBubble>
+					<SpeechBubble>Hey, it's time to {body.name}!</SpeechBubble>
 					<ButtonGroup>
 						<StyledButton
 							color="#4BB543"
@@ -50,7 +50,12 @@ function Notification() {
 								alignItems: 'center',
 								justifyContent: 'center'
 							}}
-							onClick={() => respond('done')}
+							onClick={() =>
+								respond({
+									status: 'completed',
+									habit_id: body.id
+								})
+							}
 						>
 							<IoCheckmarkSharp />
 							<span style={{ marginLeft: 5 }}>Done</span>
@@ -65,7 +70,9 @@ function Notification() {
 								justifyContent: 'center',
 								padding: 5
 							}}
-							onClick={() => respond('dismiss')}
+							onClick={() =>
+								respond({ status: 'missed', habit_id: body.id })
+							}
 						>
 							<IoTimerOutline />
 							<span style={{ marginLeft: 5 }}>Dismiss</span>

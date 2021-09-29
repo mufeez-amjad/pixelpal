@@ -52,6 +52,7 @@ export class SchedulerService {
 		);
 
 		notifWindow.webContents.send('notification', habit);
+		await db.createHabitEvent('triggered', habit.id);
 		notifWindow.showInactive();
 	}
 }

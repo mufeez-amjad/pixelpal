@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 import { calculateNextReminderAt } from '../../helpers';
-import { CreateHabitRequest, Habit } from '../../types';
+import { CreateHabitRequest, Habit, HabitEventCounts } from '../../types';
 
 class DatabaseService {
 	knex: Knex;
@@ -15,6 +15,28 @@ class DatabaseService {
 			query = query.where('days', 'like', `%${day}%`);
 		}
 		return query;
+	}
+
+	getHabitEventCountsForDay(
+		targetDateMillis: number = Date.now()
+	): Promise<Array<HabitEventCounts>> {
+		const targetDate = `date(${
+			targetDateMillis / 1000
+		}, 'unixepoch', 'start of day')`;
+
+		return this.knex
+			.select(
+				'habit_id',
+				'type',
+				this.knex.raw('count() as `num_events`')
+			)
+			.table('habit_events')
+			.where(
+				this.knex.raw('date(timestamp/1000, \'unixepoch\')'),
+				'=',
+				this.knex.raw(targetDate)
+			)
+			.groupBy('habit_id', 'type');
 	}
 
 	// TODO: use ORM :)?
@@ -59,6 +81,14 @@ class DatabaseService {
 		return this.knex('surveys')
 			.where('survey_id', surveyId)
 			.update({ completed: true });
+	}
+
+	createHabitEvent(type: string, habitId: number): Promise<Array<object>> {
+		return this.knex('habit_events').insert({
+			habit_id: habitId,
+			type: type,
+			timestamp: Date.now()
+		});
 	}
 }
 
