@@ -128,6 +128,7 @@ ipcMain.handle('completeSurvey', async (event, surveyId) => {
 
 app.whenReady().then(() => {
 	init();
+
 	if (app.dock) {
 		app.dock.hide();
 	}

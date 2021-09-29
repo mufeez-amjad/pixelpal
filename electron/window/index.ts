@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray } from 'electron';
+import { BrowserWindow, Tray } from 'electron';
 import { Display } from 'electron/main';
 import path from 'path';
 
@@ -59,12 +59,13 @@ class AppWindow extends BrowserWindow {
 	}
 
 	setURL = (urlPath?: string) => {
+		const t = true;
 		if (urlPath) {
 			this.loadURL(`http://localhost:3000/${urlPath}`);
 		} else {
 			this.loadURL(
-				app.isPackaged
-					? `file://${path.join(__dirname, '../build/index.html')}`
+				t
+					? `file://${path.join(__dirname, '../../build/index.html')}`
 					: 'http://localhost:3000'
 			);
 		}

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { HashRouter, Route, Switch } from 'react-router-dom';
 
 import Overview from './pages/Overview';
 import ReminderForm from './pages/ReminderForm';
@@ -13,13 +13,13 @@ import '@blueprintjs/core/lib/css/blueprint.css';
 import './index.css';
 
 ReactDOM.render(
-	<BrowserRouter>
+	<HashRouter>
 		<Switch>
 			<Route exact path="/" component={Overview} />
 			<Route exact path="/reminderform" component={ReminderForm} />
 			<Route exact path="/notification" component={Notification} />
 			<Route exact path="/survey" component={Survey} />
 		</Switch>
-	</BrowserRouter>,
+	</HashRouter>,
 	document.getElementById('root')
 );
