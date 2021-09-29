@@ -20,7 +20,15 @@ function ReminderForm() {
 	const [timeSliderState, setTimeSliderState] = useState([6, 18]);
 	const [nameState, setNameState] = useState({ target: { value: '' } });
 	const [frequencyState, setFrequencyState] = useState(3);
-	const [daysState, setDaysState] = useState({});
+	const [daysState, setDaysState] = useState({
+		Mo: true,
+		Tu: true,
+		We: true,
+		Th: true,
+		Fr: true,
+		Sa: true,
+		Su: true
+	});
 
 	const frequencyLabels = [
 		'5 minutes',
@@ -43,6 +51,7 @@ function ReminderForm() {
 		Sa: 'S',
 		Su: 'U'
 	};
+
 	const frequencies = [5, 10, 30, 60, 120, 240, 360, 720, 1440];
 
 	const renderLabel = val => {
@@ -131,48 +140,20 @@ function ReminderForm() {
 					style={{ marginLeft: '20px' }}
 				>
 					<ButtonGroup minimal={true}>
-						<Button
-							active={daysState.Mo}
-							onClick={handleDaysButtonClick}
-						>
-							Mo
-						</Button>
-						<Button
-							active={daysState.Tu}
-							onClick={handleDaysButtonClick}
-						>
-							Tu
-						</Button>
-						<Button
-							active={daysState.We}
-							onClick={handleDaysButtonClick}
-						>
-							We
-						</Button>
-						<Button
-							active={daysState.Th}
-							onClick={handleDaysButtonClick}
-						>
-							Th
-						</Button>
-						<Button
-							active={daysState.Fr}
-							onClick={handleDaysButtonClick}
-						>
-							Fr
-						</Button>
-						<Button
-							active={daysState.Sa}
-							onClick={handleDaysButtonClick}
-						>
-							Sa
-						</Button>
-						<Button
-							active={daysState.Su}
-							onClick={handleDaysButtonClick}
-						>
-							Su
-						</Button>
+						{Object.keys(daysState).map(day => (
+							<Button
+								key={day}
+								active={daysState[day]}
+								style={{
+									borderRadius: '50%',
+									marginRight: 5,
+									width: 10
+								}}
+								onClick={handleDaysButtonClick}
+							>
+								{day}
+							</Button>
+						))}
 					</ButtonGroup>
 				</FormGroup>
 			</div>
