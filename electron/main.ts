@@ -78,9 +78,10 @@ ipcMain.handle('deleteHabit', async (event, habitId) => {
 	await db.deleteHabit(habitId);
 });
 
-ipcMain.handle('close-window', (event, arg) => {
-	if (arg == 'notification') {
-		notificationWindow.close();
+ipcMain.handle('notification', (event, action) => {
+	notificationWindow.hide();
+	if (action == 'done') {
+		// store completion
 	}
 });
 

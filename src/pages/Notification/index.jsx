@@ -14,10 +14,14 @@ function Notification() {
 		setBody(habit.name);
 	});
 
+	const respond = action => {
+		ipcRenderer.invoke('notification', action);
+	};
+
 	return (
 		<Container>
 			<Content>
-				<SpeechBubble>{body}</SpeechBubble>
+				<SpeechBubble>Hey, it's time to {body}!</SpeechBubble>
 				<ButtonGroup>
 					<StyledButton
 						color="#4BB543"
@@ -27,9 +31,7 @@ function Notification() {
 							alignItems: 'center',
 							justifyContent: 'center'
 						}}
-						onClick={() =>
-							ipcRenderer.invoke('close-window', 'notification')
-						}
+						onClick={() => respond('done')}
 					>
 						<IoCheckmarkSharp />
 						<span style={{ marginLeft: 5 }}>Done</span>
@@ -41,11 +43,13 @@ function Notification() {
 							flex: 3,
 							display: 'flex',
 							alignItems: 'center',
-							justifyContent: 'center'
+							justifyContent: 'center',
+							padding: 5
 						}}
+						onClick={() => respond('dismiss')}
 					>
 						<IoTimerOutline />
-						<span style={{ marginLeft: 5 }}>Snooze</span>
+						<span style={{ marginLeft: 5 }}>Dismiss</span>
 					</StyledButton>
 				</ButtonGroup>
 			</Content>
@@ -58,6 +62,7 @@ const Content = styled.div`
 	display: none;
 	flex-direction: column;
 	padding: 5px;
+	width: 200px;
 `;
 
 const Container = styled.div`

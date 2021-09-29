@@ -69,7 +69,7 @@ function Overview() {
 					<img style={{ width: 240, height: 240 }} src={stand} />
 				</Character>
 			</Top>
-			<Bottom>
+			<Bottom className="scroll-view">
 				<SectionHeader>
 					<span style={{ marginLeft: 10 }}>Today's Habits</span>
 					<HeaderButtons>
@@ -93,7 +93,7 @@ function Overview() {
 						</Link>
 					</HeaderButtons>
 				</SectionHeader>
-				<Habits>
+				<Habits className="scroll-view">
 					{habits.length != 0 ? (
 						habits.map((habit, i) => (
 							<div
