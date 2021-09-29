@@ -3,57 +3,86 @@ import styled from 'styled-components';
 const { ipcRenderer } = window.require('electron');
 
 import { IoCheckmarkSharp, IoTimerOutline } from 'react-icons/io5';
-import wave from './wave.gif';
+import wave from './wave_crop.gif';
+import popup from './pop_up_crop.gif';
+import celebrateImg from './celebrate.gif';
 
 import { StyledButton, ButtonGroup } from './styles';
 
 function Notification() {
 	const [body, setBody] = useState();
+	const [popUp, setPopUp] = useState(true);
+	const [celebrate, setCelebrate] = useState(false);
 
 	ipcRenderer.on('notification', (event, habit) => {
+		console.log('hello');
 		setBody(habit.name);
+		setPopUp(true);
+		setTimeout(() => {
+			setPopUp(false);
+			console.log('wave');
+		}, 1000);
 	});
 
 	const respond = action => {
-		ipcRenderer.invoke('notification', action);
+		if (action == 'done') {
+			setCelebrate(true);
+			setTimeout(() => {
+				setCelebrate(false);
+				ipcRenderer.invoke('notification', action);
+			}, 2000);
+		} else {
+			ipcRenderer.invoke('notification', action);
+		}
 	};
 
 	return (
 		<Container>
-			<Content>
-				<SpeechBubble>Hey, it's time to {body}!</SpeechBubble>
-				<ButtonGroup>
-					<StyledButton
-						color="#4BB543"
-						style={{
-							flex: 4,
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center'
-						}}
-						onClick={() => respond('done')}
-					>
-						<IoCheckmarkSharp />
-						<span style={{ marginLeft: 5 }}>Done</span>
-					</StyledButton>
-					<StyledButton
-						color="#808080"
-						fontColor="white"
-						style={{
-							flex: 3,
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							padding: 5
-						}}
-						onClick={() => respond('dismiss')}
-					>
-						<IoTimerOutline />
-						<span style={{ marginLeft: 5 }}>Dismiss</span>
-					</StyledButton>
-				</ButtonGroup>
-			</Content>
-			<Character style={{ width: 120, height: 120 }} src={wave} />
+			{!celebrate && (
+				<Content>
+					<SpeechBubble>Hey, it's time to {body}!</SpeechBubble>
+					<ButtonGroup>
+						<StyledButton
+							color="#4BB543"
+							style={{
+								flex: 4,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center'
+							}}
+							onClick={() => respond('done')}
+						>
+							<IoCheckmarkSharp />
+							<span style={{ marginLeft: 5 }}>Done</span>
+						</StyledButton>
+						<StyledButton
+							color="#808080"
+							fontColor="white"
+							style={{
+								flex: 3,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								padding: 5
+							}}
+							onClick={() => respond('dismiss')}
+						>
+							<IoTimerOutline />
+							<span style={{ marginLeft: 5 }}>Dismiss</span>
+						</StyledButton>
+					</ButtonGroup>
+				</Content>
+			)}
+			{popUp ? (
+				<Character style={{ width: 70, height: 90 }} src={popup} />
+			) : celebrate ? (
+				<Character
+					style={{ width: 120, height: 120 }}
+					src={celebrateImg}
+				/>
+			) : (
+				<Character style={{ width: 70, height: 90 }} src={wave} />
+			)}
 		</Container>
 	);
 }

@@ -52,6 +52,6 @@ export class SchedulerService {
 		);
 
 		notifWindow.webContents.send('notification', habit);
-		notifWindow.show();
+		notifWindow.showInactive();
 	}
 }

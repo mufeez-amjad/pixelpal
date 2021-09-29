@@ -48,6 +48,7 @@ async function init() {
 	});
 
 	notificationWindow.show();
+
 	db = new DatabaseService(knex);
 
 	const dbDir = path.dirname(dbFile);
