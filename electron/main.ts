@@ -1,10 +1,13 @@
 import { app, ipcMain } from 'electron';
+import Mixpanel from 'mixpanel';
+import path from 'path';
+
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
-import path from 'path';
 import { SchedulerService } from './services/scheduler/SchedulerService';
 
+const mixpanel = Mixpanel.init('e4914acb2794ddaa0478bfd6ec81064a');
 import { getCurrentDisplay } from './util';
 
 const dbFile = app.isPackaged
@@ -59,6 +62,13 @@ async function init() {
 
 	schedulerSrv = new SchedulerService(db, notificationWindow);
 	schedulerSrv.start();
+
+	tray.on('click', () => {
+		mixpanel.track('Open window', {
+			source: 'Tray click',
+			distinct_id: require('os').userInfo().username
+		});
+	});
 }
 
 ipcMain.handle('getHabits', async event => {
