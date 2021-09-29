@@ -48,6 +48,7 @@ async function init() {
 	});
 
 	notificationWindow.show();
+	notificationWindow.webContents.send('notification', { name: 'bob' });
 	db = new DatabaseService(knex);
 
 	const dbDir = path.dirname(dbFile);
