@@ -37,10 +37,20 @@ function Overview() {
 			'getHabitsForDay',
 			getCurrentDay()
 		);
+
+		let habitEventCounts = await ipcRenderer.invoke(
+			'getHabitEventCountsForDay',
+			getCurrentDay()
+		);
+
 		rawHabits.map(rh => {
-			rh['done'] = 5;
-			rh['total'] = 6;
+			// todo: replace with non ugly code
+			rh['done'] = habitEventCounts.find(
+				e => e.habit_id == rh.id
+			).completed;
+			rh['total'] = habitEventCounts.find(e => e.habit_id == rh.id).total;
 		});
+
 		setHabits(rawHabits);
 	}, []);
 
