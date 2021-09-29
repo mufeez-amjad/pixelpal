@@ -15,3 +15,9 @@ export interface Habit {
 	days: string;
 	reminder_at: number;
 }
+
+export interface HabitEventCounts {
+	habit_id: number;
+	type: string;
+	num_events: number;
+}

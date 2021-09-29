@@ -32,6 +32,11 @@ function Overview() {
 		return days[dayOfWeek];
 	};
 
+	console.log('habit counts: ');
+	console.log(
+		ipcRenderer.invoke('getHabitEventCountsForDay', getCurrentDay())
+	);
+
 	React.useEffect(async () => {
 		let rawHabits = await ipcRenderer.invoke(
 			'getHabitsForDay',
