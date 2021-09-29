@@ -26,7 +26,6 @@ function Overview() {
 
 	const [isEditing, setIsEditing] = React.useState(false);
 
-
 	const getCurrentDay = () => {
 		const dayOfWeek = new Date().getDay();
 		const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S'];
@@ -44,8 +43,8 @@ function Overview() {
 		});
 		setHabits(rawHabits);
 	}, []);
-  
-  React.useEffect(async () => {
+
+	React.useEffect(async () => {
 		let getUserSurvey = await ipcRenderer.invoke(
 			'getSurvey',
 			mp1UserSurvey
@@ -79,12 +78,11 @@ function Overview() {
 		<Container>
 			<Top>
 				<BannerContainer>
-					{!completedMP1Survey &&
-					total >= { mp1SurveyThreshold } ? (
-							<SurveyBanner />
-						) : (
-							banner && <Banner banner={banner} />
-						)}
+					{!completedMP1Survey && total >= { mp1SurveyThreshold } ? (
+						<SurveyBanner />
+					) : (
+						banner && <Banner banner={banner} />
+					)}
 				</BannerContainer>
 				<MenuButton>
 					<IoMenu style={{ display: 'block' }} />
