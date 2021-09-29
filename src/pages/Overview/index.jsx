@@ -84,6 +84,28 @@ function Overview() {
 		setHabits(nextHabits);
 	};
 
+	ipcRenderer.on('overview:update-habit-counts', async () => {
+		let rawHabits = await ipcRenderer.invoke(
+			'getHabitsForDay',
+			getCurrentDay()
+		);
+
+		let habitEventCounts = await ipcRenderer.invoke(
+			'getHabitEventCountsForDay',
+			getCurrentDay()
+		);
+
+		rawHabits.map(rh => {
+			// todo: replace with non ugly code
+			rh['done'] = habitEventCounts.find(
+				e => e.habit_id == rh.id
+			).completed;
+			rh['total'] = habitEventCounts.find(e => e.habit_id == rh.id).total;
+		});
+
+		setHabits(rawHabits);
+	});
+
 	return (
 		<Container>
 			<Top>
