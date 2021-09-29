@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 const { ipcRenderer } = window.require('electron');
 
@@ -8,12 +8,16 @@ import wavingGif from './waving.gif';
 import { StyledButton, ButtonGroup } from './styles';
 
 function Notification() {
+	const [body, setBody] = useState();
+
+	ipcRenderer.on('notification', (event, habit) => {
+		setBody(habit.name);
+	});
+
 	return (
 		<Container>
 			<Content>
-				<SpeechBubble>
-					Hey Mufeez, it's time to drink some water!
-				</SpeechBubble>
+				<SpeechBubble>{body}</SpeechBubble>
 				<ButtonGroup>
 					<StyledButton
 						color="#4BB543"

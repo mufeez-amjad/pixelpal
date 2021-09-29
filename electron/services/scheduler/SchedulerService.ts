@@ -36,6 +36,7 @@ export class SchedulerService {
 		let habit = await db.getNextPendingNotification();
 		if (!habit) return;
 
+		const original_reminder_at = habit.reminder_at;
 		habit.reminder_at = calculateNextReminderAt(habit, habit.reminder_at);
 
 		const rowsUpdated = await db.updateReminderAt(
@@ -44,8 +45,13 @@ export class SchedulerService {
 		);
 		if (rowsUpdated == 0) return;
 
-		console.log(`Habit ${habit.name} reminder!`);
+		console.log(
+			`Habit ${habit.name} reminder, ${new Date(
+				original_reminder_at
+			).toISOString()} -> ${new Date(habit.reminder_at).toISOString()}!`
+		);
 
+		notifWindow.webContents.send('notification', habit);
 		notifWindow.show();
 	}
 }
