@@ -3,6 +3,7 @@ import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
 import path from 'path';
+import { SchedulerService } from './services/scheduler/SchedulerService';
 
 import { getCurrentDisplay } from './util';
 
@@ -28,6 +29,7 @@ require('@electron/remote/main').initialize();
 let window: AppWindow;
 let tray: AppTray;
 let db: DatabaseService;
+let schedulerSrv: SchedulerService;
 let notificationWindow: AppWindow;
 /* eslint-disable no-unused-vars */
 
@@ -51,6 +53,9 @@ async function init() {
 	const dbDir = path.dirname(dbFile);
 	if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 	await knex.migrate.latest();
+
+	schedulerSrv = new SchedulerService(db, notificationWindow);
+	schedulerSrv.start();
 }
 
 ipcMain.handle('getHabits', async event => {
