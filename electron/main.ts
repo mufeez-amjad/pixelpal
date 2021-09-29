@@ -65,24 +65,20 @@ ipcMain.handle('getHabits', async event => {
 
 ipcMain.handle('getHabitsForDay', async (event, day) => {
 	const habits = await db.getAllHabits(day);
-	console.log(habits);
 	return habits;
 });
 
 ipcMain.handle('insertHabit', async (event, habit) => {
 	await db.insertHabit(habit);
-	console.log('inserted habit ' + habit);
 });
 
 ipcMain.handle('deleteHabit', async (event, habitId) => {
 	await db.deleteHabit(habitId);
 });
 
-ipcMain.handle('notification', (event, action) => {
+ipcMain.handle('notification', async (event, action) => {
 	notificationWindow.hide();
-	if (action == 'done') {
-		// store completion
-	}
+	await db.createHabitEvent(action.status, action.habit_id);
 });
 
 ipcMain.handle('getSurvey', async (event, surveyId) => {

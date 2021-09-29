@@ -1,6 +1,7 @@
 import { Knex } from 'knex';
 import { calculateNextReminderAt } from '../../helpers';
 import { CreateHabitRequest, Habit } from '../../types';
+const moment = require('moment');
 
 class DatabaseService {
 	knex: Knex;
@@ -59,6 +60,14 @@ class DatabaseService {
 		return this.knex('surveys')
 			.where('survey_id', surveyId)
 			.update({ completed: true });
+	}
+
+	createHabitEvent(type: string, habitId: number): Promise<Array<object>> {
+		return this.knex('habit_events').insert({
+			habit_id: habitId,
+			type: type,
+			timestamp: moment().toISOString()
+		});
 	}
 }
 
