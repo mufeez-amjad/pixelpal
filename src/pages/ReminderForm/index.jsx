@@ -74,8 +74,8 @@ function ReminderForm() {
 	const submitHabit = () => {
 		const habit = {
 			name: nameState.target.value,
-			startTime: timeSliderState[0],
-			endTime: timeSliderState[1],
+			start_time: timeSliderState[0],
+			end_time: timeSliderState[1],
 			frequency: frequencies[frequencyState],
 			days: buildDayString()
 		};
