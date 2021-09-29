@@ -6,10 +6,10 @@ exports.up = function (knex) {
 			.references('id')
 			.inTable('habits')
 			.onDelete('cascade');
-		table.string('completed_at', 255);
+		table.string('timestamp', 255);
 		table.enu('type', ['completed', 'triggered', 'missed']);
-		table.primary(['habit_id', 'completed_at']);
-		table.index(['completed_at'], 'ix_completed_at');
+		table.primary(['habit_id', 'timestamp']);
+		table.index(['timestamp'], 'ix_timestamp');
 	});
 };
 
