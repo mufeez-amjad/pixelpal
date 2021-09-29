@@ -61,6 +61,7 @@ const Habit = ({ habit }) => {
 };
 
 const Container = styled.div`
+	flex-grow: 1;
 	border-radius: 15px;
 	background-color: white;
 	width: 90%;
@@ -68,7 +69,10 @@ const Container = styled.div`
 	display: flex;
 	align-items: center;
 	padding: 15px;
-	margin: 5px;
+	margin-right: 10px;
+	margin-left: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
 	justify-content: space-between;
 `;
 

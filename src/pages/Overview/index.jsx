@@ -6,6 +6,8 @@ const { ipcRenderer } = window.require('electron');
 
 import { FaPlus } from 'react-icons/fa';
 import { IoMenu } from 'react-icons/io5';
+import { ImPencil } from 'react-icons/im';
+import { IoCloseCircleOutline } from 'react-icons/io5';
 
 import walking from './walking.gif';
 import Habit from './Habit';
@@ -14,6 +16,9 @@ import Banner from './Banner';
 function Overview() {
 	const [habits, setHabits] = React.useState([]);
 	const [banner] = React.useState(null);
+	const [total, setTotal] = React.useState();
+
+	const [isEditing, setIsEditing] = React.useState(false);
 
 	const getCurrentDay = () => {
 		const dayOfWeek = new Date().getDay();
@@ -33,11 +38,16 @@ function Overview() {
 		setHabits(rawHabits);
 	}, []);
 
-	// const handleDelete = id => {
-	// 	ipcRenderer.invoke('deleteHabit', id);
-	// 	const nextHabits = habits.filter(h => h.id != id);
-	// 	setHabits(nextHabits);
-	// };
+	React.useEffect(() => {
+		const nextTotal = habits.reduce((s, h) => s + h.done, 0);
+		setTotal(nextTotal);
+	}, [habits]);
+
+	const handleDelete = id => {
+		ipcRenderer.invoke('deleteHabit', id);
+		const nextHabits = habits.filter(h => h.id != id);
+		setHabits(nextHabits);
+	};
 
 	return (
 		<Container>
@@ -46,12 +56,12 @@ function Overview() {
 					{banner && <Banner banner={banner} />}
 				</BannerContainer>
 				<MenuButton>
-					<IoMenu />
+					<IoMenu style={{ display: 'block' }} />
 				</MenuButton>
 				<Summary>
 					<div style={{ fontSize: '12px' }}>Today:</div>
 					<div style={{ fontWeight: '700', fontSize: '20px' }}>
-						12
+						{total}
 					</div>
 					<div>Completed</div>
 				</Summary>
@@ -63,21 +73,56 @@ function Overview() {
 				<SectionHeader>
 					<span style={{ marginLeft: 10 }}>Today's Habits</span>
 					<HeaderButtons>
-						<CircleButton>
-							<Link to={'/reminderform'}>
+						<CircleButton
+							backgroundColor={isEditing ? '#d4d4d4' : 'white'}
+							style={{ marginRight: '5px' }}
+							onClick={() => setIsEditing(!isEditing)}
+						>
+							<ImPencil
+								color="black"
+								style={{ display: 'block' }}
+							/>
+						</CircleButton>
+						<Link to={'/reminderform'}>
+							<CircleButton>
 								<FaPlus
 									color="black"
 									style={{ display: 'block' }}
 								/>
-							</Link>
-						</CircleButton>
+							</CircleButton>
+						</Link>
 					</HeaderButtons>
 				</SectionHeader>
 				<Habits>
-					{habits.length &&
+					{habits.length != 0 ? (
 						habits.map((habit, i) => (
-							<Habit key={i} habit={habit} />
-						))}
+							<div
+								key={i}
+								style={{
+									display: 'flex',
+									width: '100%',
+									padding: 0,
+									margin: 0,
+									alignItems: 'center'
+								}}
+							>
+								<Habit key={i} habit={habit} />
+								{isEditing && (
+									<CircleButton
+										style={{ marginRight: '5px' }}
+										onClick={() => handleDelete(habit.id)}
+									>
+										<IoCloseCircleOutline
+											color="black"
+											style={{ display: 'block' }}
+										/>
+									</CircleButton>
+								)}
+							</div>
+						))
+					) : (
+						<div>You have no habits, create one!</div>
+					)}
 				</Habits>
 				{/* <Reminder addReminder={true} /> */}
 			</Bottom>
@@ -172,13 +217,16 @@ const SectionHeader = styled.div`
 `;
 
 const HeaderButtons = styled.div`
+	display: flex;
 	margin-right: 10px;
 `;
 
 const CircleButton = styled.div`
-	background-color: white;
+	background-color: ${({ backgroundColor }) =>
+		backgroundColor ? backgroundColor : 'white'};
 	border-radius: 20px;
 	padding: 10px;
+	height: fit-content;
 
 	border: none;
 	cursor: default;

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import Overview from './pages/Overview';
-import ReminderForm from './ReminderForm';
+import ReminderForm from './pages/ReminderForm';
 import Notification from './pages/Notification';
 
 import 'normalize.css';
