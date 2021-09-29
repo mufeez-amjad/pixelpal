@@ -50,6 +50,7 @@
 		"@blueprintjs/core": "^3.50.2",
 		"@electron/remote": "^1.0.2",
 		"@types/node": "^16.10.1",
+		"date-fns": "^2.24.0",
 		"knex": "^0.95.11",
 		"react": "^17.0.1",
 		"react-circular-progressbar": "^2.0.4",

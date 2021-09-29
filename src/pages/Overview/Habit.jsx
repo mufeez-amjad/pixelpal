@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { formatRelative } from 'date-fns';
 
 import {
 	CircularProgressbarWithChildren,
@@ -24,6 +25,22 @@ const Habit = ({ habit }) => {
 		}
 	};
 
+	const nextTime = React.useMemo(() => {
+		return formatRelative(new Date(habit.reminder_at), new Date());
+	}, [habit]);
+
+	const frequency = React.useMemo(() => {
+		if (habit.frequency < 60) {
+			return `${habit.frequency} minutes`;
+		} else {
+			let hours = habit.frequency / 60;
+			if (hours == 1) {
+				return `${hours} hour`;
+			}
+			return `${hours} hours`;
+		}
+	}, []);
+
 	return (
 		<Container>
 			<Progress>
@@ -47,7 +64,9 @@ const Habit = ({ habit }) => {
 			</Progress>
 			<HabitDetails>
 				<HabitTitle>{habit.name}</HabitTitle>
-				<HabitTime>Every hour - next at 6pm</HabitTime>
+				<HabitTime>
+					Every {frequency} - next {nextTime}
+				</HabitTime>
 			</HabitDetails>
 			<HabitCount>
 				<div>{habit.done}</div>

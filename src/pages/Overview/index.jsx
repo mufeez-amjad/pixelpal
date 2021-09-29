@@ -170,7 +170,7 @@ const Summary = styled.div`
 	top: 60px;
 	display: flex;
 	flex-direction: column;
-	background-color: #ece57a;
+	background-color: #fcaf4e;
 	border-radius: 0 10px 10px 0;
 	padding-right: 20px;
 	padding-left: 10px;
