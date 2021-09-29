@@ -29,6 +29,24 @@ class DatabaseService {
 	deleteHabit(id: number) {
 		return this.knex('habits').delete(id);
 	}
+
+	getSurvey(surveyId: string): Promise<Array<object>> {
+		// if id doesn't exist, create it
+		return this.knex.select().table('surveys').where('survey_id', surveyId);
+	}
+
+	insertSurvey(surveyId: string): Promise<Array<object>> {
+		return this.knex('surveys').insert({
+			survey_id: surveyId,
+			completed: false
+		});
+	}
+
+	completeSurvey(surveyId: string): Promise<Array<object>> {
+		return this.knex('surveys')
+			.where('survey_id', surveyId)
+			.update({ completed: true });
+	}
 }
 
 export default DatabaseService;

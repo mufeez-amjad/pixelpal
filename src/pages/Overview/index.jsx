@@ -10,10 +10,14 @@ import { IoMenu } from 'react-icons/io5';
 import walking from './walking.gif';
 import Habit from './Habit';
 import Banner from './Banner';
+import SurveyBanner from './SurveyBanner';
 
 function Overview() {
 	const [habits, setHabits] = React.useState([]);
 	const [banner] = React.useState(null);
+	const [completedMP1Survey, setCompletedMP1Survey] = React.useState(false);
+	const mp1UserSurvey = 'mp1_user_survey';
+	const mp1SurveyThreshold = 1;
 
 	const getCurrentDay = () => {
 		const dayOfWeek = new Date().getDay();
@@ -31,7 +35,20 @@ function Overview() {
 			rh['total'] = 6;
 		});
 		setHabits(rawHabits);
+
+		let getUserSurvey = await ipcRenderer.invoke(
+			'getSurvey',
+			mp1UserSurvey
+		);
+
+		if (getUserSurvey.length === 0) {
+			await ipcRenderer.invoke('insertSurvey', mp1UserSurvey);
+		} else if (getUserSurvey[0].completed) {
+			setCompletedMP1Survey(true);
+		}
 	}, []);
+
+	var completed = 12; // TODO: query this from db
 
 	// const handleDelete = id => {
 	// 	ipcRenderer.invoke('deleteHabit', id);
@@ -43,7 +60,12 @@ function Overview() {
 		<Container>
 			<Top>
 				<BannerContainer>
-					{banner && <Banner banner={banner} />}
+					{!completedMP1Survey &&
+					completed >= { mp1SurveyThreshold } ? (
+							<SurveyBanner />
+						) : (
+							banner && <Banner banner={banner} />
+						)}
 				</BannerContainer>
 				<MenuButton>
 					<IoMenu />
@@ -51,7 +73,7 @@ function Overview() {
 				<Summary>
 					<div style={{ fontSize: '12px' }}>Today:</div>
 					<div style={{ fontWeight: '700', fontSize: '20px' }}>
-						12
+						{completed}
 					</div>
 					<div>Completed</div>
 				</Summary>
