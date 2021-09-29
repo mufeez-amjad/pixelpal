@@ -12,10 +12,16 @@ import { IoCloseCircleOutline } from 'react-icons/io5';
 import stand from './stand.gif';
 import Habit from './Habit';
 import Banner from './Banner';
+import SurveyBanner from './SurveyBanner';
 
 function Overview() {
 	const [habits, setHabits] = React.useState([]);
 	const [banner] = React.useState(null);
+
+	const [completedMP1Survey, setCompletedMP1Survey] = React.useState(false);
+	const mp1UserSurvey = 'mp1_user_survey';
+	const mp1SurveyThreshold = 1;
+
 	const [total, setTotal] = React.useState();
 
 	const [isEditing, setIsEditing] = React.useState(false);
@@ -38,6 +44,25 @@ function Overview() {
 		setHabits(rawHabits);
 	}, []);
 
+	React.useEffect(async () => {
+		let getUserSurvey = await ipcRenderer.invoke(
+			'getSurvey',
+			mp1UserSurvey
+		);
+
+		if (getUserSurvey.length === 0) {
+			await ipcRenderer.invoke('insertSurvey', mp1UserSurvey);
+		} else if (getUserSurvey[0].completed) {
+			setCompletedMP1Survey(true);
+		}
+	}, []);
+
+	// const handleDelete = id => {
+	// 	ipcRenderer.invoke('deleteHabit', id);
+	// 	const nextHabits = habits.filter(h => h.id != id);
+	// 	setHabits(nextHabits);
+	// };
+
 	React.useEffect(() => {
 		const nextTotal = habits.reduce((s, h) => s + h.done, 0);
 		setTotal(nextTotal);
@@ -53,7 +78,11 @@ function Overview() {
 		<Container>
 			<Top>
 				<BannerContainer>
-					{banner && <Banner banner={banner} />}
+					{!completedMP1Survey && total >= { mp1SurveyThreshold } ? (
+						<SurveyBanner />
+					) : (
+						banner && <Banner banner={banner} />
+					)}
 				</BannerContainer>
 				<MenuButton>
 					<IoMenu style={{ display: 'block' }} />
