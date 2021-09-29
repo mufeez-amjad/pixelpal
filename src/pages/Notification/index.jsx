@@ -1,19 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 const { ipcRenderer } = window.require('electron');
 
 import { IoCheckmarkSharp, IoTimerOutline } from 'react-icons/io5';
-import wavingGif from './waving.gif';
+import wave from './wave.gif';
 
 import { StyledButton, ButtonGroup } from './styles';
 
 function Notification() {
+	const [body, setBody] = useState();
+
+	ipcRenderer.on('notification', (event, habit) => {
+		setBody(habit.name);
+	});
+
+	const respond = action => {
+		ipcRenderer.invoke('notification', action);
+	};
+
 	return (
 		<Container>
 			<Content>
-				<SpeechBubble>
-					Hey Mufeez, it's time to drink some water!
-				</SpeechBubble>
+				<SpeechBubble>Hey, it's time to {body}!</SpeechBubble>
 				<ButtonGroup>
 					<StyledButton
 						color="#4BB543"
@@ -23,9 +31,7 @@ function Notification() {
 							alignItems: 'center',
 							justifyContent: 'center'
 						}}
-						onClick={() =>
-							ipcRenderer.invoke('close-window', 'notification')
-						}
+						onClick={() => respond('done')}
 					>
 						<IoCheckmarkSharp />
 						<span style={{ marginLeft: 5 }}>Done</span>
@@ -37,15 +43,17 @@ function Notification() {
 							flex: 3,
 							display: 'flex',
 							alignItems: 'center',
-							justifyContent: 'center'
+							justifyContent: 'center',
+							padding: 5
 						}}
+						onClick={() => respond('dismiss')}
 					>
 						<IoTimerOutline />
-						<span style={{ marginLeft: 5 }}>Snooze</span>
+						<span style={{ marginLeft: 5 }}>Dismiss</span>
 					</StyledButton>
 				</ButtonGroup>
 			</Content>
-			<Character style={{ width: 90, height: 80 }} src={wavingGif} />
+			<Character style={{ width: 120, height: 120 }} src={wave} />
 		</Container>
 	);
 }
@@ -54,6 +62,7 @@ const Content = styled.div`
 	display: none;
 	flex-direction: column;
 	padding: 5px;
+	width: 200px;
 `;
 
 const Container = styled.div`

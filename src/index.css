@@ -9,6 +9,6 @@ body,
 	padding: 0;
 }
 
-.scrollView::-webkit-scrollbar {
+.scroll-view::-webkit-scrollbar {
 	display: none;
 }

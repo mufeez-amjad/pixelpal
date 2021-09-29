@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
-import Overview from './Overview';
-import ReminderForm from './ReminderForm';
+import Overview from './pages/Overview';
+import ReminderForm from './pages/ReminderForm';
 import Notification from './pages/Notification';
+import Survey from './pages/Survey';
 
 import 'normalize.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
@@ -17,6 +18,7 @@ ReactDOM.render(
 			<Route exact path="/" component={Overview} />
 			<Route exact path="/reminderform" component={ReminderForm} />
 			<Route exact path="/notification" component={Notification} />
+			<Route exact path="/survey" component={Survey} />
 		</Switch>
 	</BrowserRouter>,
 	document.getElementById('root')

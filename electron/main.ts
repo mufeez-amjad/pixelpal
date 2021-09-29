@@ -1,8 +1,11 @@
-import { app, screen, ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
 import path from 'path';
+import { SchedulerService } from './services/scheduler/SchedulerService';
+
+import { getCurrentDisplay } from './util';
 
 const dbFile = app.isPackaged
 	? path.join(app.getPath('userData'), 'pixelpal.db')
@@ -26,6 +29,7 @@ require('@electron/remote/main').initialize();
 let window: AppWindow;
 let tray: AppTray;
 let db: DatabaseService;
+let schedulerSrv: SchedulerService;
 let notificationWindow: AppWindow;
 /* eslint-disable no-unused-vars */
 
@@ -33,11 +37,11 @@ async function init() {
 	tray = new AppTray();
 	window = new AppWindow({ tray, autoHide: true });
 
-	const screenBounds = screen.getPrimaryDisplay().size;
+	const screenBounds = getCurrentDisplay().bounds;
 
 	let width = 300;
 	notificationWindow = new AppWindow({
-		position: { x: screenBounds.width + width, y: 0 },
+		position: { x: screenBounds.width + screenBounds.x - width, y: 0 },
 		transparent: true,
 		dimensions: { width, height: 150 },
 		path: 'notification'
@@ -49,6 +53,9 @@ async function init() {
 	const dbDir = path.dirname(dbFile);
 	if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 	await knex.migrate.latest();
+
+	schedulerSrv = new SchedulerService(db, notificationWindow);
+	schedulerSrv.start();
 }
 
 ipcMain.handle('getHabits', async event => {
@@ -71,10 +78,26 @@ ipcMain.handle('deleteHabit', async (event, habitId) => {
 	await db.deleteHabit(habitId);
 });
 
-ipcMain.handle('close-window', (event, arg) => {
-	if (arg == 'notification') {
-		notificationWindow.close();
+ipcMain.handle('notification', (event, action) => {
+	notificationWindow.hide();
+	if (action == 'done') {
+		// store completion
 	}
+});
+
+ipcMain.handle('getSurvey', async (event, surveyId) => {
+	const survey = db.getSurvey(surveyId);
+	return survey;
+});
+
+ipcMain.handle('insertSurvey', async (event, surveyId) => {
+	await db.insertSurvey(surveyId);
+	console.log('inserted survey');
+});
+
+ipcMain.handle('completeSurvey', async (event, surveyId) => {
+	await db.completeSurvey(surveyId);
+	console.log('completed survey');
 });
 
 app.whenReady().then(() => {
