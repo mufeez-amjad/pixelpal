@@ -32,7 +32,7 @@ function Overview() {
 		return days[dayOfWeek];
 	};
 
-	React.useEffect(async () => {
+	const updateHabitCounts = async () => {
 		let rawHabits = await ipcRenderer.invoke(
 			'getHabitsForDay',
 			getCurrentDay()
@@ -52,8 +52,13 @@ function Overview() {
 		});
 
 		setHabits(rawHabits);
-	}, []);
+	};
 
+	ipcRenderer.on('overview:update-habit-counts', async () =>
+		updateHabitCounts()
+	);
+
+	React.useEffect(async () => updateHabitCounts(), []);
 	React.useEffect(async () => {
 		let getUserSurvey = await ipcRenderer.invoke(
 			'getSurvey',
@@ -83,28 +88,6 @@ function Overview() {
 		const nextHabits = habits.filter(h => h.id != id);
 		setHabits(nextHabits);
 	};
-
-	ipcRenderer.on('overview:update-habit-counts', async () => {
-		let rawHabits = await ipcRenderer.invoke(
-			'getHabitsForDay',
-			getCurrentDay()
-		);
-
-		let habitEventCounts = await ipcRenderer.invoke(
-			'getHabitEventCountsForDay',
-			getCurrentDay()
-		);
-
-		rawHabits.map(rh => {
-			// todo: replace with non ugly code
-			rh['done'] = habitEventCounts.find(
-				e => e.habit_id == rh.id
-			).completed;
-			rh['total'] = habitEventCounts.find(e => e.habit_id == rh.id).total;
-		});
-
-		setHabits(rawHabits);
-	});
 
 	return (
 		<Container>
