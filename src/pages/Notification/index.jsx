@@ -24,15 +24,15 @@ function Notification() {
 		}, 1000);
 	});
 
-	const respond = action => {
-		if (action == 'done') {
+	const respond = resp => {
+		if (resp.status == 'done') {
 			setCelebrate(true);
 			setTimeout(() => {
 				setCelebrate(false);
-				ipcRenderer.invoke('notification', action);
+				ipcRenderer.invoke('notification', resp);
 			}, 2000);
 		} else {
-			ipcRenderer.invoke('notification', action);
+			ipcRenderer.invoke('notification', resp);
 		}
 	};
 

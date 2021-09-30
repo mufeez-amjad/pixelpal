@@ -20,11 +20,13 @@
 		"extends": null,
 		"appId": "com.example.electron-cra",
 		"files": [
-			"build/**/*",
+			"assets/*",
 			"dist/**/*",
+			"build/**/*",
 			"migrations/*",
 			"node_modules/**/*",
-			"package.json"
+			"package.json",
+			"migrations/*"
 		],
 		"directories": {
 			"buildResources": "assets"
@@ -83,12 +85,7 @@
 	"lint-staged": {
 		"*.{js,ts,jsx}": "eslint --cache --fix",
 		"*.{js,ts,jsx,css,md}": "prettier --write"
-	},
-	"files": [
-		"*.js",
-		"build",
-		"node_modules"
-	]
+	}
 }
 
 

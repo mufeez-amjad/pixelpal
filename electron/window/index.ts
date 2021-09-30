@@ -1,4 +1,4 @@
-import { BrowserWindow, Tray } from 'electron';
+import { app, BrowserWindow, Tray } from 'electron';
 import { Display } from 'electron/main';
 import path from 'path';
 
@@ -59,16 +59,15 @@ class AppWindow extends BrowserWindow {
 	}
 
 	setURL = (urlPath?: string) => {
-		const t = true;
+		let url = app.isPackaged
+			? `file://${path.join(__dirname, '../../build/index.html')}`
+			: 'http://localhost:3000';
+
 		if (urlPath) {
-			this.loadURL(`http://localhost:3000/${urlPath}`);
-		} else {
-			this.loadURL(
-				t
-					? `file://${path.join(__dirname, '../../build/index.html')}`
-					: 'http://localhost:3000'
-			);
+			url += '#/' + urlPath;
 		}
+
+		this.loadURL(url);
 	};
 
 	private setAutoHide = () => {
