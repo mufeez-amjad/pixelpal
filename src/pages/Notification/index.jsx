@@ -25,7 +25,7 @@ function Notification() {
 	});
 
 	const respond = resp => {
-		if (resp.status == 'done') {
+		if (resp.status == 'completed') {
 			setCelebrate(true);
 			setTimeout(() => {
 				setCelebrate(false);

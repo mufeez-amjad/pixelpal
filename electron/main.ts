@@ -42,7 +42,10 @@ async function init() {
 
 	let width = 300;
 	notificationWindow = new AppWindow({
-		position: { x: screenBounds.width + screenBounds.x - width, y: 0 },
+		position: {
+			x: screenBounds.width + screenBounds.x - width,
+			y: screenBounds.y
+		},
 		transparent: true,
 		dimensions: { width, height: 150 },
 		path: 'notification'

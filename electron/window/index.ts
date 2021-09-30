@@ -133,7 +133,7 @@ class AppWindow extends BrowserWindow {
 
 		if (trayX + this.width < screenBounds.x + screenBounds.width) {
 			// anchor top left:
-			return { x: trayX, y: 0 };
+			return { x: trayX, y: screenBounds.y };
 		} else {
 			// anchor top right
 			return { x: trayX - this.width + trayWidth, y: 0 };
