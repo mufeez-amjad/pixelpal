@@ -19,7 +19,8 @@ const knex = require('knex')({
 		filename: dbFile
 	},
 	migrations: {
-		tableName: 'migrations'
+		tableName: 'migrations',
+		directory: path.join(__dirname, '../migrations/')
 	}
 });
 

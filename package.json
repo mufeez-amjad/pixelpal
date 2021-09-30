@@ -20,8 +20,9 @@
 		"extends": null,
 		"appId": "com.example.electron-cra",
 		"files": [
-			"dist/**/*",
 			"build/**/*",
+			"dist/**/*",
+			"migrations/*",
 			"node_modules/**/*",
 			"package.json"
 		],
