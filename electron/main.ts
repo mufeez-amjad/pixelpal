@@ -7,14 +7,13 @@ import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
 import { SchedulerService } from './services/scheduler/SchedulerService';
 
-const mixpanel = Mixpanel.init('e4914acb2794ddaa0478bfd6ec81064a');
 import { getCurrentDisplay } from './util';
 
 const dbFile = app.isPackaged
 	? path.join(app.getPath('userData'), 'pixelpal.db')
 	: '.db/pixelpal.db';
 
-const fs = require('fs');
+const username = require('os').userInfo().username;
 
 const knex = require('knex')({
 	client: 'sqlite3',
@@ -27,8 +26,6 @@ const knex = require('knex')({
 	}
 });
 
-require('@electron/remote/main').initialize();
-
 /* eslint-disable no-unused-vars */
 let window: AppWindow;
 let tray: AppTray;
@@ -36,6 +33,11 @@ let db: DatabaseService;
 let schedulerSrv: SchedulerService;
 let notificationWindow: AppWindow;
 /* eslint-disable no-unused-vars */
+
+const mixpanel = Mixpanel.init('e4914acb2794ddaa0478bfd6ec81064a');
+const fs = require('fs');
+
+require('@electron/remote/main').initialize();
 
 async function init() {
 	tray = new AppTray();
@@ -66,7 +68,7 @@ async function init() {
 	tray.on('click', () => {
 		mixpanel.track('Open window', {
 			source: 'Tray click',
-			distinct_id: require('os').userInfo().username
+			distinct_id: username
 		});
 	});
 }
@@ -113,6 +115,11 @@ ipcMain.handle('getHabitEventCountsForDay', async (event, day) => {
 });
 
 ipcMain.handle('insertHabit', async (event, habit) => {
+	mixpanel.track('Added habit', {
+		source: 'Tray window',
+		habit,
+		distinct_id: username
+	});
 	await db.insertHabit(habit);
 });
 
@@ -121,6 +128,11 @@ ipcMain.handle('deleteHabit', async (event, habitId) => {
 });
 
 ipcMain.handle('notification', async (event, action) => {
+	mixpanel.track('Reminder action', {
+		source: 'Notification window',
+		action,
+		distinct_id: username
+	});
 	notificationWindow.hide();
 	await db.createHabitEvent(action.status, action.habit_id);
 	await window.webContents.send('overview:update-habit-counts');
