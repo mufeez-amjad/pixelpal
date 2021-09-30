@@ -21,7 +21,6 @@
 		"appId": "com.example.electron-cra",
 		"files": [
 			"assets/*",
-			"dist/**/*",
 			"build/**/*",
 			"migrations/*",
 			"node_modules/**/*",

@@ -12,3 +12,11 @@ body,
 .scroll-view::-webkit-scrollbar {
 	display: none;
 }
+
+div {
+	user-select: none;
+}
+
+img {
+	pointer-events: none;
+}
