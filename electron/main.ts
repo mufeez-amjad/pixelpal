@@ -1,4 +1,4 @@
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, Menu } from 'electron';
 import AppTray from './tray';
 import AppWindow from './window';
 import DatabaseService from './services/db/DatabaseService';
@@ -36,6 +36,15 @@ let notificationWindow: AppWindow;
 
 async function init() {
 	tray = new AppTray();
+
+	// Context Menu
+	const contextMenu = Menu.buildFromTemplate([
+		{ label: 'Quit', click: () => app.quit() }
+	]);
+
+	// Setting context Menu
+	tray.on('right-click', event => tray.popUpContextMenu(contextMenu));
+
 	window = new AppWindow({ tray, autoHide: true });
 
 	const screenBounds = getCurrentDisplay().bounds;
