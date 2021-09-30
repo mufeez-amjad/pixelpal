@@ -18,7 +18,7 @@
 	},
 	"build": {
 		"extends": null,
-		"appId": "com.example.electron-cra",
+		"appId": "null.pizza.pixelpal",
 		"files": [
 			"assets/*",
 			"build/**/*",
