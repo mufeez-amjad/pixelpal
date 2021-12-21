@@ -1,12 +1,28 @@
 import { Knex } from 'knex';
+import { app } from 'electron';
 import { calculateNextReminderAt } from '../../helpers';
 import { CreateHabitRequest, Habit, HabitEventCounts } from '../../types';
+import path from 'path';
+const fs = require('fs');
 
-class DatabaseService {
+const dbFile = app.isPackaged
+	? path.join(app.getPath('userData'), 'pixelpal.db')
+	: '.db/pixelpal.db';
+
+export class DatabaseService {
 	knex: Knex;
 
-	constructor(knex: Knex) {
-		this.knex = knex;
+	constructor() {
+		this.knex = require('knex')({
+			client: 'sqlite3',
+			connection: {
+				filename: dbFile
+			},
+			migrations: {
+				tableName: 'migrations',
+				directory: path.join(__dirname, '../migrations/')
+			}
+		});
 	}
 
 	getAllHabits(day?: string): Promise<Array<Habit>> {
@@ -92,4 +108,18 @@ class DatabaseService {
 	}
 }
 
-export default DatabaseService;
+let db: DatabaseService;
+
+export function startDatabaseService() {
+	db = new DatabaseService();
+}
+
+export function getDatabaseConnection() {
+	return db;
+}
+
+export async function migrate() {
+	const dbDir = path.dirname(dbFile);
+	if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
+	await getDatabaseConnection().knex.migrate.latest();
+}

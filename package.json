@@ -18,10 +18,9 @@
 	},
 	"build": {
 		"extends": null,
-		"appId": "com.example.electron-cra",
+		"appId": "null.pizza.pixelpal",
 		"files": [
 			"assets/*",
-			"dist/**/*",
 			"build/**/*",
 			"migrations/*",
 			"node_modules/**/*",
@@ -55,6 +54,7 @@
 		"@types/node": "^16.10.1",
 		"date-fns": "^2.24.0",
 		"knex": "^0.95.11",
+		"mixpanel": "^0.13.0",
 		"react": "^17.0.1",
 		"react-circular-progressbar": "^2.0.4",
 		"react-dom": "^17.0.1",

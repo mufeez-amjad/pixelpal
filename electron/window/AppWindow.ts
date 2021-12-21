@@ -1,6 +1,8 @@
-import { app, BrowserWindow, Tray } from 'electron';
+import { app, BrowserWindow, Tray, Menu } from 'electron';
 import { Display } from 'electron/main';
 import path from 'path';
+import AppTray from '../tray';
+import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
 import { getCurrentDisplay } from '../util';
 
@@ -16,7 +18,7 @@ interface IOptions {
 	path?: string;
 }
 
-class AppWindow extends BrowserWindow {
+export class AppWindow extends BrowserWindow {
 	tray?: Tray;
 	width: number;
 	height: number;
@@ -133,7 +135,7 @@ class AppWindow extends BrowserWindow {
 
 		if (trayX + this.width < screenBounds.x + screenBounds.width) {
 			// anchor top left:
-			return { x: trayX, y: 0 };
+			return { x: trayX, y: screenBounds.y };
 		} else {
 			// anchor top right
 			return { x: trayX - this.width + trayWidth, y: 0 };
@@ -141,4 +143,28 @@ class AppWindow extends BrowserWindow {
 	};
 }
 
-export default AppWindow;
+let appWindow: AppWindow;
+
+export function createAppWindow() {
+	const username = require('os').userInfo().username;
+	let tray = new AppTray();
+	tray.on('click', () => {
+		getMixpanelInstance().track('Open window', {
+			source: 'Tray click',
+			distinct_id: username
+		});
+	});
+
+	// Context Menu
+	const contextMenu = Menu.buildFromTemplate([
+		{ label: 'Quit', click: () => app.quit() }
+	]);
+
+	// Setting context Menu
+	tray.on('right-click', () => tray.popUpContextMenu(contextMenu));
+	appWindow = new AppWindow({ tray, autoHide: true });
+}
+
+export function getAppWindow() {
+	return appWindow;
+}
