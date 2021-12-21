@@ -33,6 +33,27 @@ export class DatabaseService {
 		return query;
 	}
 
+	getTodayEventCountsForHabit(habit: Habit): Promise<any> {
+		const targetDate = `date(${
+			Date.now() / 1000
+		}, 'unixepoch', 'start of day')`;
+
+		return this.knex
+			.select(
+				'habit_id',
+				'type',
+				this.knex.raw('count() as `num_events`')
+			)
+			.table('habit_events')
+			.where(
+				this.knex.raw('date(timestamp/1000, \'unixepoch\')'),
+				'=',
+				this.knex.raw(targetDate)
+			)
+			.where('habit_id', '=', habit.id)
+			.groupBy('type');
+	}
+
 	getHabitEventCountsForDay(
 		targetDateMillis: number = Date.now()
 	): Promise<Array<HabitEventCounts>> {

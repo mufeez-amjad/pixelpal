@@ -6,6 +6,7 @@ import {
 import { getMixpanelInstance } from './services/mixpanel/MixpanelService';
 import { AppWindow, getAppWindow } from './window/AppWindow';
 import { getNotificationWindow } from './window/NotificationWindow';
+import { getCountsForHabit } from './helpers';
 
 let db: DatabaseService;
 let appWindow: AppWindow;
@@ -31,33 +32,24 @@ export function initHandlers() {
 
 	ipcMain.handle('getHabitEventCountsForDay', async (_event, day) => {
 		const habits = await db.getAllHabits(day);
-		const eventCounts = await db.getHabitEventCountsForDay();
 
-		const counts = habits.map(h => {
-			const minutes = (h.end_time - h.start_time) * 60;
-			const total = minutes / h.frequency;
+		const counts = habits.map(async habit => {
+			const minutes = (habit.end_time - habit.start_time) * 60;
+			const total = minutes / habit.frequency;
 
-			// ugly mvp code
-			const completed = eventCounts.find(
-				e => e.type == 'completed' && e.habit_id == h.id
-			);
-			const missed = eventCounts.find(
-				e => e.type == 'missed' && e.habit_id == h.id
-			);
-			const triggered = eventCounts.find(
-				e => e.type == 'triggered' && e.habit_id == h.id
-			);
+			const dailyEventCounts = await getCountsForHabit(habit);
 
 			return {
-				habit_id: h.id,
+				habit_id: habit.id,
 				total: total,
-				completed: completed ? completed.num_events : 0,
-				missed: missed ? missed.num_events : 0,
-				triggered: triggered ? triggered.num_events : 0
+				completed: dailyEventCounts['completed'] || 0,
+				missed: dailyEventCounts['missed'] || 0,
+				triggered: dailyEventCounts['triggered'] || 0
 			};
 		});
 
-		return counts;
+		const results = await Promise.all(counts);
+		return results;
 	});
 
 	ipcMain.handle('insertHabit', async (_event, habit) => {
