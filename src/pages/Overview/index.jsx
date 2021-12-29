@@ -5,22 +5,23 @@ import { Link } from 'react-router-dom';
 const { ipcRenderer } = window.require('electron');
 
 import { FaPlus } from 'react-icons/fa';
-import { IoMenu } from 'react-icons/io5';
 import { ImPencil } from 'react-icons/im';
-import { IoCloseCircleOutline } from 'react-icons/io5';
+import { IoCloseCircleOutline, IoSettingsSharp } from 'react-icons/io5';
 
 import stand from './stand.gif';
+
 import Habit from './Habit';
-import Banner from './Banner';
+import WeekCalendar from './WeekCalendar';
 
 function Overview() {
 	const [habits, setHabits] = React.useState([]);
-	const [banner] = React.useState(null); // banner is currently unused
-	const [total, setTotal] = React.useState();
+
+	const [selectedDay, setSelectedDay] = React.useState(new Date());
+
 	const [isEditing, setIsEditing] = React.useState(false);
 
-	const getCurrentDay = () => {
-		const dayOfWeek = new Date().getDay();
+	const currentDayChar = () => {
+		const dayOfWeek = selectedDay.getDay();
 		const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S'];
 		return days[dayOfWeek];
 	};
@@ -28,12 +29,12 @@ function Overview() {
 	const updateHabitCounts = async () => {
 		let rawHabits = await ipcRenderer.invoke(
 			'getHabitsForDay',
-			getCurrentDay()
+			currentDayChar()
 		);
 
 		let habitEventCounts = await ipcRenderer.invoke(
 			'getHabitEventCountsForDay',
-			getCurrentDay()
+			currentDayChar()
 		);
 
 		rawHabits.map(rh => {
@@ -47,20 +48,12 @@ function Overview() {
 		setHabits(rawHabits);
 	};
 
-	ipcRenderer.on('overview:update-habit-counts', () => updateHabitCounts());
+	ipcRenderer.on(
+		'overview:update-habit-counts',
+		async () => await updateHabitCounts()
+	);
 
-	React.useEffect(() => updateHabitCounts(), []);
-
-	// const handleDelete = id => {
-	// 	ipcRenderer.invoke('deleteHabit', id);
-	// 	const nextHabits = habits.filter(h => h.id != id);
-	// 	setHabits(nextHabits);
-	// };
-
-	React.useEffect(() => {
-		const nextTotal = habits.reduce((s, h) => s + h.done, 0);
-		setTotal(nextTotal);
-	}, [habits]);
+	React.useEffect(async () => await updateHabitCounts(), []);
 
 	const handleDelete = id => {
 		ipcRenderer.invoke('deleteHabit', id);
@@ -71,21 +64,18 @@ function Overview() {
 	return (
 		<Container>
 			<Top>
-				<BannerContainer>
-					{banner && <Banner banner={banner} />}
-				</BannerContainer>
-				<MenuButton>
-					<IoMenu style={{ display: 'block' }} />
-				</MenuButton>
-				<Summary>
-					<div style={{ fontSize: '12px' }}>Today:</div>
-					<div style={{ fontWeight: '700', fontSize: '20px' }}>
-						{total}
-					</div>
-					<div>Completed</div>
-				</Summary>
+				<SettingsButton>
+					<IoSettingsSharp
+						color="grey"
+						style={{ display: 'block', fontSize: 16 }}
+					/>
+				</SettingsButton>
+				<WeekCalendar
+					selectedDay={selectedDay}
+					onWeekdaySelect={setSelectedDay}
+				/>
 				<Character>
-					<img style={{ width: 240, height: 240 }} src={stand} />
+					<img style={{ width: 100, height: 100 }} src={stand} />
 				</Character>
 			</Top>
 			<Bottom className="scroll-view">
@@ -95,7 +85,9 @@ function Overview() {
 						<CircleButton
 							backgroundColor={isEditing ? '#d4d4d4' : 'white'}
 							style={{ marginRight: '5px' }}
-							onClick={() => setIsEditing(!isEditing)}
+							onClick={() =>
+								setIsEditing(!isEditing && habits.length)
+							}
 						>
 							<ImPencil
 								color="black"
@@ -143,7 +135,6 @@ function Overview() {
 						<div>You have no habits, create one!</div>
 					)}
 				</Habits>
-				{/* <Reminder addReminder={true} /> */}
 			</Bottom>
 		</Container>
 	);
@@ -163,17 +154,8 @@ const Container = styled.div`
 const Top = styled.div`
 	display: flex;
 	flex-direction: column;
-	height: 220px;
 	justify-content: flex-end;
 	background-color: white;
-`;
-
-const BannerContainer = styled.div`
-	position: absolute;
-	top: 25px;
-	width: 100%;
-	display: flex;
-	justify-content: center;
 `;
 
 const Bottom = styled.div`
@@ -181,42 +163,6 @@ const Bottom = styled.div`
 	display: flex;
 	flex-direction: column;
 	overflow-y: scroll;
-`;
-
-const Summary = styled.div`
-	position: absolute;
-	left: 0;
-	top: 60px;
-	display: flex;
-	flex-direction: column;
-	background-color: #fcaf4e;
-	border-radius: 0 10px 10px 0;
-	padding-right: 20px;
-	padding-left: 10px;
-	padding-top: 20px;
-	padding-bottom: 20px;
-`;
-
-const MenuButton = styled.button`
-	position: absolute;
-	right: 0;
-	top: 0;
-	margin: 20px;
-
-	background-color: #eeeeee;
-	padding: 5px;
-	border-radius: 20px;
-
-	border: none;
-	filter: brightness(100%);
-
-	:hover {
-		filter: brightness(85%);
-	}
-
-	:focus {
-		outline: 0;
-	}
 `;
 
 const Character = styled.div`
@@ -238,6 +184,26 @@ const SectionHeader = styled.div`
 const HeaderButtons = styled.div`
 	display: flex;
 	margin-right: 10px;
+`;
+
+const SettingsButton = styled.button`
+	position: absolute;
+	right: 0;
+	top: 13px;
+	margin: 15px;
+
+	background-color: transparent;
+
+	border: none;
+	filter: brightness(100%);
+
+	:hover {
+		filter: brightness(85%);
+	}
+
+	:focus {
+		outline: 0;
+	}
 `;
 
 const CircleButton = styled.div`

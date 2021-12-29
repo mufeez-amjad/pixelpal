@@ -6,8 +6,8 @@ import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
 import { getCurrentDisplay } from '../util';
 
-const WINDOW_WIDTH = 480;
-const WINDOW_HEIGHT = 540;
+const WINDOW_WIDTH = 360;
+const WINDOW_HEIGHT = 480;
 
 interface IOptions {
 	transparent?: boolean;
@@ -75,9 +75,10 @@ export class AppWindow extends BrowserWindow {
 	private setAutoHide = () => {
 		this.hide();
 		this.on('blur', () => {
-			if (!this.webContents.isDevToolsOpened()) {
-				this.hide();
-			}
+			// TODO: uncomment
+			// if (!this.webContents.isDevToolsOpened()) {
+			// 	this.hide();
+			// }
 		});
 		this.on('close', event => {
 			event.preventDefault();
