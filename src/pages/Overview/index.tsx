@@ -10,11 +10,11 @@ import { IoCloseCircleOutline, IoSettingsSharp } from 'react-icons/io5';
 
 import stand from './stand.gif';
 
-import Habit from './Habit';
+import Habit, { IHabit } from './Habit';
 import WeekCalendar from './WeekCalendar';
 
 function Overview() {
-	const [habits, setHabits] = React.useState([]);
+	const [habits, setHabits] = React.useState<Array<IHabit>>([]);
 
 	const [selectedDay, setSelectedDay] = React.useState(new Date());
 
@@ -32,18 +32,18 @@ function Overview() {
 			currentDayChar()
 		);
 
-		let habitEventCounts = await ipcRenderer.invoke(
-			'getHabitEventCountsForDay',
-			currentDayChar()
-		);
+		// let habitEventCounts = await ipcRenderer.invoke(
+		// 	'getHabitEventCountsForDay',
+		// 	currentDayChar()
+		// );
 
-		rawHabits.map(rh => {
-			// todo: replace with non ugly code
-			rh['done'] = habitEventCounts.find(
-				e => e.habit_id == rh.id
-			).completed;
-			rh['total'] = habitEventCounts.find(e => e.habit_id == rh.id).total;
-		});
+		// rawHabits.map((rh: IHabit) => {
+		// 	// todo: replace with non ugly code
+		// 	rh.done = habitEventCounts.find(
+		// 		e => e.habit_id == rh.id
+		// 	).completed;
+		// 	rh.total = habitEventCounts.find(e => e.habit_id == rh.id).total;
+		// });
 
 		setHabits(rawHabits);
 	};
@@ -53,9 +53,21 @@ function Overview() {
 		async () => await updateHabitCounts()
 	);
 
-	React.useEffect(async () => await updateHabitCounts(), []);
+	React.useEffect(() => {
+		function handleWindowShow() {
+			setSelectedDay(new Date());
+		}
+		ipcRenderer.on('hide-tray-window', handleWindowShow);
+		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowShow);
+	}, []);
 
-	const handleDelete = id => {
+	React.useEffect(() => {
+		(async () => {
+			await updateHabitCounts();
+		});
+	}, []);
+
+	const handleDelete = (id: number) => {
 		ipcRenderer.invoke('deleteHabit', id);
 		const nextHabits = habits.filter(h => h.id != id);
 		setHabits(nextHabits);
@@ -86,7 +98,7 @@ function Overview() {
 							backgroundColor={isEditing ? '#d4d4d4' : 'white'}
 							style={{ marginRight: '5px' }}
 							onClick={() =>
-								setIsEditing(!isEditing && habits.length)
+								setIsEditing(!isEditing && habits.length > 0)
 							}
 						>
 							<ImPencil
@@ -94,7 +106,7 @@ function Overview() {
 								style={{ display: 'block' }}
 							/>
 						</CircleButton>
-						<Link to={'/reminderform'}>
+						<Link to={'/'}>
 							<CircleButton>
 								<FaPlus
 									color="black"
@@ -206,7 +218,10 @@ const SettingsButton = styled.button`
 	}
 `;
 
-const CircleButton = styled.div`
+interface CircleButtonProps {
+	backgroundColor?: string;
+}
+const CircleButton = styled.div<CircleButtonProps>`
 	background-color: ${({ backgroundColor }) =>
 		backgroundColor ? backgroundColor : 'white'};
 	border-radius: 20px;

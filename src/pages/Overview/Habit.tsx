@@ -10,8 +10,21 @@ import 'react-circular-progressbar/dist/styles.css';
 
 import { FaCheck } from 'react-icons/fa';
 
-const Habit = ({ habit }) => {
-	const getProgressBarColor = percentage => {
+export interface IHabit {
+	id: number;
+	name: string;
+	reminder_at: Date;
+	total: number;
+	frequency: number;
+	done: number;
+}
+
+interface Props {
+	habit: IHabit
+}
+
+const Habit = ({ habit }: Props) => {
+	const getProgressBarColor = (percentage: number) => {
 		if (percentage < 0.1) {
 			return '#e71b33';
 		} else if (percentage < 0.3) {

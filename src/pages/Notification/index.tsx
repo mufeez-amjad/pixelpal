@@ -9,12 +9,17 @@ import celebrateImg from './celebrate.gif';
 
 import { StyledButton, ButtonGroup } from './styles';
 
+interface NotificationResponse {
+	status: string;
+	habit_id: number;
+}
+
 function Notification() {
-	const [body, setBody] = useState({ name: '' });
+	const [body, setBody] = useState({ id: -1, name: '' });
 	const [popUp, setPopUp] = useState(true);
 	const [celebrate, setCelebrate] = useState(false);
 
-	ipcRenderer.on('notification', (event, habit) => {
+	ipcRenderer.on('notification', (event: any, habit: any) => {
 		console.log('hello');
 		setBody({ name: habit.name, id: habit.id });
 		setPopUp(true);
@@ -24,7 +29,7 @@ function Notification() {
 		}, 1000);
 	});
 
-	const respond = resp => {
+	const respond = (resp: NotificationResponse) => {
 		if (resp.status == 'completed') {
 			setCelebrate(true);
 			setTimeout(() => {

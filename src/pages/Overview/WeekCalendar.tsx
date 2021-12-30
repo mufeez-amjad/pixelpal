@@ -13,8 +13,16 @@ import {
 } from 'date-fns';
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import useKeyboardShortcuts, { KEY_CODE, SHORTCUT } from '../../hooks/use_keyboard_shortcuts';
 
-function Day({ day, selectedDay, onClick, current }) {
+interface IDay {
+	day: Date;
+	selectedDay: Date;
+	onClick: () => void;
+	current: boolean;
+}
+
+function Day({ day, selectedDay, onClick, current }: IDay) {
 	const isSelected = () => {
 		return isSameDay(selectedDay, day);
 	};
@@ -37,8 +45,34 @@ function Day({ day, selectedDay, onClick, current }) {
 	);
 }
 
-function WeekCalendar({ selectedDay, onWeekdaySelect }) {
+interface Props {
+	selectedDay: Date;
+	// eslint-disable-next-line no-unused-vars
+	onWeekdaySelect: (d: Date) => void;
+}
+function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) {
 	const [refDay, setRefDay] = React.useState(startOfWeek(selectedDay));
+	const lastShortcut = useKeyboardShortcuts([
+		{name: SHORTCUT.ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT},
+		{name: SHORTCUT.ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT},
+	]);
+
+	React.useEffect(() => {
+		setRefDay(selectedDay);
+	}, [selectedDay]);
+
+	// Act on keyboard shortcuts
+	React.useEffect(() => {
+		switch (lastShortcut) {
+		case SHORTCUT.ARROW_LEFT:
+			advanceWeek(-1);
+			break;
+
+		case SHORTCUT.ARROW_RIGHT:
+			advanceWeek(1);
+			break;
+		}
+	}, [lastShortcut]);
 
 	const daysOfWeek = React.useMemo(() => {
 		return eachDayOfInterval({
@@ -47,11 +81,7 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }) {
 		});
 	}, [refDay]);
 
-	React.useEffect(() => {
-		setRefDay(selectedDay);
-	}, [selectedDay]);
-
-	const advanceWeek = num => {
+	const advanceWeek = (num: number) => {
 		setRefDay(addWeeks(startOfWeek(refDay), num));
 	};
 
@@ -116,7 +146,12 @@ const DaysContainer = styled.div`
 	justify-content: space-between;
 `;
 
-const DayContainer = styled.div`
+interface ContainerProps {
+	current: boolean;
+	selected?: boolean;
+}
+
+const DayContainer = styled.div<ContainerProps>`
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -140,7 +175,7 @@ const DayContainer = styled.div`
   	`}
 `;
 
-const DateContainer = styled.div`
+const DateContainer = styled.div<ContainerProps>`
 	display: flex;
 	justify-content: center;
 	align-items: center;
