@@ -7,6 +7,7 @@ import { getMixpanelInstance } from './services/mixpanel/MixpanelService';
 import { AppWindow, getAppWindow } from './window/AppWindow';
 import { getNotificationWindow } from './window/NotificationWindow';
 import { getCountsForHabit } from './helpers';
+import { GoogleCalendar } from './services/calendar/google';
 
 let db: DatabaseService;
 let appWindow: AppWindow;
@@ -19,6 +20,12 @@ export function initHandlers() {
 	appWindow = getAppWindow();
 	notificationWindow = getNotificationWindow();
 	mixpanel = getMixpanelInstance();
+
+	// eslint-disable-next-line no-unused-vars
+	ipcMain.handle('getEvents', async event => {
+		const gcal = new GoogleCalendar();
+		return await gcal.getEventsForDay(new Date());
+	});
 
 	ipcMain.handle('getHabits', async () => {
 		return await db.getAllHabits();

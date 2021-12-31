@@ -63,6 +63,14 @@ function Overview() {
 
 	React.useEffect(() => {
 		(async () => {
+			console.log('getting events!');
+			const events = await ipcRenderer.invoke('getEvents');
+			console.log(events);
+		})();
+	}, []);
+
+	React.useEffect(() => {
+		(async () => {
 			await updateHabitCounts();
 		});
 	}, []);
