@@ -1,57 +1,105 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 
 const { ipcRenderer } = window.require('electron');
 
-import { FaPlus } from 'react-icons/fa';
-import { ImPencil } from 'react-icons/im';
-import { IoCloseCircleOutline, IoSettingsSharp } from 'react-icons/io5';
+import { IoSettingsSharp } from 'react-icons/io5';
+import { FaCircle } from 'react-icons/fa';
 
 import stand from './stand.gif';
 
-import Habit, { IHabit } from './Habit';
+import { Event as IEvent } from '../../../electron/services/calendar/calendar';
+
 import WeekCalendar from './WeekCalendar';
+import { endOfWeek, format, isSameDay, startOfWeek } from 'date-fns';
+
+/* eslint-disable no-unused-vars */
+enum Showing {
+	All = 'All',
+	Events = 'Events',
+	Todo = 'Todos',
+}
+/* eslint-enable no-unused-vars */
+
+interface EventProps {
+	event: IEvent
+}
+
+const Event = ({event}: EventProps) => {
+	const timeRange = `${format(event.start, 'h:mmaaa')} - ${format(event.end, 'h:mmaaa')}`;
+
+	return (
+		<EventContainer>
+			<TimeContainer>
+				<FaCircle 
+					size={8}
+					color={event.calendar.color}
+				/>
+				<Time>
+					{timeRange}
+				</Time>
+			</TimeContainer>
+			<EventName>
+				{event.name}
+			</EventName>
+
+		</EventContainer>
+	);
+};
+
+const EventContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	padding: 10px;
+	margin-bottom: 5px;
+	border-radius: 10px;
+`;
+
+const TimeContainer = styled.div`
+	display: flex;
+	align-items: center;
+	font-size: 12px;
+`;
+
+const Time = styled.span`
+	margin-left: 8px;
+`;
+
+const EventName = styled.div`
+	font-weight: 600;
+	margin-top: 4px;
+`;
 
 function Overview() {
-	const [habits, setHabits] = React.useState<Array<IHabit>>([]);
+	const [showing, setShowing] = React.useState(Showing.All);
+	const [events, setEvents] = React.useState<Array<IEvent>>([]);
+
+	const [todaysEvents, setTodaysEvents] = React.useState<Array<IEvent>>([]);
 
 	const [selectedDay, setSelectedDay] = React.useState(new Date());
 
-	const [isEditing, setIsEditing] = React.useState(false);
+	const { weekStart, weekEnd } = React.useMemo(() => {
+		return {
+			weekStart: startOfWeek(selectedDay).toISOString(), 
+			weekEnd: endOfWeek(selectedDay).toISOString()
+		};
+	}, [selectedDay]);
 
-	const currentDayChar = () => {
-		const dayOfWeek = selectedDay.getDay();
-		const days = ['U', 'M', 'T', 'W', 'R', 'F', 'S'];
-		return days[dayOfWeek];
-	};
+	React.useEffect(() => {
+		(async () => {
+			const nextEvents = await ipcRenderer.invoke('getEventsForWeek', {
+				start: new Date(weekStart), 
+				end: new Date(weekEnd)
+			});
+			setEvents(nextEvents);
+		})();
+	}, [weekStart, weekEnd]);
 
-	const updateHabitCounts = async () => {
-		let rawHabits = await ipcRenderer.invoke(
-			'getHabitsForDay',
-			currentDayChar()
-		);
-
-		// let habitEventCounts = await ipcRenderer.invoke(
-		// 	'getHabitEventCountsForDay',
-		// 	currentDayChar()
-		// );
-
-		// rawHabits.map((rh: IHabit) => {
-		// 	// todo: replace with non ugly code
-		// 	rh.done = habitEventCounts.find(
-		// 		e => e.habit_id == rh.id
-		// 	).completed;
-		// 	rh.total = habitEventCounts.find(e => e.habit_id == rh.id).total;
-		// });
-
-		setHabits(rawHabits);
-	};
-
-	ipcRenderer.on(
-		'overview:update-habit-counts',
-		async () => await updateHabitCounts()
-	);
+	React.useEffect(() => {
+		const nextTodaysEvents = events.filter(event => isSameDay(event.start, selectedDay));
+		setTodaysEvents(nextTodaysEvents);
+	}, [events, selectedDay]);
 
 	React.useEffect(() => {
 		function handleWindowShow() {
@@ -60,26 +108,6 @@ function Overview() {
 		ipcRenderer.on('hide-tray-window', handleWindowShow);
 		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowShow);
 	}, []);
-
-	React.useEffect(() => {
-		(async () => {
-			console.log('getting events!');
-			const events = await ipcRenderer.invoke('getEvents');
-			console.log(events);
-		})();
-	}, []);
-
-	React.useEffect(() => {
-		(async () => {
-			await updateHabitCounts();
-		});
-	}, []);
-
-	const handleDelete = (id: number) => {
-		ipcRenderer.invoke('deleteHabit', id);
-		const nextHabits = habits.filter(h => h.id != id);
-		setHabits(nextHabits);
-	};
 
 	return (
 		<Container>
@@ -100,65 +128,26 @@ function Overview() {
 			</Top>
 			<Bottom className="scroll-view">
 				<SectionHeader>
-					<span style={{ marginLeft: 10 }}>Today's Habits</span>
-					<HeaderButtons>
-						<CircleButton
-							backgroundColor={isEditing ? '#d4d4d4' : 'white'}
-							style={{ marginRight: '5px' }}
-							onClick={() =>
-								setIsEditing(!isEditing && habits.length > 0)
-							}
+					<Dropdown>
+						<select 
+							value={showing}
+							onChange={(e) => setShowing(e.target.value as Showing)}
 						>
-							<ImPencil
-								color="black"
-								style={{ display: 'block' }}
-							/>
-						</CircleButton>
-						<Link to={'/'}>
-							<CircleButton>
-								<FaPlus
-									color="black"
-									style={{ display: 'block' }}
-								/>
-							</CircleButton>
-						</Link>
-					</HeaderButtons>
+							{Object.keys(Showing).map(key => <option key={key} value={key}>{key}</option>)}
+						</select>
+					</Dropdown>
 				</SectionHeader>
-				<Habits className="scroll-view">
-					{habits.length != 0 ? (
-						habits.map((habit, i) => (
-							<div
-								key={i}
-								style={{
-									display: 'flex',
-									width: '100%',
-									padding: 0,
-									margin: 0,
-									alignItems: 'center'
-								}}
-							>
-								<Habit key={i} habit={habit} />
-								{isEditing && (
-									<CircleButton
-										style={{ marginRight: '5px' }}
-										onClick={() => handleDelete(habit.id)}
-									>
-										<IoCloseCircleOutline
-											color="black"
-											style={{ display: 'block' }}
-										/>
-									</CircleButton>
-								)}
-							</div>
-						))
-					) : (
-						<div>You have no habits, create one!</div>
-					)}
-				</Habits>
+				<Items>
+					{todaysEvents.map((event, i) => (
+						<Event event={event} key={`${event.name}-${i}`} />
+					))}
+				</Items>
 			</Bottom>
 		</Container>
 	);
 }
+
+
 
 export default Overview;
 
@@ -192,7 +181,8 @@ const Character = styled.div`
 
 const SectionHeader = styled.div`
 	font-size: 12px;
-	padding: 10px;
+	padding: 15px 20px;
+	padding-bottom: 10px;
 	color: #b4b4b4;
 	display: flex;
 	justify-content: space-between;
@@ -201,9 +191,44 @@ const SectionHeader = styled.div`
 	/* border-bottom: 1px solid grey; */
 `;
 
-const HeaderButtons = styled.div`
-	display: flex;
-	margin-right: 10px;
+const Dropdown = styled.div`
+  position: relative;
+  background-color: #c9c9c9;
+  width: auto;
+  float: left;
+  max-width: 100%;
+  border-radius: 8px;
+
+  select {
+    font-size: 12px;
+    font-weight: 300;
+    max-width: 100%;
+    padding: 4px 20px 4px 8px;
+    border: none;
+    background-color: transparent;
+    -webkit-appearance: none;
+       -moz-appearance: none;
+            appearance: none;
+    
+	&:active,
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+
+  &:after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    margin-top: -2px;
+    right: 8px;
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #747474;
+  }
 `;
 
 const SettingsButton = styled.button`
@@ -226,50 +251,9 @@ const SettingsButton = styled.button`
 	}
 `;
 
-interface CircleButtonProps {
-	backgroundColor?: string;
-}
-const CircleButton = styled.div<CircleButtonProps>`
-	background-color: ${({ backgroundColor }) =>
-		backgroundColor ? backgroundColor : 'white'};
-	border-radius: 20px;
-	padding: 10px;
-	height: fit-content;
-
-	border: none;
-	cursor: default;
-
-	a {
-		cursor: default;
-		padding: 0;
-		margin: 0;
-	}
-
-	text-decoration: none;
-	&:focus,
-	&:hover,
-	&:visited,
-	&:link,
-	&:active {
-		text-decoration: none;
-	}
-
-	filter: brightness(100%);
-
-	:hover {
-		filter: brightness(85%);
-	}
-
-	:focus {
-		outline: 0;
-	}
-`;
-
-const Habits = styled.div`
+const Items = styled.div`
+	padding: 0px 20px;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	overflow-y: scroll;
-	height: 100%;
-	padding: 5px;
+	padding-bottom: 10px;
 `;

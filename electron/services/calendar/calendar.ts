@@ -4,9 +4,17 @@ export interface Event {
 	name: string;
 	start: Date;
 	end: Date;
-	calendar: string;
+	calendar: CalendarProperties;
+}
+
+interface CalendarProperties {
+	name: string;
+	color: string;
 }
 
 export abstract class Calendar {
-	abstract getEventsForDay(d: Date): Promise<Event[] | undefined>;
+	abstract getEventsBetweenDates(
+		start: Date,
+		end: Date
+	): Promise<Event[] | undefined>;
 }

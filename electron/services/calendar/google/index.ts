@@ -4,10 +4,9 @@ import secretAccountKey from './secretAccountKey.json';
 import { calendar_v3, google } from 'googleapis';
 const gcal = google.calendar('v3');
 
-import { startOfDay, endOfDay } from 'date-fns';
-
 export class GoogleCalendar extends Calendar {
 	oauth: Auth;
+
 	constructor() {
 		super();
 
@@ -22,22 +21,24 @@ export class GoogleCalendar extends Calendar {
 		this.oauth = new Auth(opts);
 	}
 
-	async getEventsForDay(d: Date): Promise<Event[] | undefined> {
-		try {
-			await this.oauth.auth();
-		} catch (error) {
-			return [];
-		}
-
+	async auth() {
+		await this.oauth.authClient();
 		google.options({ auth: this.oauth.client });
+	}
+
+	async getEventsBetweenDates(
+		start: Date,
+		end: Date
+	): Promise<Event[] | undefined> {
+		const { data: colors } = await gcal.colors.get();
 
 		const { data: calendarsData } = await gcal.calendarList.list();
 
 		const events = await Promise.all(
 			(calendarsData.items || []).map(async calendar => {
 				let options: calendar_v3.Params$Resource$Events$List = {
-					timeMin: startOfDay(d).toISOString(),
-					timeMax: endOfDay(d).toISOString()
+					timeMin: start.toISOString(),
+					timeMax: end.toISOString()
 				};
 
 				if (calendar.id) {
@@ -51,11 +52,18 @@ export class GoogleCalendar extends Calendar {
 
 				const cleanedEvents = (calendarEventsData.items || []).map(
 					event => {
+						let color = event.colorId
+							? colors.event![event.colorId].background
+							: colors.calendar![calendar.colorId!].background;
+
 						return {
 							name: event.summary!,
 							start: new Date(event!.start!.dateTime!),
 							end: new Date(event!.end!.dateTime!),
-							calendar: calendar.id || 'primary'
+							calendar: {
+								name: calendar.summary || 'primary',
+								color: color || '#ffffff'
+							}
 						};
 					}
 				);
@@ -63,8 +71,6 @@ export class GoogleCalendar extends Calendar {
 				return cleanedEvents;
 			})
 		);
-
-		console.log(events);
 
 		return events.flat();
 	}

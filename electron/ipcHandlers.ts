@@ -22,10 +22,13 @@ export function initHandlers() {
 	mixpanel = getMixpanelInstance();
 
 	// eslint-disable-next-line no-unused-vars
-	ipcMain.handle('getEvents', async event => {
+	ipcMain.handle('getEventsForWeek', async (event, week) => {
 		const gcal = new GoogleCalendar();
-		return await gcal.getEventsForDay(new Date());
+		await gcal.auth();
+		const { start, end } = week;
+		return await gcal.getEventsBetweenDates(start, end);
 	});
+
 
 	ipcMain.handle('getHabits', async () => {
 		return await db.getAllHabits();

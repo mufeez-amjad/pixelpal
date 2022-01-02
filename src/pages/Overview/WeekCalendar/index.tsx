@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import * as Styled from './styled';
 
 import {
 	startOfWeek,
@@ -13,7 +13,7 @@ import {
 } from 'date-fns';
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import useKeyboardShortcuts, { KEY_CODE, SHORTCUT } from '../../hooks/use_keyboard_shortcuts';
+import useKeyboardShortcuts, { KEY_CODE, SHORTCUT } from '../../../hooks/use_keyboard_shortcuts';
 
 interface IDay {
 	day: Date;
@@ -32,16 +32,16 @@ function Day({ day, selectedDay, onClick, current }: IDay) {
 	};
 
 	return (
-		<DayContainer current={current}>
+		<Styled.DayContainer current={current}>
 			<span>{weekday()}</span>
-			<DateContainer
+			<Styled.DateContainer
 				current={current}
 				selected={isSelected()}
 				onClick={() => onClick()}
 			>
 				<span>{day.getDate()}</span>
-			</DateContainer>
-		</DayContainer>
+			</Styled.DateContainer>
+		</Styled.DayContainer>
 	);
 }
 
@@ -50,6 +50,7 @@ interface Props {
 	// eslint-disable-next-line no-unused-vars
 	onWeekdaySelect: (d: Date) => void;
 }
+
 function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) {
 	const [refDay, setRefDay] = React.useState(startOfWeek(selectedDay));
 	const lastShortcut = useKeyboardShortcuts([
@@ -88,14 +89,14 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) {
 	const [month, year] = format(refDay, 'MMMM yyyy').split(' ');
 
 	return (
-		<Container>
-			<Month onClick={() => onWeekdaySelect(new Date())}>
+		<Styled.Container>
+			<Styled.Month onClick={() => onWeekdaySelect(new Date())}>
 				<span>{month}</span>
 				<span> {year}</span>
-			</Month>
-			<Week>
+			</Styled.Month>
+			<Styled.Week>
 				<FaChevronLeft onClick={() => advanceWeek(-1)} />
-				<DaysContainer>
+				<Styled.DaysContainer>
 					{daysOfWeek.map((day, index) => (
 						<Day
 							key={index}
@@ -105,97 +106,11 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) {
 							current={isSameMonth(refDay, day)}
 						/>
 					))}
-				</DaysContainer>
+				</Styled.DaysContainer>
 				<FaChevronRight onClick={() => advanceWeek(1)} />
-			</Week>
-		</Container>
+			</Styled.Week>
+		</Styled.Container>
 	);
 }
-
-const Container = styled.div`
-	display: flex;
-	flex-direction: column;
-	padding: 10px;
-	padding-top: 20px;
-`;
-
-const Month = styled.div`
-	padding: 5px 10px;
-	font-size: 16px;
-
-	> span {
-		&:first-child {
-			font-weight: 700;
-		}
-
-		&:last-child {
-			color: #fcb852;
-		}
-	}
-`;
-
-const Week = styled.div`
-	display: flex;
-	justify-content: space-around;
-	align-items: center;
-	padding: 10px;
-`;
-
-const DaysContainer = styled.div`
-	display: flex;
-	justify-content: space-between;
-`;
-
-interface ContainerProps {
-	current: boolean;
-	selected?: boolean;
-}
-
-const DayContainer = styled.div<ContainerProps>`
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-
-	> span {
-		font-size: 10px;
-	}
-
-	${({ current }) =>
-		!current &&
-		`
-	color: #ccc;
-  	`}
-
-	${({ selected }) =>
-		selected &&
-		`
-	color: white;
-	background: #FCB852;
-  	`}
-`;
-
-const DateContainer = styled.div<ContainerProps>`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	margin: 4px;
-	width: 32px;
-	height: 32px;
-	border-radius: 32px;
-
-	${({ current }) =>
-		!current &&
-		`
-	color: #ccc;
-  	`}
-
-	${({ selected }) =>
-		selected &&
-		`
-	color: white;
-	background: #FCB852;
-  	`}
-`;
 
 export default WeekCalendar;
