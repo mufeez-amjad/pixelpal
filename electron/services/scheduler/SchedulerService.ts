@@ -1,7 +1,8 @@
 import { clearInterval, setInterval } from 'timers';
 import { calculateNextReminderAt } from '../../helpers';
-import AppWindow from '../../window';
-import DatabaseService from '../db/DatabaseService';
+import { AppWindow } from '../../window/AppWindow';
+import { getNotificationWindow } from '../../window/NotificationWindow';
+import { getDatabaseConnection, DatabaseService } from '../db/DatabaseService';
 
 const REMINDER_INTERVAL_MS = 5000;
 
@@ -11,8 +12,8 @@ export class SchedulerService {
 	// eslint-disable-next-line no-undef
 	timer?: NodeJS.Timer;
 
-	constructor(db: DatabaseService, notifWindow: AppWindow) {
-		this.db = db;
+	constructor(notifWindow: AppWindow) {
+		this.db = getDatabaseConnection();
 		this.notifWindow = notifWindow;
 	}
 
@@ -55,4 +56,15 @@ export class SchedulerService {
 		await db.createHabitEvent('triggered', habit.id);
 		notifWindow.showInactive();
 	}
+}
+
+let schedulerSrv: SchedulerService;
+
+export function startSchedulerService() {
+	schedulerSrv = new SchedulerService(getNotificationWindow());
+	schedulerSrv.start();
+}
+
+export function getSchedulerService() {
+	return schedulerSrv;
 }

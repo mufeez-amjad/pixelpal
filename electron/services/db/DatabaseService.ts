@@ -1,12 +1,28 @@
 import { Knex } from 'knex';
+import { app } from 'electron';
 import { calculateNextReminderAt } from '../../helpers';
 import { CreateHabitRequest, Habit, HabitEventCounts } from '../../types';
+import path from 'path';
+const fs = require('fs');
 
-class DatabaseService {
+const dbFile = app.isPackaged
+	? path.join(app.getPath('userData'), 'pixelpal.db')
+	: '.db/pixelpal.db';
+
+export class DatabaseService {
 	knex: Knex;
 
-	constructor(knex: Knex) {
-		this.knex = knex;
+	constructor() {
+		this.knex = require('knex')({
+			client: 'sqlite3',
+			connection: {
+				filename: dbFile
+			},
+			migrations: {
+				tableName: 'migrations',
+				directory: path.join(__dirname, '../migrations/')
+			}
+		});
 	}
 
 	getAllHabits(day?: string): Promise<Array<Habit>> {
@@ -15,6 +31,27 @@ class DatabaseService {
 			query = query.where('days', 'like', `%${day}%`);
 		}
 		return query;
+	}
+
+	getTodayEventCountsForHabit(habit: Habit): Promise<any> {
+		const targetDate = `date(${
+			Date.now() / 1000
+		}, 'unixepoch', 'start of day')`;
+
+		return this.knex
+			.select(
+				'habit_id',
+				'type',
+				this.knex.raw('count() as `num_events`')
+			)
+			.table('habit_events')
+			.where(
+				this.knex.raw('date(timestamp/1000, \'unixepoch\')'),
+				'=',
+				this.knex.raw(targetDate)
+			)
+			.where('habit_id', '=', habit.id)
+			.groupBy('type');
 	}
 
 	getHabitEventCountsForDay(
@@ -65,24 +102,6 @@ class DatabaseService {
 			.update('reminder_at', reminder_at);
 	}
 
-	getSurvey(surveyId: string): Promise<Array<object>> {
-		// if id doesn't exist, create it
-		return this.knex.select().table('surveys').where('survey_id', surveyId);
-	}
-
-	insertSurvey(surveyId: string): Promise<Array<object>> {
-		return this.knex('surveys').insert({
-			survey_id: surveyId,
-			completed: false
-		});
-	}
-
-	completeSurvey(surveyId: string): Promise<Array<object>> {
-		return this.knex('surveys')
-			.where('survey_id', surveyId)
-			.update({ completed: true });
-	}
-
 	createHabitEvent(type: string, habitId: number): Promise<Array<object>> {
 		return this.knex('habit_events').insert({
 			habit_id: habitId,
@@ -92,4 +111,18 @@ class DatabaseService {
 	}
 }
 
-export default DatabaseService;
+let db: DatabaseService;
+
+export function startDatabaseService() {
+	db = new DatabaseService();
+}
+
+export function getDatabaseConnection() {
+	return db;
+}
+
+export async function migrate() {
+	const dbDir = path.dirname(dbFile);
+	if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
+	await getDatabaseConnection().knex.migrate.latest();
+}
