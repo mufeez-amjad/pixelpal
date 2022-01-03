@@ -102,24 +102,6 @@ export class DatabaseService {
 			.update('reminder_at', reminder_at);
 	}
 
-	getSurvey(surveyId: string): Promise<Array<object>> {
-		// if id doesn't exist, create it
-		return this.knex.select().table('surveys').where('survey_id', surveyId);
-	}
-
-	insertSurvey(surveyId: string): Promise<Array<object>> {
-		return this.knex('surveys').insert({
-			survey_id: surveyId,
-			completed: false
-		});
-	}
-
-	completeSurvey(surveyId: string): Promise<Array<object>> {
-		return this.knex('surveys')
-			.where('survey_id', surveyId)
-			.update({ completed: true });
-	}
-
 	createHabitEvent(type: string, habitId: number): Promise<Array<object>> {
 		return this.knex('habit_events').insert({
 			habit_id: habitId,

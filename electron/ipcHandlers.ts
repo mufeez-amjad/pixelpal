@@ -21,13 +21,11 @@ export function initHandlers() {
 	mixpanel = getMixpanelInstance();
 
 	ipcMain.handle('getHabits', async () => {
-		const habits = await db.getAllHabits();
-		return habits;
+		return await db.getAllHabits();
 	});
 
 	ipcMain.handle('getHabitsForDay', async (_event, day) => {
-		const habits = await db.getAllHabits(day);
-		return habits;
+		return await db.getAllHabits(day);
 	});
 
 	ipcMain.handle('getHabitEventCountsForDay', async (_event, day) => {
@@ -74,20 +72,5 @@ export function initHandlers() {
 		notificationWindow.hide();
 		await db.createHabitEvent(action.status, action.habit_id);
 		await appWindow.webContents.send('overview:update-habit-counts');
-	});
-
-	ipcMain.handle('getSurvey', async (_event, surveyId) => {
-		const survey = db.getSurvey(surveyId);
-		return survey;
-	});
-
-	ipcMain.handle('insertSurvey', async (_event, surveyId) => {
-		await db.insertSurvey(surveyId);
-		console.log('inserted survey');
-	});
-
-	ipcMain.handle('completeSurvey', async (_event, surveyId) => {
-		await db.completeSurvey(surveyId);
-		console.log('completed survey');
 	});
 }
