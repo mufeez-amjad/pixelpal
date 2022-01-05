@@ -14,7 +14,7 @@ interface NotificationResponse {
 	habit_id: number;
 }
 
-function Notification() {
+function Notification(): JSX.Element {
 	const [body, setBody] = useState({ id: -1, name: '' });
 	const [popUp, setPopUp] = useState(true);
 	const [celebrate, setCelebrate] = useState(false);

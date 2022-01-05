@@ -24,8 +24,8 @@ export class AppWindow extends BrowserWindow {
 	height: number;
 
 	constructor(options: IOptions) {
-		let width = options.dimensions?.width || WINDOW_WIDTH;
-		let height = options.dimensions?.height || WINDOW_HEIGHT;
+		const width = options.dimensions?.width || WINDOW_WIDTH;
+		const height = options.dimensions?.height || WINDOW_HEIGHT;
 		super({
 			width,
 			height,

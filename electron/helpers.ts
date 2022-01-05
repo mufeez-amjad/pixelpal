@@ -16,8 +16,8 @@ const getDayMinutes = (date: Date): number => {
 };
 
 const getDays = (dayString: string): Record<number, boolean> => {
-	let days: Record<number, boolean> = {};
-	for (let char of dayString) {
+	const days: Record<number, boolean> = {};
+	for (const char of dayString) {
 		days[dayChars[char]] = true;
 	}
 	return days;

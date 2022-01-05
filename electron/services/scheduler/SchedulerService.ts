@@ -34,7 +34,7 @@ export class SchedulerService {
 	}
 
 	async showPendingReminder(db: DatabaseService, notifWindow: AppWindow) {
-		let habit = await db.getNextPendingNotification();
+		const habit = await db.getNextPendingNotification();
 		if (!habit) return;
 
 		const original_reminder_at = habit.reminder_at;
