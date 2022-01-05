@@ -8,24 +8,22 @@ import { FaCircle } from 'react-icons/fa';
 
 import stand from './stand.gif';
 
-import { Event as IEvent } from '../../../electron/services/calendar/calendar';
+import { IEvent } from '../../../electron/services/calendar/calendar';
 
 import WeekCalendar from './WeekCalendar';
-import { endOfWeek, format, isSameDay, startOfWeek } from 'date-fns';
+import { endOfWeek, format, isAfter, isBefore, isSameDay, startOfWeek } from 'date-fns';
 
-/* eslint-disable no-unused-vars */
 enum Showing {
 	All = 'All',
 	Events = 'Events',
 	Todo = 'Todos',
 }
-/* eslint-enable no-unused-vars */
 
 interface EventProps {
 	event: IEvent
 }
 
-const Event = ({event}: EventProps) => {
+const Event = ({event}: EventProps): JSX.Element => {
 	const timeRange = `${format(event.start, 'h:mmaaa')} - ${format(event.end, 'h:mmaaa')}`;
 
 	return (
@@ -71,7 +69,7 @@ const EventName = styled.div`
 	margin-top: 4px;
 `;
 
-function Overview() {
+function Overview() : JSX.Element {
 	const [showing, setShowing] = React.useState(Showing.All);
 	const [events, setEvents] = React.useState<Array<IEvent>>([]);
 
@@ -88,9 +86,18 @@ function Overview() {
 
 	React.useEffect(() => {
 		(async () => {
-			const nextEvents = await ipcRenderer.invoke('getEventsForWeek', {
+			const nextEvents : Array<IEvent> = await ipcRenderer.invoke('getEventsForWeek', {
 				start: new Date(weekStart), 
 				end: new Date(weekEnd)
+			});
+			nextEvents.sort((eventA, eventB) => {
+				if (isBefore(eventA.start, eventB.start)) {
+					return -1;
+				} else if (isAfter(eventA.start, eventB.start)) {
+					return 1;
+				}
+
+				return 0;
 			});
 			setEvents(nextEvents);
 		})();
@@ -126,7 +133,7 @@ function Overview() {
 					<img style={{ width: 100, height: 100 }} src={stand} />
 				</Character>
 			</Top>
-			<Bottom className="scroll-view">
+			<Bottom>
 				<SectionHeader>
 					<Dropdown>
 						<select 
@@ -171,7 +178,7 @@ const Bottom = styled.div`
 	flex: 4;
 	display: flex;
 	flex-direction: column;
-	overflow-y: scroll;
+	overflow: overlay;
 `;
 
 const Character = styled.div`

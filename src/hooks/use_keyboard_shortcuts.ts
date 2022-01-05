@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import * as React from 'react';
 
 import useEventListener from './use_event_listener';
@@ -19,7 +18,6 @@ export enum KEY_CODE {
 	d = 68,
 	k = 75,
 	w = 87
-	// add more as needed...
 }
 
 /**
@@ -42,24 +40,7 @@ export enum SHORTCUT {
 	OPT_ENTER = 'OPT_ENTER',
 	SHIFT = 'SHIFT',
 	w = 'w'
-	// add more as needed...
 }
-
-/**
- * Shortcut "labels" for <ShortcutSymbol symbol={...} />
- */
-const OPT = '⎇';
-export const SHORTCUT_SYMBOL = {
-	ENTER: 'Enter',
-	ESCAPE: 'Esc',
-	FORWARD_SLASH: '/',
-	OPT_ARROW_LEFT_RIGHT: `${OPT} ←→`,
-	OPT_c: `${OPT} c`,
-	OPT_d: `${OPT} d`,
-	OPT_k: `${OPT} k`,
-	OPT_ENTER: `${OPT} Enter`
-	// add more as needed...
-};
 
 export interface IShortcut {
 	keyCode: number;
@@ -72,7 +53,6 @@ export interface IShortcut {
 
 /**
  * Hook to match keydown events against pre-defined shortcuts, suitable for independent UI components, e.g. Date pickers
- * NOTE: MBP integrates this hook in the app-wide ShortcutsContextProvider / useShortcutsContext
  */
 export default function useKeyboardShortcuts(
 	shortcuts: IShortcut[] = []

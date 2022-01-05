@@ -47,11 +47,10 @@ function Day({ day, selectedDay, onClick, current }: IDay) {
 
 interface Props {
 	selectedDay: Date;
-	// eslint-disable-next-line no-unused-vars
 	onWeekdaySelect: (d: Date) => void;
 }
 
-function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) {
+function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 	const [refDay, setRefDay] = React.useState(startOfWeek(selectedDay));
 	const lastShortcut = useKeyboardShortcuts([
 		{name: SHORTCUT.ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT},

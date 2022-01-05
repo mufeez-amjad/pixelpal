@@ -13,7 +13,7 @@ interface Props {
 	banner: IBanner
 }
 
-const Banner = ({ banner }: Props) => {
+const Banner = ({ banner }: Props): JSX.Element => {
 	const getBannerProperties = (type: string) => {
 		switch (type) {
 		case 'SUCCESS':
