@@ -2,29 +2,20 @@ import { BrowserWindow } from 'electron';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'googleapis-common';
 
-const GoogleOAuth2 = google.auth.OAuth2;
-import { Credentials } from 'google-auth-library';
-
 import Store from 'electron-store';
 
+import { OAuthManager, OAuthClientOpts, Credentials } from '../oauth';
+
+const GoogleOAuth2 = google.auth.OAuth2;
 const store = new Store();
 
-const OAUTH_TOKEN_KEY = 'oauth-token';
+const OAUTH_TOKEN_KEY = 'oauth-token-google';
 
-import { isFuture } from 'date-fns';
-
-interface OAuthClientOpts {
-	clientId: string;
-	clientSecret: string;
-	scopes: Array<string>;
-}
-
-export default class Auth {
-	opts: OAuthClientOpts;
+export default class GoogleOAuth extends OAuthManager {
 	client: OAuth2Client;
 
 	constructor(opts: OAuthClientOpts) {
-		this.opts = opts;
+		super(opts);
 		this.client = new GoogleOAuth2(
 			opts.clientId,
 			opts.clientSecret,
@@ -46,22 +37,24 @@ export default class Auth {
 		);
 	}
 
+	async refreshToken(creds: Credentials): Promise<Credentials | undefined> {
+		if (this.needToRefreshToken(creds)) {
+			try {
+				const tokens = await this.client.refreshAccessToken();
+				store.set(OAUTH_TOKEN_KEY, tokens);
+				return tokens.credentials;
+			} catch (err) {
+				console.error(err);
+			}
+		}
+	}
+
 	async authClient(): Promise<void> {
-		let creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
+		const creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
 
 		if (creds) {
 			this.client.setCredentials(creds);
-
-			if (creds.expiry_date) {
-				let expiry = new Date(creds.expiry_date);
-				if (isFuture(expiry)) {
-					this.client.refreshAccessToken((error, tokens) => {
-						if (!error) {
-							store.set(OAUTH_TOKEN_KEY, tokens);
-						}
-					});
-				}
-			}
+			this.refreshToken(creds);
 		} else {
 			const tokens = await this.auth();
 			this.client.setCredentials(tokens);

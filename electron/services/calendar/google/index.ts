@@ -1,10 +1,10 @@
-import { Calendar, Event } from '../calendar';
+import { BaseCalendar, IEvent } from '../calendar';
 import Auth from './oauth';
 import secretAccountKey from './secretAccountKey.json';
 import { calendar_v3, google } from 'googleapis';
 const gcal = google.calendar('v3');
 
-export class GoogleCalendar extends Calendar {
+export class GoogleCalendar extends BaseCalendar {
 	oauth: Auth;
 
 	constructor() {
@@ -21,22 +21,46 @@ export class GoogleCalendar extends Calendar {
 		this.oauth = new Auth(opts);
 	}
 
-	async auth() {
+	async auth(): Promise<void> {
 		await this.oauth.authClient();
 		google.options({ auth: this.oauth.client });
+	}
+
+	getColor(
+		event: calendar_v3.Schema$Event,
+		calendar: calendar_v3.Schema$CalendarListEntry,
+		colors: calendar_v3.Schema$Colors
+	): string {
+		if (calendar.backgroundColor) {
+			return calendar.backgroundColor;
+		} else if (
+			event.colorId &&
+			colors.event &&
+			colors.event[event.colorId]
+		) {
+			return colors.event[event.colorId].background!;
+		} else if (
+			calendar.colorId &&
+			colors.calendar &&
+			colors.calendar[calendar.colorId]
+		) {
+			return colors.calendar[calendar.colorId].background!;
+		}
+
+		return '#333333';
 	}
 
 	async getEventsBetweenDates(
 		start: Date,
 		end: Date
-	): Promise<Event[] | undefined> {
+	): Promise<IEvent[] | undefined> {
 		const { data: colors } = await gcal.colors.get();
 
 		const { data: calendarsData } = await gcal.calendarList.list();
 
 		const events = await Promise.all(
 			(calendarsData.items || []).map(async calendar => {
-				let options: calendar_v3.Params$Resource$Events$List = {
+				const options: calendar_v3.Params$Resource$Events$List = {
 					timeMin: start.toISOString(),
 					timeMax: end.toISOString()
 				};
@@ -48,23 +72,44 @@ export class GoogleCalendar extends Calendar {
 					options
 				);
 
-				console.log(calendarEventsData);
-
-				const cleanedEvents = (calendarEventsData.items || []).map(
+				const cleanedEvents = (calendarEventsData.items || []).flatMap(
 					event => {
-						let color = event.colorId
-							? colors.event![event.colorId].background
-							: colors.calendar![calendar.colorId!].background;
+						const { start, end } = event;
 
-						return {
-							name: event.summary!,
-							start: new Date(event!.start!.dateTime!),
-							end: new Date(event!.end!.dateTime!),
-							calendar: {
-								name: calendar.summary || 'primary',
-								color: color || '#ffffff'
+						if (start && end && event.summary) {
+							if (start.date && end.date) {
+								return {
+									name: event.summary,
+									start: new Date(start.date),
+									end: new Date(end.date),
+									allDay: true,
+									calendar: {
+										name: calendar.summary || 'primary',
+										color: this.getColor(
+											event,
+											calendar,
+											colors
+										)
+									}
+								};
+							} else if (start.dateTime && end.dateTime) {
+								return {
+									name: event.summary,
+									start: new Date(start.dateTime),
+									end: new Date(end.dateTime),
+									calendar: {
+										name: calendar.summary || 'primary',
+										color: this.getColor(
+											event,
+											calendar,
+											colors
+										)
+									}
+								};
 							}
-						};
+						}
+
+						return [];
 					}
 				);
 
