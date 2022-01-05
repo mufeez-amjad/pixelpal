@@ -1,9 +1,8 @@
-/* eslint-disable no-unused-vars */
-
-export interface Event {
+export interface IEvent {
 	name: string;
 	start: Date;
 	end: Date;
+	allDay?: boolean;
 	calendar: CalendarProperties;
 }
 
@@ -12,9 +11,9 @@ interface CalendarProperties {
 	color: string;
 }
 
-export abstract class Calendar {
+export abstract class BaseCalendar {
 	abstract getEventsBetweenDates(
 		start: Date,
 		end: Date
-	): Promise<Event[] | undefined>;
+	): Promise<IEvent[] | undefined>;
 }
