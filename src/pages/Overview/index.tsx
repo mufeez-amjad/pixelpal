@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -12,6 +13,8 @@ import { IEvent } from '../../../electron/services/calendar/calendar';
 
 import WeekCalendar from './WeekCalendar';
 import { endOfWeek, format, isAfter, isBefore, isSameDay, startOfWeek } from 'date-fns';
+
+import { PageContainer } from '..';
 
 enum Showing {
 	All = 'All',
@@ -40,7 +43,6 @@ const Event = ({event}: EventProps): JSX.Element => {
 			<EventName>
 				{event.name}
 			</EventName>
-
 		</EventContainer>
 	);
 };
@@ -86,10 +88,11 @@ function Overview() : JSX.Element {
 
 	React.useEffect(() => {
 		(async () => {
-			const nextEvents : Array<IEvent> = await ipcRenderer.invoke('getEventsForWeek', {
-				start: new Date(weekStart), 
-				end: new Date(weekEnd)
-			});
+			// const nextEvents : Array<IEvent> = await ipcRenderer.invoke('getEventsForWeek', {
+			// 	start: new Date(weekStart), 
+			// 	end: new Date(weekEnd)
+			// });
+			const nextEvents: Array<IEvent> = [];
 			nextEvents.sort((eventA, eventB) => {
 				if (isBefore(eventA.start, eventB.start)) {
 					return -1;
@@ -117,9 +120,11 @@ function Overview() : JSX.Element {
 	}, []);
 
 	return (
-		<Container>
+		<PageContainer>
 			<Top>
-				<SettingsButton>
+				<SettingsButton
+					to={'/settings'}
+				>
 					<IoSettingsSharp
 						color="grey"
 						style={{ display: 'block', fontSize: 16 }}
@@ -150,7 +155,7 @@ function Overview() : JSX.Element {
 					))}
 				</Items>
 			</Bottom>
-		</Container>
+		</PageContainer>
 	);
 }
 
@@ -158,20 +163,14 @@ function Overview() : JSX.Element {
 
 export default Overview;
 
-const Container = styled.div`
-	background-color: #eeeeee;
-	height: 100%;
-	width: 100%;
-	padding: 20px;
-	display: flex;
-	flex-direction: column;
-`;
-
 const Top = styled.div`
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
 	background-color: white;
+
+	padding: 20px;
+	padding-bottom: 0;
 `;
 
 const Bottom = styled.div`
@@ -179,6 +178,7 @@ const Bottom = styled.div`
 	display: flex;
 	flex-direction: column;
 	overflow: overlay;
+	padding: 0 20px;
 `;
 
 const Character = styled.div`
@@ -188,7 +188,7 @@ const Character = styled.div`
 
 const SectionHeader = styled.div`
 	font-size: 12px;
-	padding: 15px 20px;
+	padding: 15px 0;
 	padding-bottom: 10px;
 	color: #b4b4b4;
 	display: flex;
@@ -238,11 +238,12 @@ const Dropdown = styled.div`
   }
 `;
 
-const SettingsButton = styled.button`
+const SettingsButton = styled(Link)`
+	cursor: default;
+
 	position: absolute;
-	right: 0;
-	top: 13px;
-	margin: 15px;
+	right: 20px;
+	top: 25px;
 
 	background-color: transparent;
 

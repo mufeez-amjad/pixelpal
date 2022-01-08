@@ -3,13 +3,13 @@ import styled from 'styled-components';
 export const Container = styled.div`
 	display: flex;
 	flex-direction: column;
-	padding: 10px;
-	padding-top: 20px;
+	/* padding: 10px;
+	padding-top: 20px; */
 `;
 
 export const Month = styled.div`
 	width: fit-content;
-	padding: 5px 10px;
+	padding: 5px;
 	font-size: 16px;
 
 	> span {
