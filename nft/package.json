@@ -34,7 +34,7 @@
     "web3": "^1.0.0-beta.34"
   },
   "engines": {
-    "node": "^16.13.x",
+    "node": "^16.x.x",
     "yarn": "~1.22.4"
   },
   "devDependencies": {

@@ -18,7 +18,7 @@ contract PixelPalFactory is FactoryERC721, Ownable {
 
     address public proxyRegistryAddress;
     address public nftAddress;
-    string public baseURI = "https://creatures-api.opensea.io/api/factory/";    // TODO change
+    string public baseURI = "ipfs://QmVn2LUqWqZEMt4dvVSm6j1gXtDPP9CGrWagBbxJQtsFdu/";
 
     /*
      * Enforce the existence of maximum supply
@@ -66,19 +66,9 @@ contract PixelPalFactory is FactoryERC721, Ownable {
         }
     }
 
-    event MintInfo(
-        address owner,
-        address msgSender,
-        address proxy
-    );
-
     function mint(uint256 _optionId, address _toAddress) override public {
         // Must be sent from the owner proxy or owner.
         ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
-
-        emit MintInfo(owner(), _msgSender(), address(proxyRegistry.proxies(owner())));
-
-        // TODO figure out why polygon fails this assert but ethereum doesn't
         assert(
             address(proxyRegistry.proxies(owner())) == _msgSender() ||
                 owner() == _msgSender()
@@ -108,7 +98,7 @@ contract PixelPalFactory is FactoryERC721, Ownable {
     }
 
     function tokenURI(uint256 _optionId) override external view returns (string memory) {
-        return string(abi.encodePacked(baseURI, Strings.toString(_optionId)));
+        return string(abi.encodePacked(baseURI, Strings.toString(_optionId), '.json'));
     }
 
     /**

@@ -14,10 +14,10 @@ contract PixelPal is ERC721Tradable {
     {}
 
     function baseTokenURI() override public pure returns (string memory) {
-        return "https://creatures-api.opensea.io/api/creature/";    // TODO change
+        return "ipfs://QmUfQX5WiXRf3YiG6raVCXKH9T4zWHP7pqZNPA35ssZbwG/";
     }
 
     function contractURI() public pure returns (string memory) {
-        return "https://creatures-api.opensea.io/contract/opensea-creatures";   // TODO change
+        return "ipfs://QmaF8XavePUjwmE15Xd8dePHCrf2YzqXtRXjfYthyrbyUo";
     }
 }
