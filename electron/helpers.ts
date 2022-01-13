@@ -83,7 +83,7 @@ export function calculateNextReminderAt(
 
 export async function getCountsForHabit(habit: Habit) {
 	const dailyEventCounts =
-		await getDatabaseConnection().getTodayEventCountsForHabit(habit);
+		await getDatabaseConnection().getTodayEventCountsForHabit(habit.id);
 	const counts: any = {};
 
 	dailyEventCounts.forEach((e: any) => {

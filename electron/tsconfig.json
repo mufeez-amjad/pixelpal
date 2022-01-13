@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+    "emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
 		"target": "esnext",
 		"lib": ["es2019"],
 		"module": "commonjs",

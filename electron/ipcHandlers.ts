@@ -128,7 +128,7 @@ export function initHandlers(): void {
 			distinct_id: username
 		});
 		notificationWindow.hide();
-		await db.createHabitEvent(action.status, action.habit_id);
+		await db.insertHabitEvent(action.status, action.habit_id);
 		await appWindow.webContents.send('overview:update-habit-counts');
 	});
 }

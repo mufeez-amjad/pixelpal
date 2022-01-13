@@ -1,3 +1,5 @@
+// TODO: remove these and use only typeorm entities
+
 export interface CreateHabitRequest {
 	name: string;
 	frequency: number;
