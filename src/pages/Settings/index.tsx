@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-
 import { PageContainer, PageTitle } from '..';
 import { SettingItem, SettingsGroup } from './SettingsGroup';
-import { IoCalendarClearSharp } from 'react-icons/io5';
-import { Route, Switch } from 'react-router-dom';
+import { IoCalendarClearSharp, IoExtensionPuzzle } from 'react-icons/io5';
+import { Route, Routes } from 'react-router-dom';
+
+import General from './pages/General';
+import Calendar from './pages/Calendar';
 
 function Settings(): JSX.Element {
 	return (
@@ -15,11 +16,13 @@ function Settings(): JSX.Element {
 				padding: 16
 			}}
 		>
-			
-			<PageTitle text='Settings'/>
+			<PageTitle 
+				text='Settings'
+				navigateTo='/'
+			/>
 			<SplitContainer
 				style={{
-					marginTop: 20
+					marginTop: 32
 				}}
 			>
 				<Split
@@ -31,7 +34,11 @@ function Settings(): JSX.Element {
 					>
 						<SettingItem 
 							text='General'
-							href='/settings'
+							href='/settings/'
+						/>
+						<SettingItem 
+							text='Customization'
+							href='/settings/customization'
 						/>
 						<SettingItem 
 							text='Notifications'
@@ -41,25 +48,33 @@ function Settings(): JSX.Element {
 
 					<SettingsGroup 
 						title='Integrations'
-						Icon={IoCalendarClearSharp}
+						Icon={IoExtensionPuzzle}
 					>
 						<SettingItem 
-							text='Calendar'
-							href='/settings/general'
+							text='Calendars'
+							href='/settings/calendars'
+						/>
+						<SettingItem 
+							text='NFT'
+							href='/settings/nft'
 						/>
 						<SettingItem 
 							text='Conferencing'
-							href='/settings/general'
+							href='/settings/conferencing'
 						/>
 					</SettingsGroup>
 				</Split>
 				<Split
 					flex={4}
 				>
-					<Switch>
-						<Route exact path="/settings" component={() => <>hi!</>} />
-						<Route exact path="/settings/notifications" component={() => <>hi!</>} />
-					</Switch>
+					<Routes>
+						<Route path="/" element={<General />} />	
+						<Route path="/customization"  element={<>Notifications</>} />
+						<Route path="/notifications"  element={<>Notifications</>} />
+						<Route path="/calendars"  element={<Calendar />} />
+						<Route path="/nft"  element={<>NFT</>} />
+						<Route path="/conferencing"  element={<>Conferencing</>} />
+					</Routes>
 				</Split>
 			</SplitContainer>
 		</PageContainer>
@@ -86,6 +101,6 @@ const Split = styled.div<SplitProps>`
 	height: 100%;
 
 	:not(:last-child) { 
-		border-right: solid 1px #dddddd;
+		border-right: solid 1px #eeeeee;
 	}
 `;

@@ -3,18 +3,24 @@ import {
 	Client
 } from '@microsoft/microsoft-graph-client';
 
-import { BaseCalendar, IEvent } from '../calendar';
+import { BaseCalendar, IEvent } from '../base';
+import { ACCOUNTS_INFO_KEY, IAccounts } from '../base';
 import { Credentials } from '../oauth';
 import Auth from './oauth';
 
 import {
 	Event as OutlookIEvent,
-	Calendar as OutlookICalendar
+	Calendar as OutlookICalendar,
+	User
 } from '@microsoft/microsoft-graph-types';
+
+import Store from 'electron-store';
+const store = new Store();
 
 export class OutlookCalendar extends BaseCalendar {
 	oauth: Auth;
 	client?: Client;
+	creds?: Credentials;
 
 	constructor() {
 		super();
@@ -23,16 +29,17 @@ export class OutlookCalendar extends BaseCalendar {
 			clientId: '4141f923-f32b-4737-8946-b8e2fd52c0cf',
 			scopes: [
 				'https://graph.microsoft.com/Calendars.Read',
+				'https://graph.microsoft.com/User.Read',
 				'offline_access'
 			]
 		};
 		this.oauth = new Auth(opts);
 	}
 
-	async auth(): Promise<Credentials> {
+	async auth(add: boolean): Promise<void> {
 		const callback = async (done: AuthProviderCallback) => {
 			try {
-				const creds = await this.oauth.getCreds();
+				const creds = await this.oauth.getCreds(false);
 				if (creds.access_token) {
 					done(null, creds.access_token);
 				}
@@ -44,7 +51,39 @@ export class OutlookCalendar extends BaseCalendar {
 		this.client = Client.init({
 			authProvider: callback
 		});
-		return await this.oauth.getCreds();
+
+		this.creds = await this.oauth.getCreds(add);
+
+		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
+		const user = await this.getAccountInfo();
+		console.log('user');
+		console.log(user);
+
+		if (user) {
+			accounts.microsoft = Object.assign(accounts.microsoft || {}, {
+				[user.mail || user.userPrincipalName!]: {
+					user,
+					creds: this.oauth.creds
+				}
+			});
+			console.log(accounts);
+
+			store.set(ACCOUNTS_INFO_KEY, accounts);
+		}
+	}
+
+	async getAccountInfo(): Promise<User | undefined> {
+		if (!this.client || !this.creds) {
+			return;
+		}
+
+		const res = await this.client
+			.api('/me')
+			.header('Authorization', `Bearer ${this.creds.access_token}`)
+			.header('Content-Type', 'application/json')
+			.get();
+
+		return res as User;
 	}
 
 	async getEventsBetweenDates(
@@ -56,7 +95,7 @@ export class OutlookCalendar extends BaseCalendar {
 		}
 
 		const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		const creds = await this.oauth.getCreds();
+		const creds = await this.oauth.getCreds(false);
 
 		const calendarsData = await this.client
 			.api('/me/calendars')

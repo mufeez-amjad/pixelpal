@@ -49,16 +49,16 @@ export default class GoogleOAuth extends OAuthManager {
 		}
 	}
 
-	async authClient(): Promise<void> {
+	async authClient(add: boolean): Promise<void> {
 		const creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
 
-		if (creds) {
+		if (creds && !add) {
 			this.client.setCredentials(creds);
 			this.refreshToken(creds);
 		} else {
-			const tokens = await this.auth();
-			this.client.setCredentials(tokens);
-			store.set(OAUTH_TOKEN_KEY, tokens);
+			this.creds = await this.auth();
+			this.client.setCredentials(this.creds);
+			store.set(OAUTH_TOKEN_KEY, this.creds);
 		}
 	}
 

@@ -6,7 +6,7 @@ import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
 import { getCurrentDisplay } from '../util';
 
-const WINDOW_WIDTH = 360;
+const WINDOW_WIDTH = 380;
 const WINDOW_HEIGHT = 480;
 
 interface IOptions {

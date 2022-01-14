@@ -3,7 +3,8 @@ import { app } from 'electron';
 import { calculateNextReminderAt } from '../../helpers';
 import { CreateHabitRequest, Habit, HabitEventCounts } from '../../types';
 import path from 'path';
-const fs = require('fs');
+import fs from 'fs';
+import knex from 'knex';
 
 const dbFile = app.isPackaged
 	? path.join(app.getPath('userData'), 'pixelpal.db')
@@ -13,7 +14,7 @@ export class DatabaseService {
 	knex: Knex;
 
 	constructor() {
-		this.knex = require('knex')({
+		this.knex = knex({
 			client: 'sqlite3',
 			connection: {
 				filename: dbFile

@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { FaChevronLeft } from 'react-icons/fa';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router';
 
 interface PageContainerProps {
 	children?: React.ReactNode
@@ -20,14 +20,15 @@ export const PageContainer: React.FC<PageContainerProps> = ({children, style}) =
 
 interface PageTitleProps {
 	text: string;
+	navigateTo: string;
 }
-export const PageTitle : React.FC<PageTitleProps> = ({text}) => {
-	const history = useHistory();
+export const PageTitle : React.FC<PageTitleProps> = ({text, navigateTo}) => {
+	const navigate = useNavigate();
 
 	return (
 		<Title>
 			<FaChevronLeft 
-				onClick={() => history.goBack()}
+				onClick={() => navigate(navigateTo)}
 			/>
 			<span>
 				{text}
@@ -37,7 +38,7 @@ export const PageTitle : React.FC<PageTitleProps> = ({text}) => {
 };
 
 const Container = styled.div`
-	background-color: #eeeeee;
+	background-color: #ffffff;
 	height: 100%;
 	width: 100%;
 	display: flex;
@@ -55,9 +56,9 @@ const Title = styled.div`
 	align-items: center;
 
 	svg {
-		fill: #333333;
+		fill: #777777;
 		&:hover {
-    		fill: #6d6d6d;
+    		fill: #363636;
 		}
 	}
 `;

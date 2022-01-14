@@ -32,31 +32,37 @@ export default class MicrosoftOAuth extends OAuthManager {
 		super(opts);
 	}
 
-	async getCreds(): Promise<Credentials> {
-		const creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
+	async getCreds(add: boolean): Promise<Credentials> {
+		if (this.creds && !this.needToRefreshToken(this.creds)) {
+			return this.creds;
+		}
 
-		if (creds) {
-			if (this.needToRefreshToken(creds)) {
-				const newCreds = await this.refreshToken(creds);
+		this.creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
+
+		if (this.creds && !add) {
+			if (this.needToRefreshToken(this.creds)) {
+				const newCreds = await this.refreshToken(this.creds);
 				if (newCreds) {
 					return newCreds;
 				} else {
 					throw Error('Failed refreshing!');
 				}
 			}
-			return creds;
+			return this.creds;
 		} else {
-			return await this.auth();
+			this.creds = await this.auth();
+			return this.creds;
 		}
 	}
 
+	// FIXME: can remove?
 	// needed for AuthProvider interface
 	async getToken(
 		scopes: string | string[],
 		options?: GetTokenOptions
 	): Promise<AccessToken | null> {
 		try {
-			const creds = await this.getCreds();
+			const creds = await this.getCreds(false);
 			if (creds.access_token && creds.expiry_date) {
 				return {
 					token: creds.access_token,

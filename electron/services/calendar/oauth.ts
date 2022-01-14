@@ -12,8 +12,14 @@ export interface Credentials {
 	access_token?: string | null;
 }
 
+export enum Provider {
+	google = 'google',
+	microsoft = 'microsoft'
+}
+
 export abstract class OAuthManager {
 	opts: OAuthClientOpts;
+	creds?: Credentials;
 
 	constructor(opts: OAuthClientOpts) {
 		this.opts = opts;

@@ -9,7 +9,7 @@ import { FaCircle } from 'react-icons/fa';
 
 import stand from './stand.gif';
 
-import { IEvent } from '../../../electron/services/calendar/calendar';
+import { IEvent } from '../../../common/types';
 
 import WeekCalendar from './WeekCalendar';
 import { endOfWeek, format, isAfter, isBefore, isSameDay, startOfWeek } from 'date-fns';
@@ -171,9 +171,14 @@ const Top = styled.div`
 
 	padding: 20px;
 	padding-bottom: 0;
+
+	/* background: url('http://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2c8e48e8d8c0f41.png');
+	background-size: 380px 100px;
+	background-repeat: no-repeat; */
 `;
 
 const Bottom = styled.div`
+	background-color: #eeeeee;
 	flex: 4;
 	display: flex;
 	flex-direction: column;
@@ -239,8 +244,6 @@ const Dropdown = styled.div`
 `;
 
 const SettingsButton = styled(Link)`
-	cursor: default;
-
 	position: absolute;
 	right: 20px;
 	top: 25px;
@@ -251,6 +254,7 @@ const SettingsButton = styled(Link)`
 	filter: brightness(100%);
 
 	:hover {
+		cursor: default;
 		filter: brightness(85%);
 	}
 

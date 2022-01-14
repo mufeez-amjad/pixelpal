@@ -38,12 +38,14 @@ const Header = styled.div`
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+
+	color: #9e9e9e;
 `;
 
 const Title = styled.div`
 	margin-left: 10px;
 	font-size: 13px;
-	font-weight: 500;
+	font-weight: 400;
 `;
 
 const Items = styled.div`
@@ -56,7 +58,7 @@ interface ItemProps {
 	href: string;
 	selected?: boolean;
 }
-export const SettingItem = ({text, href}: ItemProps) => {
+export const SettingItem = ({text, href}: ItemProps): JSX.Element => {
 	return (
 		<Item
 			to={href}

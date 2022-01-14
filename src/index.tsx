@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { HashRouter, Route, Switch, useHistory } from 'react-router-dom';
+import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
 
 const { ipcRenderer } = window.require('electron');
 
 import Overview from './pages/Overview';
-import Notification from './pages/Notification';
+// import Notification from './pages/Notification';
 import Settings from './pages/Settings';
 
 import 'normalize.css';
@@ -16,29 +16,29 @@ import './index.css';
 const App = () => {
 	return (
 		<HashRouter>
-			<Routes />
+			<RoutesComponent />
 		</HashRouter>
 	);
 };
 
-const Routes = () => {
-	const history = useHistory();
+const RoutesComponent = () => {
+	const navigate = useNavigate();
 
 	React.useEffect(() => {
 		function handleWindowHide() {
 			console.log('hiding!');
-			history.push('/');
+			navigate('/');
 		}
 		ipcRenderer.on('hide-tray-window', handleWindowHide);
 		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowHide);
 	}, []);
 
 	return (
-		<Switch>
-			<Route exact path="/" component={Overview} />
-			<Route exact path="/settings/*" component={Settings} />
-			<Route exact path="/notification" component={Notification} />
-		</Switch>
+		<Routes>
+			<Route path="/" element={<Overview />} />
+			<Route path="/settings/*" element={<Settings />} />
+			{/* <Route path="/notification" component={Notification} /> */}
+		</Routes>
 	);
 };
 

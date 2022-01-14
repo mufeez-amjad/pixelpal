@@ -1,8 +1,18 @@
-import { BaseCalendar, IEvent } from '../calendar';
+import {
+	ACCOUNTS_INFO_KEY,
+	BaseCalendar,
+	IAccounts,
+	IEvent,
+	IUser
+} from '../base';
+
 import Auth from './oauth';
 import secretAccountKey from './secretAccountKey.json';
 import { calendar_v3, google } from 'googleapis';
 const gcal = google.calendar('v3');
+
+import Store from 'electron-store';
+const store = new Store();
 
 export class GoogleCalendar extends BaseCalendar {
 	oauth: Auth;
@@ -15,15 +25,36 @@ export class GoogleCalendar extends BaseCalendar {
 			clientSecret: secretAccountKey.installed.client_secret,
 			scopes: [
 				'https://www.googleapis.com/auth/calendar.readonly',
-				'https://www.googleapis.com/auth/calendar.events.readonly'
+				'https://www.googleapis.com/auth/calendar.events.readonly',
+				// 'https://www.googleapis.com/auth/userinfo.profile',
+				'https://www.googleapis.com/auth/userinfo.email'
 			]
 		};
 		this.oauth = new Auth(opts);
 	}
 
-	async auth(): Promise<void> {
-		await this.oauth.authClient();
+	async getAccountInfo(): Promise<IUser> {
+		const { data } = await google.oauth2('v2').userinfo.get();
+		return {
+			email: data.email
+		};
+	}
+
+	async auth(add: boolean): Promise<void> {
+		await this.oauth.authClient(add);
 		google.options({ auth: this.oauth.client });
+
+		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
+		const user = await this.getAccountInfo();
+
+		accounts.google = Object.assign(accounts.google || {}, {
+			[user.email!]: {
+				user,
+				creds: this.oauth.creds
+			}
+		});
+
+		store.set(ACCOUNTS_INFO_KEY, accounts);
 	}
 
 	getColor(

@@ -1,3 +1,6 @@
+import os from 'os';
+
+import Store from 'electron-store';
 import { ipcMain } from 'electron';
 import {
 	DatabaseService,
@@ -8,12 +11,16 @@ import { AppWindow, getAppWindow } from './window/AppWindow';
 import { getNotificationWindow } from './window/NotificationWindow';
 import { getCountsForHabit } from './helpers';
 import { GoogleCalendar } from './services/calendar/google';
+import { ACCOUNTS_INFO_KEY, BaseCalendar, IAccounts } from './services/calendar/base';
+import { Provider } from './services/calendar/oauth';
+import { OutlookCalendar } from './services/calendar/outlook';
 
 let db: DatabaseService;
 let appWindow: AppWindow;
 let notificationWindow: AppWindow;
 let mixpanel: any;
-const username = require('os').userInfo().username;
+const username = os.userInfo().username;
+const store = new Store();
 
 export function initHandlers() {
 	db = getDatabaseConnection();
@@ -22,11 +29,37 @@ export function initHandlers() {
 	mixpanel = getMixpanelInstance();
 
 	// eslint-disable-next-line no-unused-vars
+	ipcMain.handle('triggerOAuth', async (event, provider: Provider) => {
+		let platform: BaseCalendar;
+
+		switch (provider) {
+		case Provider.google:
+			platform = new GoogleCalendar();
+			break;
+		case Provider.microsoft:
+			platform = new OutlookCalendar();
+			break;
+		default:
+			return null;
+		}
+
+		await platform.auth(true);
+
+		return (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
+	});
+
+	ipcMain.handle('getConnectedAccounts', async event => {
+		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
+		return accounts;
+	});
+
 	ipcMain.handle('getEventsForWeek', async (event, week) => {
-		const gcal = new GoogleCalendar();
-		await gcal.auth();
 		const { start, end } = week;
-		return await gcal.getEventsBetweenDates(start, end);
+
+		// const ocal = new OutlookCalendar();
+		// await ocal.auth();
+
+		// return await ocal.getEventsBetweenDates(start, end);
 	});
 
 
