@@ -3,7 +3,7 @@ import {
 	Client
 } from '@microsoft/microsoft-graph-client';
 
-import { BaseCalendar, IEvent } from '../base';
+import { BaseCalendar, IAccount, IEvent } from '../base';
 import { ACCOUNTS_INFO_KEY, IAccounts } from '../base';
 import { Credentials } from '../oauth';
 import Auth from './oauth';
@@ -11,7 +11,7 @@ import Auth from './oauth';
 import {
 	Event as OutlookIEvent,
 	Calendar as OutlookICalendar,
-	User
+	User as OutlookIUser
 } from '@microsoft/microsoft-graph-types';
 
 import Store from 'electron-store';
@@ -23,7 +23,8 @@ export class OutlookCalendar extends BaseCalendar {
 	creds?: Credentials;
 
 	constructor() {
-		super();
+		const { microsoft } = store.get(ACCOUNTS_INFO_KEY, {}) as IAccounts;
+		super(microsoft);
 
 		const opts = {
 			clientId: '4141f923-f32b-4737-8946-b8e2fd52c0cf',
@@ -36,10 +37,24 @@ export class OutlookCalendar extends BaseCalendar {
 		this.oauth = new Auth(opts);
 	}
 
-	async auth(add: boolean): Promise<void> {
+	async getLoggedInAccountInfo(): Promise<OutlookIUser | undefined> {
+		if (!this.client || !this.creds) {
+			return;
+		}
+
+		const res = await this.client
+			.api('/me')
+			.header('Authorization', `Bearer ${this.creds.access_token}`)
+			.header('Content-Type', 'application/json')
+			.get();
+
+		return res as OutlookIUser;
+	}
+
+	async auth(account?: IAccount): Promise<Credentials> {
 		const callback = async (done: AuthProviderCallback) => {
 			try {
-				const creds = await this.oauth.getCreds(false);
+				const creds = await this.oauth.getCreds(account);
 				if (creds.access_token) {
 					done(null, creds.access_token);
 				}
@@ -52,54 +67,34 @@ export class OutlookCalendar extends BaseCalendar {
 			authProvider: callback
 		});
 
-		this.creds = await this.oauth.getCreds(add);
+		this.creds = await this.oauth.getCreds(account);
 
-		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
-		const user = await this.getAccountInfo();
-		console.log('user');
-		console.log(user);
+		const accounts = store.get(ACCOUNTS_INFO_KEY, {}) as IAccounts;
+		const user = await this.getLoggedInAccountInfo();
 
 		if (user) {
 			accounts.microsoft = Object.assign(accounts.microsoft || {}, {
 				[user.mail || user.userPrincipalName!]: {
 					user,
-					creds: this.oauth.creds
+					creds: this.creds
 				}
 			});
-			console.log(accounts);
 
 			store.set(ACCOUNTS_INFO_KEY, accounts);
 		}
+
+		return this.creds;
 	}
 
-	async getAccountInfo(): Promise<User | undefined> {
-		if (!this.client || !this.creds) {
-			return;
-		}
-
-		const res = await this.client
-			.api('/me')
-			.header('Authorization', `Bearer ${this.creds.access_token}`)
-			.header('Content-Type', 'application/json')
-			.get();
-
-		return res as User;
-	}
-
-	async getEventsBetweenDates(
+	protected async getAccountEventsBetweenDates(
+		account: IAccount,
 		start: Date,
 		end: Date
-	): Promise<IEvent[] | undefined> {
-		if (!this.client) {
-			return;
-		}
-
+	): Promise<IEvent[]> {
 		const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		const creds = await this.oauth.getCreds(false);
 
-		const calendarsData = await this.client
-			.api('/me/calendars')
-			.header('Authorization', `Bearer ${creds.access_token}`)
+		const calendarsData = await this.client!.api('/me/calendars')
+			.header('Authorization', `Bearer ${account.creds!.access_token}`)
 			.get();
 
 		const calendars = calendarsData.value as Array<OutlookICalendar>;
@@ -108,7 +103,10 @@ export class OutlookCalendar extends BaseCalendar {
 		const events = await Promise.all(
 			calendars.map(async calendar => {
 				const res = await this.client!.api('/me/calendarview')
-					.header('Authorization', `Bearer ${creds.access_token}`)
+					.header(
+						'Authorization',
+						`Bearer ${account.creds!.access_token}`
+					)
 					.header('Prefer', `outlook.timezone="${timeZone}"`)
 					.query({
 						startDateTime: start.toISOString(),
@@ -137,8 +135,6 @@ export class OutlookCalendar extends BaseCalendar {
 				return events;
 			})
 		);
-
-		console.log(events);
 
 		return events.flat();
 	}

@@ -8,9 +8,7 @@ import qs from 'qs';
 import 'isomorphic-fetch';
 
 import { OAuthManager, OAuthClientOpts, Credentials } from '../oauth';
-import { AccessToken, GetTokenOptions } from '@azure/identity';
-
-const store = new Store();
+import { IAccount } from '../base';
 
 const OAUTH_TOKEN_KEY = 'oauth-token-microsoft';
 const REDIRECT_URI =
@@ -32,48 +30,21 @@ export default class MicrosoftOAuth extends OAuthManager {
 		super(opts);
 	}
 
-	async getCreds(add: boolean): Promise<Credentials> {
-		if (this.creds && !this.needToRefreshToken(this.creds)) {
-			return this.creds;
-		}
-
-		this.creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
-
-		if (this.creds && !add) {
-			if (this.needToRefreshToken(this.creds)) {
-				const newCreds = await this.refreshToken(this.creds);
+	async getCreds(account?: IAccount): Promise<Credentials> {
+		if (account?.creds) {
+			if (!this.needToRefreshToken(account.creds)) {
+				return account.creds;
+			} else {
+				const newCreds = await this.refreshToken(account.creds);
 				if (newCreds) {
 					return newCreds;
 				} else {
 					throw Error('Failed refreshing!');
 				}
 			}
-			return this.creds;
-		} else {
-			this.creds = await this.auth();
-			return this.creds;
-		}
-	}
-
-	// FIXME: can remove?
-	// needed for AuthProvider interface
-	async getToken(
-		scopes: string | string[],
-		options?: GetTokenOptions
-	): Promise<AccessToken | null> {
-		try {
-			const creds = await this.getCreds(false);
-			if (creds.access_token && creds.expiry_date) {
-				return {
-					token: creds.access_token,
-					expiresOnTimestamp: creds.expiry_date
-				};
-			}
-		} catch (err) {
-			console.error(err);
 		}
 
-		return null;
+		return await this.auth();
 	}
 
 	async auth(): Promise<Credentials> {
@@ -85,14 +56,11 @@ export default class MicrosoftOAuth extends OAuthManager {
 			redirect_uri: REDIRECT_URI,
 			grant_type: 'authorization_code',
 			code: authorizationCode
-			// client_secret: 'nvt7Q~IgVQ~VsAAy408KaP1LHs3lYRSbs-P23'
 		};
 		const res = await axios.post(
 			'https://login.microsoftonline.com/common/oauth2/v2.0/token',
 			qs.stringify(body)
 		);
-
-		console.log(res.data);
 
 		const data: CredentialsResponse = res.data;
 
@@ -109,7 +77,6 @@ export default class MicrosoftOAuth extends OAuthManager {
 				? addSeconds(new Date(), expires_in).getTime()
 				: null
 		};
-		store.set(OAUTH_TOKEN_KEY, creds);
 
 		return creds;
 	}
@@ -146,7 +113,6 @@ export default class MicrosoftOAuth extends OAuthManager {
 					: null
 			};
 
-			store.set(OAUTH_TOKEN_KEY, newCreds);
 			return newCreds;
 		} catch (err) {
 			console.error(err);

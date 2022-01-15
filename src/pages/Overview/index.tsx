@@ -88,11 +88,12 @@ function Overview() : JSX.Element {
 
 	React.useEffect(() => {
 		(async () => {
-			// const nextEvents : Array<IEvent> = await ipcRenderer.invoke('getEventsForWeek', {
-			// 	start: new Date(weekStart), 
-			// 	end: new Date(weekEnd)
-			// });
-			const nextEvents: Array<IEvent> = [];
+			const nextEvents : Array<IEvent> = await ipcRenderer.invoke('getEventsForWeek', {
+				start: new Date(weekStart), 
+				end: new Date(weekEnd)
+			});
+			console.log(nextEvents);
+			// const nextEvents: Array<IEvent> = [];
 			nextEvents.sort((eventA, eventB) => {
 				if (isBefore(eventA.start, eventB.start)) {
 					return -1;

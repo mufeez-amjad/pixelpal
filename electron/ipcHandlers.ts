@@ -11,7 +11,7 @@ import { AppWindow, getAppWindow } from './window/AppWindow';
 import { getNotificationWindow } from './window/NotificationWindow';
 import { getCountsForHabit } from './helpers';
 import { GoogleCalendar } from './services/calendar/google';
-import { ACCOUNTS_INFO_KEY, BaseCalendar, IAccounts } from './services/calendar/base';
+import { ACCOUNTS_INFO_KEY, BaseCalendar, IAccounts, IEvent } from './services/calendar/base';
 import { Provider } from './services/calendar/oauth';
 import { OutlookCalendar } from './services/calendar/outlook';
 
@@ -19,6 +19,7 @@ let db: DatabaseService;
 let appWindow: AppWindow;
 let notificationWindow: AppWindow;
 let mixpanel: any;
+
 const username = os.userInfo().username;
 const store = new Store();
 
@@ -30,7 +31,7 @@ export function initHandlers() {
 
 	// eslint-disable-next-line no-unused-vars
 	ipcMain.handle('triggerOAuth', async (event, provider: Provider) => {
-		let platform: BaseCalendar;
+		let platform;
 
 		switch (provider) {
 		case Provider.google:
@@ -43,7 +44,7 @@ export function initHandlers() {
 			return null;
 		}
 
-		await platform.auth(true);
+		await platform.auth();
 
 		return (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
 	});
@@ -55,11 +56,16 @@ export function initHandlers() {
 
 	ipcMain.handle('getEventsForWeek', async (event, week) => {
 		const { start, end } = week;
+		let events: IEvent[] = [];
 
-		// const ocal = new OutlookCalendar();
-		// await ocal.auth();
+		// const platformEvents: IEvent[];
+		let platform: BaseCalendar = new GoogleCalendar();
+		events = events.concat(await platform.getEventsBetweenDates(start, end));
 
-		// return await ocal.getEventsBetweenDates(start, end);
+		platform = new OutlookCalendar();
+		events = events.concat(await platform.getEventsBetweenDates(start, end));
+
+		return events;
 	});
 
 

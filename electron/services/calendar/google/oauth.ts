@@ -5,6 +5,7 @@ import { OAuth2Client } from 'googleapis-common';
 import Store from 'electron-store';
 
 import { OAuthManager, OAuthClientOpts, Credentials } from '../oauth';
+import { IAccount } from '../base';
 
 const GoogleOAuth2 = google.auth.OAuth2;
 const store = new Store();
@@ -37,28 +38,24 @@ export default class GoogleOAuth extends OAuthManager {
 		);
 	}
 
-	async refreshToken(creds: Credentials): Promise<Credentials | undefined> {
+	async refreshToken(creds: Credentials): Promise<Credentials> {
 		if (this.needToRefreshToken(creds)) {
-			try {
-				const tokens = await this.client.refreshAccessToken();
-				store.set(OAUTH_TOKEN_KEY, tokens);
-				return tokens.credentials;
-			} catch (err) {
-				console.error(err);
-			}
+			console.log('Need to refresh token!');
+			const tokens = await this.client.refreshAccessToken();
+			return tokens.credentials;
 		}
+
+		return creds;
 	}
 
-	async authClient(add: boolean): Promise<void> {
-		const creds = store.get(OAUTH_TOKEN_KEY) as Credentials;
-
-		if (creds && !add) {
-			this.client.setCredentials(creds);
-			this.refreshToken(creds);
+	async authClient(account?: IAccount): Promise<Credentials> {
+		if (account?.creds) {
+			this.client.setCredentials(account.creds);
+			return await this.refreshToken(account.creds);
 		} else {
-			this.creds = await this.auth();
-			this.client.setCredentials(this.creds);
-			store.set(OAUTH_TOKEN_KEY, this.creds);
+			const creds = await this.auth();
+			this.client.setCredentials(creds);
+			return creds;
 		}
 	}
 

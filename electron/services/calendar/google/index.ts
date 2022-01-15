@@ -1,6 +1,7 @@
 import {
 	ACCOUNTS_INFO_KEY,
 	BaseCalendar,
+	IAccount,
 	IAccounts,
 	IEvent,
 	IUser
@@ -12,13 +13,15 @@ import { calendar_v3, google } from 'googleapis';
 const gcal = google.calendar('v3');
 
 import Store from 'electron-store';
+import { Credentials } from '../oauth';
 const store = new Store();
 
 export class GoogleCalendar extends BaseCalendar {
 	oauth: Auth;
 
 	constructor() {
-		super();
+		const { google } = store.get(ACCOUNTS_INFO_KEY, {}) as IAccounts;
+		super(google);
 
 		const opts = {
 			clientId: secretAccountKey.installed.client_id,
@@ -31,60 +34,47 @@ export class GoogleCalendar extends BaseCalendar {
 			]
 		};
 		this.oauth = new Auth(opts);
+
+		console.log('accounts', this.accounts);
 	}
 
-	async getAccountInfo(): Promise<IUser> {
+	async getLoggedInAccountInfo(): Promise<IUser> {
 		const { data } = await google.oauth2('v2').userinfo.get();
 		return {
 			email: data.email
 		};
 	}
 
-	async auth(add: boolean): Promise<void> {
-		await this.oauth.authClient(add);
+	async auth(account?: IAccount): Promise<Credentials> {
+		let creds: Credentials;
+		try {
+			creds = await this.oauth.authClient(account);
+		} catch (err) {
+			throw Error(`Error authenticating user ${err}`);
+		}
+
 		google.options({ auth: this.oauth.client });
 
 		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
-		const user = await this.getAccountInfo();
+		const user = await this.getLoggedInAccountInfo();
 
 		accounts.google = Object.assign(accounts.google || {}, {
 			[user.email!]: {
 				user,
-				creds: this.oauth.creds
+				creds
 			}
 		});
 
 		store.set(ACCOUNTS_INFO_KEY, accounts);
+
+		return creds;
 	}
 
-	getColor(
-		event: calendar_v3.Schema$Event,
-		calendar: calendar_v3.Schema$CalendarListEntry,
-		colors: calendar_v3.Schema$Colors
-	): string {
-		if (calendar.backgroundColor) {
-			return calendar.backgroundColor;
-		} else if (
-			event.colorId &&
-			colors.event &&
-			colors.event[event.colorId]
-		) {
-			return colors.event[event.colorId].background!;
-		} else if (
-			calendar.colorId &&
-			colors.calendar &&
-			colors.calendar[calendar.colorId]
-		) {
-			return colors.calendar[calendar.colorId].background!;
-		}
-
-		return '#333333';
-	}
-
-	async getEventsBetweenDates(
+	protected async getAccountEventsBetweenDates(
+		account: IAccount,
 		start: Date,
 		end: Date
-	): Promise<IEvent[] | undefined> {
+	): Promise<IEvent[]> {
 		const { data: colors } = await gcal.colors.get();
 
 		const { data: calendarsData } = await gcal.calendarList.list();
@@ -116,11 +106,7 @@ export class GoogleCalendar extends BaseCalendar {
 									allDay: true,
 									calendar: {
 										name: calendar.summary || 'primary',
-										color: this.getColor(
-											event,
-											calendar,
-											colors
-										)
+										color: getColor(event, calendar, colors)
 									}
 								};
 							} else if (start.dateTime && end.dateTime) {
@@ -130,11 +116,7 @@ export class GoogleCalendar extends BaseCalendar {
 									end: new Date(end.dateTime),
 									calendar: {
 										name: calendar.summary || 'primary',
-										color: this.getColor(
-											event,
-											calendar,
-											colors
-										)
+										color: getColor(event, calendar, colors)
 									}
 								};
 							}
@@ -150,4 +132,24 @@ export class GoogleCalendar extends BaseCalendar {
 
 		return events.flat();
 	}
+}
+
+function getColor(
+	event: calendar_v3.Schema$Event,
+	calendar: calendar_v3.Schema$CalendarListEntry,
+	colors: calendar_v3.Schema$Colors
+): string {
+	if (calendar.backgroundColor) {
+		return calendar.backgroundColor;
+	} else if (event.colorId && colors.event && colors.event[event.colorId]) {
+		return colors.event[event.colorId].background!;
+	} else if (
+		calendar.colorId &&
+		colors.calendar &&
+		colors.calendar[calendar.colorId]
+	) {
+		return colors.calendar[calendar.colorId].background!;
+	}
+
+	return '#333333';
 }

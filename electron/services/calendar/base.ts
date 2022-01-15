@@ -1,5 +1,3 @@
-import { User } from '@microsoft/microsoft-graph-types';
-import { oauth2_v2 } from 'googleapis';
 import { Credentials } from './oauth';
 
 export interface IEvent {
@@ -26,20 +24,59 @@ export interface IAccount {
 	creds?: Credentials;
 }
 
+interface IPlatformAccounts {
+	[key: string]: IAccount;
+}
+
 export interface IAccounts {
-	google?: {
-		[key: string]: IAccount;
-	};
-	microsoft?: {
-		[key: string]: IAccount;
-	};
+	google?: IPlatformAccounts;
+	microsoft?: IPlatformAccounts;
 }
 
 export abstract class BaseCalendar {
-	abstract getEventsBetweenDates(
+	accounts: Array<IAccount> = [];
+
+	constructor(accounts: IPlatformAccounts | undefined) {
+		if (!accounts) {
+			return;
+		}
+
+		Object.keys(accounts).forEach(account => {
+			this.accounts.push({
+				user: accounts[account].user,
+				creds: accounts[account].creds
+			});
+		});
+	}
+
+	protected abstract getAccountEventsBetweenDates(
+		account: IAccount,
 		start: Date,
 		end: Date
-	): Promise<IEvent[] | undefined>;
+	): Promise<IEvent[]>;
 
-	abstract auth(add: boolean): Promise<void>;
+	async getEventsBetweenDates(start: Date, end: Date): Promise<IEvent[]> {
+		let events: IEvent[] = [];
+
+		for (const account of this.accounts) {
+			console.log('Getting events for', account);
+			try {
+				account.creds = await this.auth(account);
+			} catch (err) {
+				console.error(err);
+				continue;
+			}
+
+			const accountEvents = await this.getAccountEventsBetweenDates(
+				account,
+				start,
+				end
+			);
+			events = events.concat(accountEvents);
+		}
+
+		return events;
+	}
+
+	abstract auth(account?: IAccount): Promise<Credentials>;
 }
