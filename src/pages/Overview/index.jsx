@@ -74,9 +74,11 @@ function Overview() {
 				<BannerContainer>
 					{banner && <Banner banner={banner} />}
 				</BannerContainer>
-				<MenuButton>
-					<IoMenu style={{ display: 'block' }} />
-				</MenuButton>
+				<Link to={'/inventory'}>
+					<MenuButton>
+						<IoMenu style={{ display: 'block' }} />
+					</MenuButton>
+				</Link>
 				<Summary>
 					<div style={{ fontSize: '12px' }}>Today:</div>
 					<div style={{ fontWeight: '700', fontSize: '20px' }}>
