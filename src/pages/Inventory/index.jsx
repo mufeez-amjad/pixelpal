@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 const axios = require('axios');
 
-const NFT_CONTRACT_ADDRESS = '0x139e576e36e1c0b443f8b3338427cf822a89057d'; // This should be hardcoded somewhere
-const OWNER_ADDRESS = '0x3cc1Fc89867aee0061E151c5AE8ed3F9088348aB'; // This is obtained after user links metamask wallet
+const NFT_CONTRACT_ADDRESS = '0x139e576e36e1c0b443f8b3338427cf822a89057d'; // TODO This should be hardcoded somewhere
+const OWNER_ADDRESS = '0x3cc1Fc89867aee0061E151c5AE8ed3F9088348aB'; // TODO This is obtained after user links metamask wallet
 
 function Inventory() {
 	const [inventory, setInventory] = useState([]);
@@ -10,7 +11,7 @@ function Inventory() {
 	const getInventory = () => {
 		axios
 			.get(
-				'https://testnets-api.opensea.io/api/v1/assets?order_direction=desc&offset=0&limit=50',
+				'https://testnets-api.opensea.io/api/v1/assets?order_direction=desc&offset=0&limit=50', // TODO change from testnet to production eventually
 				{
 					params: {
 						owner: OWNER_ADDRESS,
@@ -62,6 +63,9 @@ function Inventory() {
 
 	return (
 		<div>
+			<Link to={'/'}>
+				<button>HOME</button>
+			</Link>
 			<h1>Inventory</h1>
 			{inventory.map(pixelpal => (
 				<div key={pixelpal.name}>
