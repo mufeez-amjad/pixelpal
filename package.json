@@ -49,25 +49,41 @@
 		]
 	},
 	"dependencies": {
+		"@azure/identity": "^2.0.1",
 		"@blueprintjs/core": "^3.50.2",
 		"@electron/remote": "^1.0.2",
+		"@microsoft/microsoft-graph-client": "^3.0.1",
 		"@types/node": "^16.10.1",
+		"axios": "^0.24.0",
 		"date-fns": "^2.24.0",
+		"electron-store": "^8.0.1",
+		"googleapis": "^92.0.0",
+		"isomorphic-fetch": "^3.0.0",
+		"keytar": "^7.7.0",
 		"knex": "^0.95.11",
 		"mixpanel": "^0.13.0",
+		"qs": "^6.10.2",
 		"react": "^17.0.1",
 		"react-circular-progressbar": "^2.0.4",
 		"react-dom": "^17.0.1",
 		"react-icons": "^4.2.0",
-		"react-router-dom": "^5.3.0",
+		"react-router": "^6.2.1",
+		"react-router-dom": "^6.2.1",
 		"react-scripts": "4.0.1",
 		"sqlite3": "^5.0.2",
 		"styled-components": "^5.3.1",
+		"typeorm": "^0.2.41",
 		"typescript": "^4.4.3",
 		"web-vitals": "^0.2.4"
 	},
 	"devDependencies": {
+		"@microsoft/microsoft-graph-types": "^2.11.0",
+		"@types/qs": "^6.9.7",
+		"@types/react": "^17.0.38",
+		"@types/react-dom": "^17.0.11",
+		"@types/react-router-dom": "^5.3.2",
 		"@types/sqlite3": "^3.1.7",
+		"@types/styled-components": "^5.1.19",
 		"@typescript-eslint/eslint-plugin": "^4.31.2",
 		"@typescript-eslint/parser": "^4.31.2",
 		"concurrently": "^5.3.0",
@@ -87,5 +103,3 @@
 		"*.{js,ts,jsx,css,md}": "prettier --write"
 	}
 }
-
-

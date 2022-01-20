@@ -1,6 +1,11 @@
 import styled from 'styled-components';
 
-export const StyledButton = styled.button`
+interface StyledButtonProps {
+	color: string;
+	fontColor?: string;
+}
+
+export const StyledButton = styled.button<StyledButtonProps>`
 	background-color: ${({ color }) => color};
 	color: ${({ fontColor }) => fontColor || 'white'};
 	font-size: 14px;

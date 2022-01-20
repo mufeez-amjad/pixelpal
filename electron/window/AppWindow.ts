@@ -6,8 +6,8 @@ import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
 import { getCurrentDisplay } from '../util';
 
-const WINDOW_WIDTH = 480;
-const WINDOW_HEIGHT = 540;
+const WINDOW_WIDTH = 380;
+const WINDOW_HEIGHT = 480;
 
 interface IOptions {
 	transparent?: boolean;
@@ -24,8 +24,8 @@ export class AppWindow extends BrowserWindow {
 	height: number;
 
 	constructor(options: IOptions) {
-		let width = options.dimensions?.width || WINDOW_WIDTH;
-		let height = options.dimensions?.height || WINDOW_HEIGHT;
+		const width = options.dimensions?.width || WINDOW_WIDTH;
+		const height = options.dimensions?.height || WINDOW_HEIGHT;
 		super({
 			width,
 			height,
@@ -75,9 +75,10 @@ export class AppWindow extends BrowserWindow {
 	private setAutoHide = () => {
 		this.hide();
 		this.on('blur', () => {
-			if (!this.webContents.isDevToolsOpened()) {
-				this.hide();
-			}
+			// TODO: uncomment
+			// if (!this.webContents.isDevToolsOpened()) {
+			// 	this.hide();
+			// }
 		});
 		this.on('close', event => {
 			event.preventDefault();

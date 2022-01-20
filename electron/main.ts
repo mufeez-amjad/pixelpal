@@ -5,6 +5,7 @@ import { migrate, startDatabaseService } from './services/db/DatabaseService';
 import { startSchedulerService } from './services/scheduler/SchedulerService';
 import { initHandlers } from './ipcHandlers';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require('@electron/remote/main').initialize();
 
 async function init() {

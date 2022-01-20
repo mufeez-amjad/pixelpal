@@ -27,3 +27,5 @@ yarn-error.log*
 
 # dev db
 .db/
+
+electron/services/calendar/google/secretAccountKey.json

@@ -4,8 +4,17 @@ import styled from 'styled-components';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 import { MdError, MdInfo, MdCheckCircle } from 'react-icons/md';
 
-const Banner = ({ banner }) => {
-	const getBannerProperties = type => {
+interface IBanner {
+	type: string;
+	text: string;
+}
+
+interface Props {
+	banner: IBanner
+}
+
+const Banner = ({ banner }: Props): JSX.Element => {
+	const getBannerProperties = (type: string) => {
 		switch (type) {
 		case 'SUCCESS':
 			return {
@@ -55,7 +64,10 @@ const Banner = ({ banner }) => {
 	);
 };
 
-const Container = styled.div`
+interface ContainerProps {
+	backgroundColor: string;
+}
+const Container = styled.div<ContainerProps>`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
