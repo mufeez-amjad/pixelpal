@@ -1,14 +1,16 @@
 import os
 import io
 import json
+import random
 
 if not os.path.exists('output/gif'):
     os.makedirs('output/gif')
 if not os.path.exists('output/json'):
     os.makedirs('output/json')
 
+NUM_BACKGROUNDS = 6
 MAX_LAYERS = 3
-ANIMATIONS = ['standing', 'celebrating', 'pop_up', 'waving']  # first element is the default animation for the NFT
+ANIMATIONS = ['standing', 'celebrating', 'pop_up', 'waving']  # first element is the default animation for the NFT image
 IPFS = 'ipfs://QmZQhumc4Kv97LC52Cu6uSyNUsPJa1fets926Msjx3ZNmt'
 GIF_OUTPUT = 'output/gif/'
 JSON_OUTPUT = 'output/json/'
@@ -51,6 +53,29 @@ def permute(idx, count, curLayer, outputLayers):
 # create a composite with all layers combined
 def generateArtwork(outputIdx, outputLayer):
     print(outputLayer)
+
+    '''
+    Generate the NFT art with a background to be displayed on OpenSea
+    '''
+
+    # Combine a random background with base animal
+    background = f'layers/Background/background_{random.randrange(NUM_BACKGROUNDS)+1}.gif'
+    os.system(f'convert {background} -coalesce null:  \( layers/Base/base_{ANIMATIONS[0]}.gif \
+        -coalesce -delete 4-8 \) \-layers composite -set delay 20 -loop \
+        0 -layers optimize -delete 4-8 {GIF_OUTPUT}{outputIdx}_nft.gif')
+    
+    # Combine remaining layers
+    for layer in outputLayer:
+        layerPath = f'layers/{layer["layer"]}/{layer["name"]}_{ANIMATIONS[0]}.gif'
+        os.system(f'convert {GIF_OUTPUT}{outputIdx}_nft.gif -coalesce null:  \( {layerPath} \
+        -coalesce \) -layers composite -set delay 20 -loop 0 -layers optimize \
+        -delete 4-8 {GIF_OUTPUT}{outputIdx}_nft.gif')
+
+
+    '''
+    Generate the animations used in the app
+    '''
+
     for animation in ANIMATIONS:
         # Base animal case
         if (len(outputLayer) == 0):
@@ -76,7 +101,7 @@ def generateMetadata(outputIdx, outputLayer):
     metadata = {
         'name': f'Pixel Pal #{outputIdx+1}',
         'description': 'Your digital companion',
-        'image': f'{IPFS}/{outputIdx}_{ANIMATIONS[0]}.gif',
+        'image': f'{IPFS}/{outputIdx}_nft.gif',
         'attributes': []
     }
     for layer in outputLayer:
@@ -92,6 +117,7 @@ def generateMetadata(outputIdx, outputLayer):
 
 outputLayers = []
 permute(0, 0, [], outputLayers)
+random.shuffle(outputLayers)
 for outputIdx, outputLayer in enumerate(outputLayers):
     generateArtwork(outputIdx, outputLayer)
     generateMetadata(outputIdx, outputLayer)
