@@ -31,6 +31,7 @@ export default class MicrosoftOAuth extends OAuthManager {
 	}
 
 	async getCreds(account?: IAccount): Promise<Credentials> {
+		console.log('getCreds entry', account);
 		if (account?.creds) {
 			if (!this.needToRefreshToken(account.creds)) {
 				return account.creds;
@@ -42,9 +43,12 @@ export default class MicrosoftOAuth extends OAuthManager {
 					throw Error('Failed refreshing!');
 				}
 			}
+		} else if (this.creds) {
+			return this.creds;
 		}
 
-		return await this.auth();
+		this.creds = await this.auth();
+		return this.creds;
 	}
 
 	async auth(): Promise<Credentials> {
@@ -128,11 +132,16 @@ export default class MicrosoftOAuth extends OAuthManager {
 					response_type: 'code',
 					redirect_uri: REDIRECT_URI,
 					response_mode: 'query',
-					scope: this.opts.scopes.join(' ')
+					scope: this.opts.scopes.join(' '),
+					prompt: 'login'
 				}
 			);
 
-			const win = new BrowserWindow();
+			const win = new BrowserWindow({
+				webPreferences: {
+					contextIsolation: true
+				}
+			});
 			win.loadURL(url);
 
 			win.on('closed', () => {

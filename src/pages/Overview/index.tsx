@@ -52,7 +52,7 @@ const EventContainer = styled.div`
 	flex-direction: column;
 	background-color: white;
 	padding: 10px;
-	margin-bottom: 5px;
+	margin-bottom: 6px;
 	border-radius: 10px;
 `;
 
@@ -265,7 +265,7 @@ const SettingsButton = styled(Link)`
 `;
 
 const Items = styled.div`
-	padding: 0px 20px;
+	padding: 0px 0px;
 	display: flex;
 	flex-direction: column;
 	padding-bottom: 10px;

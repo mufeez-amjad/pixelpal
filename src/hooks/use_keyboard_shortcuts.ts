@@ -34,6 +34,8 @@ export enum SHORTCUT {
 	FORWARD_SLASH = 'FORWARD_SLASH',
 	OPT_ARROW_LEFT = 'OPT_ARROW_LEFT',
 	OPT_ARROW_RIGHT = 'OPT_ARROW_RIGHT',
+	SHIFT_ARROW_LEFT = 'SHIFT_ARROW_LEFT',
+	SHIFT_ARROW_RIGHT = 'SHIFT_ARROW_RIGHT',
 	OPT_c = 'OPT_c',
 	OPT_d = 'OPT_d',
 	OPT_k = 'OPT_k',
@@ -57,6 +59,7 @@ export interface IShortcut {
 export default function useKeyboardShortcuts(
 	shortcuts: IShortcut[] = []
 ): SHORTCUT {
+	const [isShiftPressed, setIsShiftPressed] = React.useState(false);
 	const [lastKeyPress, setLastKeyPress] = React.useState<string>('');
 	const shortcutsLookup = React.useMemo(
 		() =>
@@ -78,7 +81,9 @@ export default function useKeyboardShortcuts(
 	);
 
 	const handleKeyUp = React.useCallback(
-		() => setLastKeyPress(''),
+		(e: React.KeyboardEvent<any>) => {
+			setLastKeyPress('');
+		},
 		[setLastKeyPress]
 	);
 

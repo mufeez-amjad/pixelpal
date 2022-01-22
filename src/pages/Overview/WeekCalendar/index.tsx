@@ -9,7 +9,8 @@ import {
 	isSameDay,
 	addWeeks,
 	getDay,
-	format
+	format,
+	addDays
 } from 'date-fns';
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
@@ -19,10 +20,11 @@ interface IDay {
 	day: Date;
 	selectedDay: Date;
 	onClick: () => void;
-	current: boolean;
+	isCurrentMonth: boolean;
+	isWeekend: boolean;
 }
 
-function Day({ day, selectedDay, onClick, current }: IDay) {
+function Day({ day, selectedDay, onClick, isCurrentMonth, isWeekend}: IDay) {
 	const isSelected = () => {
 		return isSameDay(selectedDay, day);
 	};
@@ -32,10 +34,13 @@ function Day({ day, selectedDay, onClick, current }: IDay) {
 	};
 
 	return (
-		<Styled.DayContainer current={current}>
+		<Styled.DayContainer
+			current={isCurrentMonth}
+			isWeekend={isWeekend}
+		>
 			<span>{weekday()}</span>
 			<Styled.DateContainer
-				current={current}
+				current={isCurrentMonth}
 				selected={isSelected()}
 				onClick={() => onClick()}
 			>
@@ -55,6 +60,8 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 	const lastShortcut = useKeyboardShortcuts([
 		{name: SHORTCUT.ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT},
 		{name: SHORTCUT.ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT},
+		{name: SHORTCUT.SHIFT_ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT, shiftKey: true},
+		{name: SHORTCUT.SHIFT_ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT, shiftKey: true},
 	]);
 
 	React.useEffect(() => {
@@ -64,12 +71,17 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 	// Act on keyboard shortcuts
 	React.useEffect(() => {
 		switch (lastShortcut) {
-		case SHORTCUT.ARROW_LEFT:
+		case SHORTCUT.SHIFT_ARROW_LEFT:
 			advanceWeek(-1);
 			break;
-
-		case SHORTCUT.ARROW_RIGHT:
+		case SHORTCUT.SHIFT_ARROW_RIGHT:
 			advanceWeek(1);
+			break;
+		case SHORTCUT.ARROW_LEFT:
+			onWeekdaySelect(addDays(selectedDay, -1));
+			break;
+		case SHORTCUT.ARROW_RIGHT:
+			onWeekdaySelect(addDays(selectedDay, 1));
 			break;
 		}
 	}, [lastShortcut]);
@@ -102,7 +114,8 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 							day={day}
 							selectedDay={selectedDay}
 							onClick={() => onWeekdaySelect(day)}
-							current={isSameMonth(refDay, day)}
+							isCurrentMonth={isSameMonth(refDay, day)}
+							isWeekend={index % 6 == 0}
 						/>
 					))}
 				</Styled.DaysContainer>
