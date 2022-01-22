@@ -24,11 +24,7 @@ export const IconButton = ({Icon, text, onClick}: IconButtonProps) => {
 					width: '100%',
 				}}
 			>
-				<span
-					style={{
-						marginLeft: 4,
-					}}
-				>{text}</span>
+				<span>{text}</span>
 			</div>
 			
 		</Container>

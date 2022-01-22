@@ -22,7 +22,11 @@ async function init() {
 }
 
 app.whenReady().then(async () => {
-	await init();
+	try {
+		await init();
+	} catch (err) {
+		console.error(err);
+	}
 
 	if (app.dock) {
 		app.dock.hide();

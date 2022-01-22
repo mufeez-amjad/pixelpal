@@ -8,7 +8,7 @@ export interface IEvent {
 	calendar: CalendarProperties;
 }
 
-interface CalendarProperties {
+export interface CalendarProperties {
 	name: string;
 	color: string;
 }
@@ -24,7 +24,7 @@ export interface IAccount {
 	creds?: Credentials;
 }
 
-interface IPlatformAccounts {
+export interface IPlatformAccounts {
 	[key: string]: IAccount;
 }
 

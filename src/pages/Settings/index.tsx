@@ -4,12 +4,53 @@ import styled from 'styled-components';
 import { PageContainer, PageTitle } from '..';
 import { SettingItem, SettingsGroup } from './SettingsGroup';
 import { IoCalendarClearSharp, IoExtensionPuzzle } from 'react-icons/io5';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 
 import General from './pages/General';
 import Calendar from './pages/Calendar';
 
+const paths = [
+	{
+		title: 'Calendar',
+		icon: IoCalendarClearSharp,
+		items: [
+			{
+				text: 'General',
+				href: '/settings/'
+			},
+			{
+				text: 'Customization',
+				href: '/settings/customization'
+			},
+			{
+				text: 'Notifications',
+				href: '/settings/notifications'
+			}
+		]
+	}, 
+	{
+		title: 'Integrations',
+		icon: IoExtensionPuzzle,
+		items: [
+			{
+				text: 'Calendars',
+				href: '/settings/calendars'
+			},
+			{
+				text: 'NFT',
+				href: '/settings/nft'
+			},
+			{
+				text: 'Conferencing',
+				href: '/settings/conferencing'
+			}
+		]
+	}
+];
+
 function Settings(): JSX.Element {
+	const location = useLocation();
+
 	return (
 		<PageContainer
 			style={{
@@ -28,41 +69,26 @@ function Settings(): JSX.Element {
 				<Split
 					flex={2}
 				>
-					<SettingsGroup 
-						title='Calendar'
-						Icon={IoCalendarClearSharp}
-					>
-						<SettingItem 
-							text='General'
-							href='/settings/'
-						/>
-						<SettingItem 
-							text='Customization'
-							href='/settings/customization'
-						/>
-						<SettingItem 
-							text='Notifications'
-							href='/settings/notifications'
-						/>
-					</SettingsGroup>
-
-					<SettingsGroup 
-						title='Integrations'
-						Icon={IoExtensionPuzzle}
-					>
-						<SettingItem 
-							text='Calendars'
-							href='/settings/calendars'
-						/>
-						<SettingItem 
-							text='NFT'
-							href='/settings/nft'
-						/>
-						<SettingItem 
-							text='Conferencing'
-							href='/settings/conferencing'
-						/>
-					</SettingsGroup>
+					{paths.map((group, i) => {
+						return (
+							<SettingsGroup
+								key={i}
+								title={group.title}
+								Icon={group.icon}
+							>
+								{group.items.map((path, i) => {
+									return (
+										<SettingItem
+											selected={path.href == location.pathname}
+											key={i}
+											text={path.text} 
+											href={path.href}											
+										/>
+									);
+								})}
+							</SettingsGroup>
+						);
+					})}	
 				</Split>
 				<Split
 					flex={4}

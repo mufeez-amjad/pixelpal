@@ -123,18 +123,26 @@ function Overview() : JSX.Element {
 	return (
 		<PageContainer>
 			<Top>
-				<SettingsButton
-					to={'/settings'}
+				<div
+					style={{
+						padding: 20,
+						paddingBottom: 0
+					}}
 				>
-					<IoSettingsSharp
-						color="grey"
-						style={{ display: 'block', fontSize: 16 }}
+					<SettingsButton
+						to={'/settings'}
+					>
+						<IoSettingsSharp
+							color="grey"
+							style={{ display: 'block', fontSize: 16 }}
+						/>
+					</SettingsButton>
+					<WeekCalendar
+						selectedDay={selectedDay}
+						onWeekdaySelect={setSelectedDay}
 					/>
-				</SettingsButton>
-				<WeekCalendar
-					selectedDay={selectedDay}
-					onWeekdaySelect={setSelectedDay}
-				/>
+				</div>
+				
 				<Character>
 					<img style={{ width: 100, height: 100 }} src={stand} />
 				</Character>
@@ -169,13 +177,6 @@ const Top = styled.div`
 	flex-direction: column;
 	justify-content: flex-end;
 	background-color: white;
-
-	padding: 20px;
-	padding-bottom: 0;
-
-	/* background: url('http://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2c8e48e8d8c0f41.png');
-	background-size: 380px 100px;
-	background-repeat: no-repeat; */
 `;
 
 const Bottom = styled.div`
@@ -189,7 +190,19 @@ const Bottom = styled.div`
 
 const Character = styled.div`
 	display: flex;
+	flex-direction: row;
 	justify-content: center;
+
+	img {
+		align-self: flex-end;
+	}
+
+	background: linear-gradient(white, #a3a3a3), url('http://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2c8e48e8d8c0f41.png') no-repeat bottom right;
+	background-size: 500px 140px;
+	background-repeat: no-repeat;
+	background-blend-mode: multiply;
+
+	height: 140px;
 `;
 
 const SectionHeader = styled.div`

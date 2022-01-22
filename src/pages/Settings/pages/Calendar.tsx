@@ -8,30 +8,47 @@ import microsoft from './microsoft.png';
 const { ipcRenderer } = window.require('electron');
 
 import { IconButton, ImageButton } from '../../../common/buttons';
-import { IAccounts } from '../../../../common/types';
+import { IAccounts, IPlatformAccounts } from '../../../../common/types';
 
 import { GoPlus } from 'react-icons/go';
 
 export default function Calendar(): JSX.Element {
-	const [accounts, setAccounts] = React.useState<Account[]>([]);
+	const [accounts, setAccounts] = React.useState<IAccounts>({});
 	const [showingOAuth, setShowingOAuth] = React.useState(false);
 
 	React.useEffect(() => {
 		(async () => {
 			const accountsInfo: IAccounts = await ipcRenderer.invoke('getConnectedAccounts');
 			console.log(accountsInfo);
-			setAccounts(flattenAccounts(accountsInfo));
+			setAccounts(accountsInfo);
 		})();
 	}, []);
 
 	const triggerOAuth = async (provider: string) => {
 		try {
 			const nextAccounts = await ipcRenderer.invoke('triggerOAuth', provider);
-			setAccounts(flattenAccounts(nextAccounts));
+			setAccounts(nextAccounts);
 		} catch (err) {
 			console.error(err);
 		}
 	};
+
+	const connectedAccounts = React.useMemo(() => {
+		if (!accounts) {
+			return [];
+		}
+		return Object.keys(accounts).map((provider) => {
+			const providerAccounts: IPlatformAccounts = accounts[provider as keyof IAccounts] || {};
+			return (
+				<>
+					<Integration
+						provider={provider}
+						accounts={providerAccounts}
+					/>
+				</>
+			);
+		});
+	}, [accounts]);
 
 	return (
 		<Container>
@@ -40,16 +57,9 @@ export default function Calendar(): JSX.Element {
 					flex: 4,
 				}}
 			>
-				{accounts.length ? (
+				{Object.keys(accounts).length ? (
 					<>
-						{accounts.map((account, i) => (
-							<Integration 
-								key={account.account+i}
-								account={account.account}
-								name={account.name}
-								image={account.name == 'google' ? google : microsoft}
-							/>
-						))}
+						{connectedAccounts}
 					</>
 				) : (
 					<span>No integrations.</span>
@@ -60,7 +70,7 @@ export default function Calendar(): JSX.Element {
 			>
 				<IconButton 
 					Icon={GoPlus}
-					text='Connect an account'
+					text='Connect'
 					onClick={() => setShowingOAuth(!showingOAuth)}
 				/>
 
@@ -106,55 +116,66 @@ const Container = styled.div`
 `;
 
 interface IntegrationProps {
-	name: string;
-	account: string;
-	image: string;
+	provider: string;
+	accounts: IPlatformAccounts;
 }
 
-const Integration = ({name, account, image}: IntegrationProps) => {
-	
+const Integration = ({accounts, provider}: IntegrationProps) => {
 	function capitalizeFirstLetter(string: string): string {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 
 	return (
 		<IntegrationContainer>
+			<IntegrationHeader>
+				<img 
+					style={{width: 20, height: 20}}
+					src={provider == 'google' ? google : microsoft}
+				/>
+				<IntegrationTitle>
+					{capitalizeFirstLetter(provider)}
+				</IntegrationTitle>
+			</IntegrationHeader>
+			
 			<div
 				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between'
+					marginTop: 8
 				}}
 			>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-					}}
-				>
-					<img 
-						style={{width: 20, height: 20}}
-						src={image}
-					/>
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							marginLeft: 8,
-						}}
-					>
-						<IntegrationTitle>
-							{capitalizeFirstLetter(name)}
-						</IntegrationTitle>
-						<IntegrationAccount>
-							{account}
-						</IntegrationAccount>
-					</div>
-				</div>
-				<FaChevronDown />
+				{Object.entries(accounts).map((value, index) => {
+					return (
+						<div
+							key={index}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								marginBottom: 8,
+								// paddingRight: 4
+							}}
+						>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+								}}
+							>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column',
+									}}
+								>
+									<IntegrationAccount>
+										{value[0]}
+									</IntegrationAccount>
+								</div>
+							</div>
+							<FaChevronDown size={10}/>
+						</div>
+					);
+				})}
 			</div>
-			
-
 			
 		</IntegrationContainer>
 	);
@@ -164,15 +185,23 @@ const IntegrationContainer = styled.div`
 	padding: 8px 0px;
 `;
 
+const IntegrationHeader = styled.div`
+	display: flex;
+	align-items: center;
+	border-bottom: 1px solid #c0c0c0;
+	padding-bottom: 6px;
+`;
+
 const IntegrationTitle = styled.div`
 	font-size: 13px;
+	margin-left: 4px;
 `;
 
 const IntegrationAccount = styled.div`
 	font-weight: 200;
 	font-size: 12px;
 
-	width: 160px;
+	width: 150px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;

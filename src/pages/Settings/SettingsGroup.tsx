@@ -58,10 +58,11 @@ interface ItemProps {
 	href: string;
 	selected?: boolean;
 }
-export const SettingItem = ({text, href}: ItemProps): JSX.Element => {
+export const SettingItem = ({text, href, selected}: ItemProps): JSX.Element => {
 	return (
 		<Item
 			to={href}
+			selected={selected}
 		>
 			{text}
 		</Item>
@@ -86,14 +87,10 @@ const Item = styled(Link)<StyledItemProps>`
 	margin-left: 14px;
 	margin-top: 6px;
 	padding: 2px 8px;
-	/* background: red; */
 	border-radius: 2px;
 	
 	${({ selected }) => selected && `
-		color: white;
-		background: #FCB852;
+		color: black;
+		background: #d4d4d4;
   	`}
-
-	
-
 `;

@@ -11,19 +11,25 @@ import { AppWindow, getAppWindow } from './window/AppWindow';
 import { getNotificationWindow } from './window/NotificationWindow';
 import { getCountsForHabit } from './helpers';
 import { GoogleCalendar } from './services/calendar/google';
-import { ACCOUNTS_INFO_KEY, BaseCalendar, IAccounts, IEvent } from './services/calendar/base';
+import {
+	ACCOUNTS_INFO_KEY,
+	BaseCalendar,
+	IAccounts,
+	IEvent
+} from './services/calendar/base';
 import { Provider } from './services/calendar/oauth';
 import { OutlookCalendar } from './services/calendar/outlook';
+import { Mixpanel } from 'mixpanel';
 
 let db: DatabaseService;
 let appWindow: AppWindow;
 let notificationWindow: AppWindow;
-let mixpanel: any;
+let mixpanel: Mixpanel;
 
 const username = os.userInfo().username;
 const store = new Store();
 
-export function initHandlers() {
+export function initHandlers(): void {
 	db = getDatabaseConnection();
 	appWindow = getAppWindow();
 	notificationWindow = getNotificationWindow();
@@ -49,25 +55,28 @@ export function initHandlers() {
 		return (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
 	});
 
-	ipcMain.handle('getConnectedAccounts', async event => {
+	ipcMain.handle('getConnectedAccounts', async () => {
 		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
 		return accounts;
 	});
 
-	ipcMain.handle('getEventsForWeek', async (event, week) => {
+	ipcMain.handle('getEventsForWeek', async (_, week) => {
 		const { start, end } = week;
 		let events: IEvent[] = [];
 
 		// const platformEvents: IEvent[];
 		let platform: BaseCalendar = new GoogleCalendar();
-		events = events.concat(await platform.getEventsBetweenDates(start, end));
+		events = events.concat(
+			await platform.getEventsBetweenDates(start, end)
+		);
 
 		platform = new OutlookCalendar();
-		events = events.concat(await platform.getEventsBetweenDates(start, end));
+		events = events.concat(
+			await platform.getEventsBetweenDates(start, end)
+		);
 
 		return events;
 	});
-
 
 	ipcMain.handle('getHabits', async () => {
 		return await db.getAllHabits();

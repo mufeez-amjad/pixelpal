@@ -2,7 +2,6 @@ interface CalendarProperties {
 	name: string;
 	color: string;
 }
-
 export interface IEvent {
 	name: string;
 	start: Date;
@@ -19,11 +18,11 @@ export interface IAccount {
 	user: IUser;
 }
 
+export interface IPlatformAccounts {
+	[key: string]: IAccount;
+}
+
 export interface IAccounts {
-	google?: {
-		[key: string]: IUser;
-	};
-	microsoft?: {
-		[key: string]: IUser;
-	};
+	google?: IPlatformAccounts;
+	microsoft?: IPlatformAccounts;
 }

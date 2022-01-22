@@ -106,7 +106,10 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 				<span> {year}</span>
 			</Styled.Month>
 			<Styled.Week>
-				<FaChevronLeft onClick={() => advanceWeek(-1)} />
+				<FaChevronLeft 
+					onClick={() => advanceWeek(-1)}
+					style={{marginLeft: -4}}
+				/>
 				<Styled.DaysContainer>
 					{daysOfWeek.map((day, index) => (
 						<Day
@@ -119,7 +122,10 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 						/>
 					))}
 				</Styled.DaysContainer>
-				<FaChevronRight onClick={() => advanceWeek(1)} />
+				<FaChevronRight 
+					onClick={() => advanceWeek(1)}
+					style={{marginRight: -4}}
+				/>
 			</Styled.Week>
 		</Styled.Container>
 	);

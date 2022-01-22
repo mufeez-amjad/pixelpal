@@ -1,3 +1,4 @@
+import os from 'os';
 import { app, BrowserWindow, Tray, Menu } from 'electron';
 import { Display } from 'electron/main';
 import path from 'path';
@@ -6,8 +7,8 @@ import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
 import { getCurrentDisplay } from '../util';
 
-const WINDOW_WIDTH = 380;
-const WINDOW_HEIGHT = 480;
+const WINDOW_WIDTH = 340;
+const WINDOW_HEIGHT = 540;
 
 interface IOptions {
 	transparent?: boolean;
@@ -60,7 +61,7 @@ export class AppWindow extends BrowserWindow {
 		this.align(options.position);
 	}
 
-	setURL = (urlPath?: string) => {
+	setURL = (urlPath?: string): void => {
 		let url = app.isPackaged
 			? `file://${path.join(__dirname, '../../build/index.html')}`
 			: 'http://localhost:3000';
@@ -72,7 +73,7 @@ export class AppWindow extends BrowserWindow {
 		this.loadURL(url);
 	};
 
-	private setAutoHide = () => {
+	private setAutoHide = (): void => {
 		this.hide();
 		this.on('blur', () => {
 			// TODO: uncomment
@@ -86,7 +87,7 @@ export class AppWindow extends BrowserWindow {
 		});
 	};
 
-	toggleWindow = () => {
+	toggleWindow = (): void => {
 		if (this.isVisible()) {
 			this.hide();
 			return;
@@ -95,12 +96,12 @@ export class AppWindow extends BrowserWindow {
 		this.showWindow();
 	};
 
-	showWindow = () => {
+	showWindow = (): void => {
 		this.align();
 		this.show();
 	};
 
-	align = (position?: any) => {
+	align = (position?: any): void => {
 		let x, y;
 		if (position) {
 			x = position.x;
@@ -146,9 +147,9 @@ export class AppWindow extends BrowserWindow {
 
 let appWindow: AppWindow;
 
-export function createAppWindow() {
-	const username = require('os').userInfo().username;
-	let tray = new AppTray();
+export function createAppWindow(): void {
+	const username = os.userInfo().username;
+	const tray = new AppTray();
 	tray.on('click', () => {
 		getMixpanelInstance().track('Open window', {
 			source: 'Tray click',
@@ -166,6 +167,6 @@ export function createAppWindow() {
 	appWindow = new AppWindow({ tray, autoHide: true });
 }
 
-export function getAppWindow() {
+export function getAppWindow(): AppWindow {
 	return appWindow;
 }

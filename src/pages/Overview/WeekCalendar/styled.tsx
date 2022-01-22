@@ -33,7 +33,7 @@ export const Week = styled.div`
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
-	padding: 10px;
+	padding: 8px 0px;
 `;
 
 export const DaysContainer = styled.div`
