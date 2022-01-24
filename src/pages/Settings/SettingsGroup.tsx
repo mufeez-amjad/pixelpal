@@ -91,6 +91,6 @@ const Item = styled(Link)<StyledItemProps>`
 	
 	${({ selected }) => selected && `
 		color: black;
-		background: #d4d4d4;
+		background: #e3e3e3;
   	`}
 `;

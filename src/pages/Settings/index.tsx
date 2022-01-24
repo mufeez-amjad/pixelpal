@@ -16,7 +16,7 @@ const paths = [
 		items: [
 			{
 				text: 'General',
-				href: '/settings/'
+				href: '/settings'
 			},
 			{
 				text: 'Customization',

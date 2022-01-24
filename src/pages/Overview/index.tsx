@@ -1,20 +1,18 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-
+import { endOfWeek, format, isAfter, isBefore, isSameDay, startOfWeek } from 'date-fns';
 const { ipcRenderer } = window.require('electron');
 
-import { IoSettingsSharp } from 'react-icons/io5';
-import { FaCircle } from 'react-icons/fa';
-
-import stand from './stand.gif';
+import WeekCalendar from './WeekCalendar';
+import { PageContainer } from '..';
+import Timeline from './Timeline';
 
 import { IEvent } from '../../../common/types';
 
-import WeekCalendar from './WeekCalendar';
-import { endOfWeek, format, isAfter, isBefore, isSameDay, startOfWeek } from 'date-fns';
-
-import { PageContainer } from '..';
+import { IoAdd, IoSettingsSharp } from 'react-icons/io5';
+import { GiTomato } from 'react-icons/gi';
+import stand from './stand.gif';
 
 enum Showing {
 	All = 'All',
@@ -22,54 +20,7 @@ enum Showing {
 	Todo = 'Todos',
 }
 
-interface EventProps {
-	event: IEvent
-}
 
-const Event = ({event}: EventProps): JSX.Element => {
-	const timeRange = `${format(event.start, 'h:mmaaa')} - ${format(event.end, 'h:mmaaa')}`;
-
-	return (
-		<EventContainer>
-			<TimeContainer>
-				<FaCircle 
-					size={8}
-					color={event.calendar.color}
-				/>
-				<Time>
-					{timeRange}
-				</Time>
-			</TimeContainer>
-			<EventName>
-				{event.name}
-			</EventName>
-		</EventContainer>
-	);
-};
-
-const EventContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	background-color: white;
-	padding: 10px;
-	margin-bottom: 6px;
-	border-radius: 10px;
-`;
-
-const TimeContainer = styled.div`
-	display: flex;
-	align-items: center;
-	font-size: 12px;
-`;
-
-const Time = styled.span`
-	margin-left: 8px;
-`;
-
-const EventName = styled.div`
-	font-weight: 600;
-	margin-top: 4px;
-`;
 
 function Overview() : JSX.Element {
 	const [showing, setShowing] = React.useState(Showing.All);
@@ -126,29 +77,34 @@ function Overview() : JSX.Element {
 				<div
 					style={{
 						padding: 20,
-						paddingBottom: 0
+						paddingBottom: 4
 					}}
 				>
-					<SettingsButton
-						to={'/settings'}
-					>
-						<IoSettingsSharp
-							color="grey"
-							style={{ display: 'block', fontSize: 16 }}
-						/>
-					</SettingsButton>
+					<TopButtonsContainer>
+						<TopButton
+							to={'/'}
+							hoverColor='tomato'
+						>
+							<GiTomato />
+						</TopButton>
+
+						<TopButton
+							to={'/settings'}
+						>
+							<IoSettingsSharp />
+						</TopButton>
+					</TopButtonsContainer>
 					<WeekCalendar
 						selectedDay={selectedDay}
 						onWeekdaySelect={setSelectedDay}
 					/>
 				</div>
-				
 				<Character>
 					<img style={{ width: 100, height: 100 }} src={stand} />
 				</Character>
 			</Top>
 			<Bottom>
-				<SectionHeader>
+				{/* <SectionHeader>
 					<Dropdown>
 						<select 
 							value={showing}
@@ -157,12 +113,14 @@ function Overview() : JSX.Element {
 							{Object.keys(Showing).map(key => <option key={key} value={key}>{key}</option>)}
 						</select>
 					</Dropdown>
-				</SectionHeader>
-				<Items>
-					{todaysEvents.map((event, i) => (
-						<Event event={event} key={`${event.name}-${i}`} />
-					))}
-				</Items>
+					<div>
+						<IoAdd />
+					</div>
+				</SectionHeader> */}
+				<Timeline 
+					events={todaysEvents}
+					date={selectedDay}
+				/>
 			</Bottom>
 		</PageContainer>
 	);
@@ -257,17 +215,29 @@ const Dropdown = styled.div`
   }
 `;
 
-const SettingsButton = styled(Link)`
+const TopButtonsContainer = styled.div`
 	position: absolute;
 	right: 20px;
 	top: 25px;
 
+	display: flex;
+	flex-direction: row;
+
+	font-size: 16px;
+`;
+
+interface TopButtonProps {
+	hoverColor?: string;
+}
+const TopButton = styled(Link)`
 	background-color: transparent;
+	color: grey;
 
 	border: none;
 	filter: brightness(100%);
 
 	:hover {
+		color: ${({ hoverColor }: TopButtonProps) => hoverColor || 'grey'};
 		cursor: default;
 		filter: brightness(85%);
 	}
@@ -275,11 +245,10 @@ const SettingsButton = styled(Link)`
 	:focus {
 		outline: 0;
 	}
+
+	&:not(:last-child) {
+		margin-right: 12px;
+	}
 `;
 
-const Items = styled.div`
-	padding: 0px 0px;
-	display: flex;
-	flex-direction: column;
-	padding-bottom: 10px;
-`;
+

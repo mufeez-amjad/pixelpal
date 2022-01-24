@@ -41,6 +41,7 @@ img {
 *:hover,
 *:focus,
 *:focus-within {
+	cursor: default;
 	--scrollbar-color: #00000040 !important;
 }
 
