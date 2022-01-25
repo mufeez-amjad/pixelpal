@@ -20,6 +20,7 @@ import {
 import { Provider } from './services/calendar/oauth';
 import { OutlookCalendar } from './services/calendar/outlook';
 import { Mixpanel } from 'mixpanel';
+import { Habit } from './entity/habit';
 
 let db: DatabaseService;
 let appWindow: AppWindow;
@@ -108,7 +109,7 @@ export function initHandlers(): void {
 		return results;
 	});
 
-	ipcMain.handle('insertHabit', async (_event, habit) => {
+	ipcMain.handle('insertHabit', async (_event, habit: Habit) => {
 		mixpanel.track('Added habit', {
 			source: 'Tray window',
 			habit,
@@ -117,7 +118,7 @@ export function initHandlers(): void {
 		await db.insertHabit(habit);
 	});
 
-	ipcMain.handle('deleteHabit', async (_event, habitId) => {
+	ipcMain.handle('deleteHabit', async (_event, habitId: number) => {
 		await db.deleteHabit(habitId);
 	});
 
@@ -128,7 +129,7 @@ export function initHandlers(): void {
 			distinct_id: username
 		});
 		notificationWindow.hide();
-		await db.createHabitEvent(action.status, action.habit_id);
+		await db.insertHabitEvent(action.status, action.habit_id);
 		await appWindow.webContents.send('overview:update-habit-counts');
 	});
 }
