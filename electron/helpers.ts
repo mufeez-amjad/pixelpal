@@ -1,5 +1,6 @@
+import { Habit } from './entity/habit';
 import { getDatabaseConnection } from './services/db/DatabaseService';
-import { CreateHabitRequest, Habit } from './types';
+import { CreateHabitRequest } from './types';
 
 const dayChars: Record<string, number> = {
 	U: 0,
