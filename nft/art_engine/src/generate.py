@@ -1,3 +1,4 @@
+from multiprocessing.dummy import freeze_support
 import os
 import io
 import json
@@ -5,6 +6,8 @@ import random
 import pdb # remove
 import subprocess
 import pathlib
+from multiprocessing import Pool, Value
+from tqdm import tqdm
 
 if not os.path.exists('output/gif'):
     os.makedirs('output/gif')
@@ -20,6 +23,7 @@ JSON_OUTPUT = 'output/json/'
 CURRENT_DIR = os.path.dirname(pathlib.Path(__file__).parent.resolve())
 LAYERS = [ 'background', 'base', 'head', 'body', 'face', 'hand' ]
 LAYERS_CONFIG = { layer: len(os.listdir(f'{CURRENT_DIR}/layers/{layer}')) + 1 for layer in LAYERS }
+counter = None
 
 ANIMATION_CONFIG = {
     'standing': { 'last_frame': 3 },
@@ -31,41 +35,49 @@ ANIMATION_CONFIG = {
 COMMAND = 'magick convert' if os.name == 'nt' else 'convert' # set up command depending on OS
 
 # create a composite with all layers combined
-def generateArtwork(outputIdx, outputLayer):
-    print(outputLayer)
+def generateArtwork(outputLayer):
+    global counter
+    outputIdx = 0
+    with counter.get_lock():
+        outputIdx = counter.value
+        counter.value += 1
 
     '''
     Generate the NFT art with a background to be displayed on OpenSea
     '''
 
     for i, layer in enumerate(outputLayer):
-        if outputLayer[layer] == 0:
+        if outputLayer[layer] == 0 and layer != 'background':
             continue # 0 = no accessory for layer
         animation = 'standing'
         selection = os.listdir(f'{CURRENT_DIR}/layers/{layer}')[outputLayer[layer]-1]
         path = f'{CURRENT_DIR}/layers/{layer}/{selection}/{animation}/{selection}_{animation}.gif'
         prev_output = path if i == 0 else f'{GIF_OUTPUT}{outputIdx}_nft.gif'
 
+        while not os.path.exists(prev_output):
+            print(f'died: {outputLayer}')
+            return
+
         cmd = f'{COMMAND} ( {prev_output} -coalesce ) null: ( {path} -coalesce ) -layers composite -set delay 20 -loop 0 -layers optimize -delete 4-8 {CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_nft.gif'
-        print(cmd)
+        # print(cmd)
         subprocess.run(cmd.split())
 
     '''
     Generate the animations used in the app
     '''
 
-    for animation in ANIMATIONS:
-        for i, layer in enumerate(outputLayer):
-            if layer == 'background' or outputLayer[layer] == 0:
-                continue
+    # for animation in ANIMATIONS:
+    #     for i, layer in enumerate(outputLayer):
+    #         if layer == 'background' or outputLayer[layer] == 0:
+    #             continue
             
-            selection = os.listdir(f'{CURRENT_DIR}/layers/{layer}')[outputLayer[layer]-1]
-            path = f'{CURRENT_DIR}/layers/{layer}/{selection}/{animation}/{selection}_{animation}.gif'
-            prev_output = f'{CURRENT_DIR}/layers/base/{animation}/base_{animation}.gif' if i == 0 else f'{CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_{animation}.gif'
-            last_frame = ANIMATION_CONFIG[animation]['last_frame']
+    #         selection = os.listdir(f'{CURRENT_DIR}/layers/{layer}')[outputLayer[layer]-1]
+    #         path = f'{CURRENT_DIR}/layers/{layer}/{selection}/{animation}/{selection}_{animation}.gif'
+    #         prev_output = f'{CURRENT_DIR}/layers/base/{animation}/base_{animation}.gif' if i == 0 else f'{CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_{animation}.gif'
+    #         last_frame = ANIMATION_CONFIG[animation]['last_frame']
 
-            cmd = f'{COMMAND} ( {prev_output} -coalesce ) null: ( {path} -coalesce ) -layers composite -set delay 20 -loop 0 -layers optimize -delete {last_frame+1}-8 {CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_{animation}.gif'        
-            subprocess.run(cmd.split())
+    #         cmd = f'{COMMAND} ( {prev_output} -coalesce ) null: ( {path} -coalesce ) -layers composite -set delay 20 -loop 0 -layers optimize -delete {last_frame+1}-8 {CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_{animation}.gif'        
+    #         subprocess.run(cmd.split())
 
 def generateMetadata(outputIdx, outputLayer):
     metadata = {
@@ -88,8 +100,7 @@ def generateMetadata(outputIdx, outputLayer):
         f.write(json.dumps(metadata, ensure_ascii=False))
 
 outputLayers = [
-    { 'background': bg_idx, 'base': 1, 'head': head_idx, 'body': body_idx, 'face': face_idx, 'hand': hand_idx } \
-        for bg_idx in range(LAYERS_CONFIG['background']) \
+    { 'background': random.randint(0, LAYERS_CONFIG['background']-1), 'base': 1, 'head': head_idx, 'body': body_idx, 'face': face_idx, 'hand': hand_idx } \
         for head_idx in range(LAYERS_CONFIG['head']) \
         for body_idx in range(LAYERS_CONFIG['body']) \
         for face_idx in range(LAYERS_CONFIG['face']) \
@@ -98,8 +109,19 @@ outputLayers = [
 
 random.shuffle(outputLayers)
 
-for outputIdx, outputLayer in enumerate(outputLayers):
-    generateArtwork(outputIdx, outputLayer)
-    generateMetadata(outputIdx, outputLayer)
+def init_globals(c):
+    global counter
+    counter = c
+
+if __name__ == '__main__':
+    freeze_support()
+    counter = Value('i', 0)
+    with Pool(initializer=init_globals, initargs=(counter,)) as p:
+        list(tqdm(p.imap(generateArtwork, outputLayers), total=len(outputLayers)))
+
+
+# for outputIdx, outputLayer in enumerate(outputLayers):
+#     generateArtwork(outputIdx, outputLayer)
+#     generateMetadata(outputIdx, outputLayer)
 
     
