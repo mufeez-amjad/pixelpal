@@ -2,6 +2,9 @@ import os
 import io
 import json
 import random
+import pdb # remove
+import subprocess
+import pathlib
 
 if not os.path.exists('output/gif'):
     os.makedirs('output/gif')
@@ -14,41 +17,18 @@ ANIMATIONS = ['standing', 'celebrating', 'pop_up', 'waving']  # first element is
 IPFS = 'ipfs://QmZQhumc4Kv97LC52Cu6uSyNUsPJa1fets926Msjx3ZNmt'
 GIF_OUTPUT = 'output/gif/'
 JSON_OUTPUT = 'output/json/'
-LAYERS_CONFIG = {
-    'Hat': [
-        'NONE',
-        'crown'
-    ],
-    'Chest': [
-        'NONE',
-        'hoodie'
-    ],
-    'Face': [
-        'NONE',
-        'sunglasses'
-    ],
-    'Hand': [
-        'NONE',
-        'watch'
-    ]
-}
-LAYERS = [ l for l in LAYERS_CONFIG ]
+CURRENT_DIR = os.path.dirname(pathlib.Path(__file__).parent.resolve())
+LAYERS = [ 'background', 'base', 'head', 'body', 'face', 'hand' ]
+LAYERS_CONFIG = { layer: len(os.listdir(f'{CURRENT_DIR}/layers/{layer}')) + 1 for layer in LAYERS }
 
-# generate permutations of image layers, store into outputLayers
-def permute(idx, count, curLayer, outputLayers):
-    if count == MAX_LAYERS or idx == len(LAYERS_CONFIG):
-        outputLayers.append(curLayer.copy())
-        return
-    for acc in LAYERS_CONFIG[LAYERS[idx]]:
-        if acc == "NONE":
-            permute(idx+1, count, curLayer, outputLayers)
-        else:
-            curLayer.append({
-                'name': acc,
-                'layer': LAYERS[idx]
-            })
-            permute(idx+1, count+1, curLayer, outputLayers)
-            curLayer.pop()
+ANIMATION_CONFIG = {
+    'standing': { 'last_frame': 3 },
+    'celebrating': { 'last_frame': 3 },
+    'waving': { 'last_frame': 1 },
+    'pop_up': { 'last_frame': 5 },
+}
+
+COMMAND = 'magick convert' if os.name == 'nt' else 'convert' # set up command depending on OS
 
 # create a composite with all layers combined
 def generateArtwork(outputIdx, outputLayer):
@@ -58,44 +38,34 @@ def generateArtwork(outputIdx, outputLayer):
     Generate the NFT art with a background to be displayed on OpenSea
     '''
 
-    # Combine a random background with base animal
-    background = f'layers/Background/background_{random.randrange(NUM_BACKGROUNDS)+1}.gif'
-    os.system(f'convert {background} -coalesce null:  \( layers/Base/base_{ANIMATIONS[0]}.gif \
-        -coalesce -delete 4-8 \) \-layers composite -set delay 20 -loop \
-        0 -layers optimize -delete 4-8 {GIF_OUTPUT}{outputIdx}_nft.gif')
-    
-    # Combine remaining layers
-    for layer in outputLayer:
-        layerPath = f'layers/{layer["layer"]}/{layer["name"]}_{ANIMATIONS[0]}.gif'
-        os.system(f'convert {GIF_OUTPUT}{outputIdx}_nft.gif -coalesce null:  \( {layerPath} \
-        -coalesce \) -layers composite -set delay 20 -loop 0 -layers optimize \
-        -delete 4-8 {GIF_OUTPUT}{outputIdx}_nft.gif')
+    for i, layer in enumerate(outputLayer):
+        if outputLayer[layer] == 0:
+            continue # 0 = no accessory for layer
+        animation = 'standing'
+        selection = os.listdir(f'{CURRENT_DIR}/layers/{layer}')[outputLayer[layer]-1]
+        path = f'{CURRENT_DIR}/layers/{layer}/{selection}/{animation}/{selection}_{animation}.gif'
+        prev_output = path if i == 0 else f'{GIF_OUTPUT}{outputIdx}_nft.gif'
 
+        cmd = f'{COMMAND} ( {prev_output} -coalesce ) null: ( {path} -coalesce ) -layers composite -set delay 20 -loop 0 -layers optimize -delete 4-8 {CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_nft.gif'
+        print(cmd)
+        subprocess.run(cmd.split())
 
     '''
     Generate the animations used in the app
     '''
 
     for animation in ANIMATIONS:
-        # Base animal case
-        if (len(outputLayer) == 0):
-            os.system(f'cp layers/Base/base_{animation}.gif {GIF_OUTPUT}{outputIdx}_{animation}.gif')
-            continue
+        for i, layer in enumerate(outputLayer):
+            if layer == 'background' or outputLayer[layer] == 0:
+                continue
+            
+            selection = os.listdir(f'{CURRENT_DIR}/layers/{layer}')[outputLayer[layer]-1]
+            path = f'{CURRENT_DIR}/layers/{layer}/{selection}/{animation}/{selection}_{animation}.gif'
+            prev_output = f'{CURRENT_DIR}/layers/base/{animation}/base_{animation}.gif' if i == 0 else f'{CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_{animation}.gif'
+            last_frame = ANIMATION_CONFIG[animation]['last_frame']
 
-        # Combine first accessory with base animal
-        layerPath = f'layers/{outputLayer[0]["layer"]}/{outputLayer[0]["name"]}_{animation}.gif'
-        os.system(f'convert layers/Base/base_{animation}.gif -coalesce null:  \( {layerPath} \
-            -coalesce -delete 4-8 \) \-layers composite -set delay 20 -loop \
-            0 -layers optimize -delete 4-8 {GIF_OUTPUT}{outputIdx}_{animation}.gif')
-        
-        # Combine remaining
-        i = 1
-        while i < len(outputLayer):
-            layerPath = f'layers/{outputLayer[i]["layer"]}/{outputLayer[i]["name"]}_{animation}.gif'
-            os.system(f'convert {GIF_OUTPUT}{outputIdx}_{animation}.gif -coalesce null:  \( {layerPath} \
-            -coalesce \) -layers composite -set delay 20 -loop 0 -layers optimize \
-            -delete 4-8 {GIF_OUTPUT}{outputIdx}_{animation}.gif')
-            i += 1
+            cmd = f'{COMMAND} ( {prev_output} -coalesce ) null: ( {path} -coalesce ) -layers composite -set delay 20 -loop 0 -layers optimize -delete {last_frame+1}-8 {CURRENT_DIR}/{GIF_OUTPUT}{outputIdx}_{animation}.gif'        
+            subprocess.run(cmd.split())
 
 def generateMetadata(outputIdx, outputLayer):
     metadata = {
@@ -104,10 +74,12 @@ def generateMetadata(outputIdx, outputLayer):
         'image': f'{IPFS}/{outputIdx}_nft.gif',
         'attributes': []
     }
+
     for layer in outputLayer:
+        selection = os.listdir(f'./layers/{layer}')[outputLayer[layer]-1]
         metadata['attributes'].append({
-            'trait_type': layer['layer'],
-            'value': layer['name']
+            'trait_type': layer.capitalize(),
+            'value': selection.capitalize()
         })
     for animation in ANIMATIONS:
         metadata[animation] = f'{IPFS}/{outputIdx}_{animation}.gif'
@@ -115,9 +87,17 @@ def generateMetadata(outputIdx, outputLayer):
     with io.open(f'{JSON_OUTPUT}{outputIdx}.json', encoding='utf-8', mode='w+') as f:
         f.write(json.dumps(metadata, ensure_ascii=False))
 
-outputLayers = []
-permute(0, 0, [], outputLayers)
+outputLayers = [
+    { 'background': bg_idx, 'base': 1, 'head': head_idx, 'body': body_idx, 'face': face_idx, 'hand': hand_idx } \
+        for bg_idx in range(LAYERS_CONFIG['background']) \
+        for head_idx in range(LAYERS_CONFIG['head']) \
+        for body_idx in range(LAYERS_CONFIG['body']) \
+        for face_idx in range(LAYERS_CONFIG['face']) \
+        for hand_idx in range(LAYERS_CONFIG['hand']) \
+]
+
 random.shuffle(outputLayers)
+
 for outputIdx, outputLayer in enumerate(outputLayers):
     generateArtwork(outputIdx, outputLayer)
     generateMetadata(outputIdx, outputLayer)
