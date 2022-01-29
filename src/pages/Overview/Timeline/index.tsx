@@ -82,33 +82,43 @@ export default function Timeline({events, date}: Props): JSX.Element {
 const Hours = styled.div`
 	display: flex;
 	flex-direction: column;
-	/* background-color: #fd9393; */	
 `;
 
 const GridBox = styled.div`
 	position: relative;
-	height: 24px;
-	border-top: 0.5px solid #e4e4e4;
-	border-bottom: 0.5px solid #eeeeee;
+	height: ${hourHeight / 2}px;
+
+	:first-child {
+		border-top: 0.5px solid #dbdbdb;
+	}
+
+	border-bottom: 0.5px solid #e4e4e4;
 	border-right: 1px solid #e4e4e4;
+	border-left: 1px solid #e4e4e4;
 `;
 
 const Hour = styled.div`
 	height: ${hourHeight}px;
+	
+	:first-child {
+		margin-top: -8px;
+	}
+
+
 	font-size: 10px;
 	font-weight: 300;
 	padding-right: 10px;
-	border-right: 1px solid #e4e4e4;
-	color: #c0bebe;
+	color: #646464;
+
 	&:last-child {
 		height: fit-content;
-		/* border-right: none; */
 	}
 `;
 
 const Container = styled.div`
 	position: relative;
-	padding: 10px 0;
+	margin-top: 12px;
+	padding: 16px 0;
 	display: flex;
 	flex-direction: row;
 `;
@@ -126,7 +136,7 @@ const CurrentTime = React.forwardRef<HTMLDivElement>((_props, ref) => {
 		setTimeout(() => setCurrentTime(new Date()), 60000);
 	}, []);
 
-	const time = format(currentTime, 'hh:mm');
+	const time = format(currentTime, 'h:mm');
 
 	const offsetTop = (currentTime.getHours() + currentTime.getMinutes() / 60) * hourHeight;
 
@@ -138,10 +148,6 @@ const CurrentTime = React.forwardRef<HTMLDivElement>((_props, ref) => {
 			<span>
 				{time}
 			</span>
-			{/* <FaCircle 
-				size={8}
-			/> */}
-			
 			<hr />
 		</RedLine>
 	);
@@ -178,10 +184,8 @@ interface EventProps {
 	event: IEvent
 }
 const Event = ({event}: EventProps): JSX.Element => {
-
 	const offsetStart = (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight;
 	
-
 	const height = React.useMemo(() => {
 		const duration = intervalToDuration({
 			start: event.start,
@@ -189,7 +193,7 @@ const Event = ({event}: EventProps): JSX.Element => {
 		});
 
 		if (duration.hours != null && duration.minutes != null) {
-			return Math.max((duration.hours + duration.minutes / 60) * hourHeight - 1, 15);
+			return Math.max((duration.hours + duration.minutes / 60) * hourHeight, 15);
 		}
 	}, []);
 
@@ -201,6 +205,9 @@ const Event = ({event}: EventProps): JSX.Element => {
 		>
 			<span>
 				{event.name}
+			</span>
+			<span>
+				{format(event.start, ', h:mm')}
 			</span>
 		</EventContainer>
 	);

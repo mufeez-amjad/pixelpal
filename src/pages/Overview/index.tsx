@@ -138,7 +138,7 @@ const Top = styled.div`
 `;
 
 const Bottom = styled.div`
-	background-color: #eeeeee;
+	/* background-color: #eeeeee; */
 	flex: 4;
 	display: flex;
 	flex-direction: column;
@@ -161,58 +161,6 @@ const Character = styled.div`
 	background-blend-mode: multiply;
 
 	height: 140px;
-`;
-
-const SectionHeader = styled.div`
-	font-size: 12px;
-	padding: 15px 0;
-	padding-bottom: 10px;
-	color: #b4b4b4;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-
-	/* border-bottom: 1px solid grey; */
-`;
-
-const Dropdown = styled.div`
-  position: relative;
-  background-color: #c9c9c9;
-  width: auto;
-  float: left;
-  max-width: 100%;
-  border-radius: 8px;
-
-  select {
-    font-size: 12px;
-    font-weight: 300;
-    max-width: 100%;
-    padding: 4px 20px 4px 8px;
-    border: none;
-    background-color: transparent;
-    -webkit-appearance: none;
-       -moz-appearance: none;
-            appearance: none;
-    
-	&:active,
-    &:focus {
-      outline: none;
-      box-shadow: none;
-    }
-  }
-
-  &:after {
-    content: " ";
-    position: absolute;
-    top: 50%;
-    margin-top: -2px;
-    right: 8px;
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid #747474;
-  }
 `;
 
 const TopButtonsContainer = styled.div`
