@@ -11,8 +11,13 @@ import Timeline from './Timeline';
 import { IEvent } from '../../../common/types';
 
 import { IoAdd, IoSettingsSharp } from 'react-icons/io5';
-import { GiTomato } from 'react-icons/gi';
+import { BiStopwatch } from 'react-icons/bi';
 import stand from './stand.gif';
+import LoadingWrapper, { LoadingIndicator } from '../../common/LoadingWrapper';
+
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+
+import { dayKeyFormat, setEvents, setSelectedDay as setDay }from '../../store/calendar';
 
 enum Showing {
 	All = 'All',
@@ -20,15 +25,18 @@ enum Showing {
 	Todo = 'Todos',
 }
 
-
-
 function Overview() : JSX.Element {
-	const [showing, setShowing] = React.useState(Showing.All);
-	const [events, setEvents] = React.useState<Array<IEvent>>([]);
+	const events = useAppSelector((state) => state.calendar.events);
+	const selectedDay = useAppSelector((state) => state.calendar.selectedDay);
+	const dispatch = useAppDispatch();
 
-	const [todaysEvents, setTodaysEvents] = React.useState<Array<IEvent>>([]);
+	const [isLoading, setLoading] = React.useState(true);
 
-	const [selectedDay, setSelectedDay] = React.useState(new Date());
+	const setSelectedDay = (day: Date) => {
+		dispatch(setDay({
+			day
+		}));
+	};
 
 	const { weekStart, weekEnd } = React.useMemo(() => {
 		return {
@@ -39,12 +47,19 @@ function Overview() : JSX.Element {
 
 	React.useEffect(() => {
 		(async () => {
-			const nextEvents : Array<IEvent> = await ipcRenderer.invoke('getEventsForWeek', {
-				start: new Date(weekStart), 
-				end: new Date(weekEnd)
-			});
-			console.log(nextEvents);
-			// const nextEvents: Array<IEvent> = [];
+			setLoading(true);
+			let nextEvents: Array<IEvent> = [];
+			try {
+				nextEvents = await ipcRenderer.invoke('getEventsForWeek', {
+					start: new Date(weekStart), 
+					end: new Date(weekEnd)
+				});
+			} catch (err) {
+				console.error(err);
+			} finally {
+				setLoading(false);
+			}
+
 			nextEvents.sort((eventA, eventB) => {
 				if (isBefore(eventA.start, eventB.start)) {
 					return -1;
@@ -54,13 +69,12 @@ function Overview() : JSX.Element {
 
 				return 0;
 			});
-			setEvents(nextEvents);
+			dispatch(setEvents({events: nextEvents}));
 		})();
 	}, [weekStart, weekEnd]);
 
-	React.useEffect(() => {
-		const nextTodaysEvents = events.filter(event => isSameDay(event.start, selectedDay));
-		setTodaysEvents(nextTodaysEvents);
+	const todaysEvents = React.useMemo(() => {
+		return events[dayKeyFormat(selectedDay)] || [];
 	}, [events, selectedDay]);
 
 	React.useEffect(() => {
@@ -81,11 +95,15 @@ function Overview() : JSX.Element {
 					}}
 				>
 					<TopButtonsContainer>
+						{isLoading && <LoadingIndicator
+							style={{width: 18, height: 18, marginRight: 12}}
+						/>}
+						
 						<TopButton
 							to={'/'}
 							hoverColor='tomato'
 						>
-							<GiTomato />
+							<BiStopwatch />
 						</TopButton>
 
 						<TopButton
@@ -104,20 +122,7 @@ function Overview() : JSX.Element {
 				</Character>
 			</Top>
 			<Bottom>
-				{/* <SectionHeader>
-					<Dropdown>
-						<select 
-							value={showing}
-							onChange={(e) => setShowing(e.target.value as Showing)}
-						>
-							{Object.keys(Showing).map(key => <option key={key} value={key}>{key}</option>)}
-						</select>
-					</Dropdown>
-					<div>
-						<IoAdd />
-					</div>
-				</SectionHeader> */}
-				<Timeline 
+				<Timeline
 					events={todaysEvents}
 					date={selectedDay}
 				/>
@@ -138,12 +143,9 @@ const Top = styled.div`
 `;
 
 const Bottom = styled.div`
-	/* background-color: #eeeeee; */
 	flex: 4;
-	display: flex;
-	flex-direction: column;
 	overflow: overlay;
-	padding: 0 20px;
+	position: relative;
 `;
 
 const Character = styled.div`
@@ -170,6 +172,7 @@ const TopButtonsContainer = styled.div`
 
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 
 	font-size: 16px;
 `;
@@ -178,8 +181,17 @@ interface TopButtonProps {
 	hoverColor?: string;
 }
 const TopButton = styled(Link)`
+
 	background-color: transparent;
 	color: grey;
+
+	font-size: 16px;
+	width: 16px;
+	height: 18px;
+
+	svg {
+		display: block;
+	}
 
 	border: none;
 	filter: brightness(100%);

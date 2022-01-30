@@ -40,18 +40,23 @@ interface Props {
 	events: IEvent[];
 	date: Date;
 }
-export default function Timeline({events, date}: Props): JSX.Element {
+
+function Timeline({events, date}: Props): JSX.Element {
 	const myRef = React.useRef<null | HTMLDivElement>(null);
 
+	const showRedLine = React.useMemo(() => {
+		return isSameDay(date, new Date());
+	}, [date]);
+
 	React.useEffect(() => {
-		if (myRef.current && isSameDay(date, new Date())) {
+		if (myRef.current && showRedLine) {
 			myRef.current.scrollIntoView({
 				behavior: 'smooth',
 				block: 'start',
 				inline: 'nearest',
 			});
 		}
-	}, [myRef]);
+	}, [myRef, showRedLine]);
 
 	const grid = React.useMemo(() => {
 		const res = [];
@@ -74,7 +79,7 @@ export default function Timeline({events, date}: Props): JSX.Element {
 					<Event event={event} key={`${event.name}-${i}`} />
 				))}
 			</Events>
-			<CurrentTime ref={myRef}/>
+			{showRedLine && <CurrentTime ref={myRef}/>}
 		</Container>
 	);
 }
@@ -119,6 +124,7 @@ const Container = styled.div`
 	position: relative;
 	margin-top: 12px;
 	padding: 16px 0;
+	margin: 0 20px;
 	display: flex;
 	flex-direction: row;
 `;
@@ -201,6 +207,7 @@ const Event = ({event}: EventProps): JSX.Element => {
 		<EventContainer
 			offsetStart={offsetStart}
 			color={event.calendar.color}
+			darkerColor={shadeColor(event.calendar.color, -20)}
 			height={height || 'fit-content'}
 		>
 			<span>
@@ -216,12 +223,14 @@ const Event = ({event}: EventProps): JSX.Element => {
 interface IEventContainer {
 	offsetStart: number;
 	color: string;
+	darkerColor: string;
 	height: number | string;
 }
 
 const EventContainer = styled.div<IEventContainer>`
 	position: absolute;
 	background-color: ${({color}) => color};
+	border-left: 3px solid ${({darkerColor}) => darkerColor};
 	width: 100%;
 	font-size: 12px;
 	top: ${({offsetStart}) => offsetStart}px;
@@ -236,3 +245,29 @@ const EventContainer = styled.div<IEventContainer>`
 		filter: brightness(97%);
 	}
 `;
+
+function shadeColor(color: string, percent: number) {
+	let R = parseInt(color.substring(1,3),16);
+	let G = parseInt(color.substring(3,5),16);
+	let B = parseInt(color.substring(5,7),16);
+
+	R = R * (100 + percent) / 100;
+	G = G * (100 + percent) / 100;
+	B = B * (100 + percent) / 100;
+
+	R |= 0;
+	G |= 0;
+	B |= 0;
+
+	R = (R<255)?R:255;  
+	G = (G<255)?G:255;  
+	B = (B<255)?B:255;  
+
+	const RR = ((R.toString(16).length==1)?'0'+R.toString(16):R.toString(16));
+	const GG = ((G.toString(16).length==1)?'0'+G.toString(16):G.toString(16));
+	const BB = ((B.toString(16).length==1)?'0'+B.toString(16):B.toString(16));
+
+	return '#'+RR+GG+BB;
+}
+
+export default Timeline;

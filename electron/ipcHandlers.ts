@@ -80,33 +80,34 @@ export function initHandlers(): void {
 	});
 
 	ipcMain.handle('getHabits', async () => {
-		return await db.getAllHabits();
+		return; // await db.getAllHabits();
 	});
 
 	ipcMain.handle('getHabitsForDay', async (_event, day) => {
-		return await db.getAllHabits(day);
+		return; // await db.getAllHabits(day);
 	});
 
 	ipcMain.handle('getHabitEventCountsForDay', async (_event, day) => {
-		const habits = await db.getAllHabits(day);
+		// const habits = await db.getAllHabits(day);
 
-		const counts = habits.map(async habit => {
-			const minutes = (habit.end_time - habit.start_time) * 60;
-			const total = minutes / habit.frequency;
+		// const counts = habits.map(async habit => {
+		// 	const minutes = (habit.end_time - habit.start_time) * 60;
+		// 	const total = minutes / habit.frequency;
 
-			const dailyEventCounts = await getCountsForHabit(habit);
+		// 	const dailyEventCounts = await getCountsForHabit(habit);
 
-			return {
-				habit_id: habit.id,
-				total: total,
-				completed: dailyEventCounts['completed'] || 0,
-				missed: dailyEventCounts['missed'] || 0,
-				triggered: dailyEventCounts['triggered'] || 0
-			};
-		});
+		// 	return {
+		// 		habit_id: habit.id,
+		// 		total: total,
+		// 		completed: dailyEventCounts['completed'] || 0,
+		// 		missed: dailyEventCounts['missed'] || 0,
+		// 		triggered: dailyEventCounts['triggered'] || 0
+		// 	};
+		// });
 
-		const results = await Promise.all(counts);
-		return results;
+		// const results = await Promise.all(counts);
+		// return results;
+		return;
 	});
 
 	ipcMain.handle('insertHabit', async (_event, habit: Habit) => {
@@ -131,5 +132,9 @@ export function initHandlers(): void {
 		notificationWindow.hide();
 		await db.insertHabitEvent(action.status, action.habit_id);
 		await appWindow.webContents.send('overview:update-habit-counts');
+	});
+
+	getAppWindow().on('hide', () => {
+		getAppWindow().webContents.send('hide-tray-window');
 	});
 }

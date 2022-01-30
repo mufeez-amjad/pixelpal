@@ -13,11 +13,16 @@ import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
 import './index.css';
 
+import store from './store';
+import { Provider } from 'react-redux';
+
 const App = () => {
 	return (
-		<HashRouter>
-			<RoutesComponent />
-		</HashRouter>
+		<Provider store={store}>
+			<HashRouter>
+				<RoutesComponent />
+			</HashRouter>
+		</Provider>
 	);
 };
 
