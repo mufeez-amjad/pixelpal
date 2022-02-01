@@ -13,7 +13,7 @@ export default function Auth() {
   const [signer, setSigner] = React.useState<Signer>();
   const [provider, setProvider] = React.useState<Provider>();
 
-  function connectMMCB(res: { accounts: string[], signer: Signer, provider: Provider }) {
+  function onConnection(res: { accounts: string[], signer: Signer, provider: Provider }) {
     setAccounts(res.accounts);
     setSigner(res.signer);
     setProvider(res.provider);
@@ -23,9 +23,9 @@ export default function Auth() {
     <main style={{ padding: "1rem 0" }}>
       <h2>Auth</h2>
       {accounts.length == 0 ? (
-        metamaskIsInstalled ? <ConnectMetamask callback={connectMMCB}/> : <InstallMetamask />
+        metamaskIsInstalled ? <ConnectMetamask callback={onConnection}/> : <InstallMetamask />
       ) : (
-        <PixelPalForm />
+        <PixelPalForm signer={signer!}/>
       )}
     </main>
   );
