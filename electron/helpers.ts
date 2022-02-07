@@ -1,4 +1,6 @@
-import { CreateHabitRequest, Habit } from './types';
+import { Habit } from './entity/habit';
+import { getDatabaseConnection } from './services/db/DatabaseService';
+import { CreateHabitRequest } from './types';
 
 const dayChars: Record<string, number> = {
 	U: 0,
@@ -15,8 +17,8 @@ const getDayMinutes = (date: Date): number => {
 };
 
 const getDays = (dayString: string): Record<number, boolean> => {
-	let days: Record<number, boolean> = {};
-	for (let char of dayString) {
+	const days: Record<number, boolean> = {};
+	for (const char of dayString) {
 		days[dayChars[char]] = true;
 	}
 	return days;
@@ -78,4 +80,16 @@ export function calculateNextReminderAt(
 	}
 
 	return reminderAt.getTime();
+}
+
+export async function getCountsForHabit(habit: Habit) {
+	const dailyEventCounts =
+		await getDatabaseConnection().getTodayEventCountsForHabit(habit.id);
+	const counts: any = {};
+
+	dailyEventCounts.forEach((e: any) => {
+		counts[e.type] = e.num_events;
+	});
+
+	return counts;
 }

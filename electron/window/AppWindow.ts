@@ -1,10 +1,13 @@
-import { app, BrowserWindow, Tray } from 'electron';
+import os from 'os';
+import { app, BrowserWindow, Tray, Menu } from 'electron';
 import { Display } from 'electron/main';
 import path from 'path';
+import AppTray from '../tray';
+import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
 import { getCurrentDisplay } from '../util';
 
-const WINDOW_WIDTH = 480;
+const WINDOW_WIDTH = 340;
 const WINDOW_HEIGHT = 540;
 
 interface IOptions {
@@ -16,14 +19,14 @@ interface IOptions {
 	path?: string;
 }
 
-class AppWindow extends BrowserWindow {
+export class AppWindow extends BrowserWindow {
 	tray?: Tray;
 	width: number;
 	height: number;
 
 	constructor(options: IOptions) {
-		let width = options.dimensions?.width || WINDOW_WIDTH;
-		let height = options.dimensions?.height || WINDOW_HEIGHT;
+		const width = options.dimensions?.width || WINDOW_WIDTH;
+		const height = options.dimensions?.height || WINDOW_HEIGHT;
 		super({
 			width,
 			height,
@@ -58,7 +61,7 @@ class AppWindow extends BrowserWindow {
 		this.align(options.position);
 	}
 
-	setURL = (urlPath?: string) => {
+	setURL = (urlPath?: string): void => {
 		let url = app.isPackaged
 			? `file://${path.join(__dirname, '../../build/index.html')}`
 			: 'http://localhost:3000';
@@ -70,12 +73,13 @@ class AppWindow extends BrowserWindow {
 		this.loadURL(url);
 	};
 
-	private setAutoHide = () => {
+	private setAutoHide = (): void => {
 		this.hide();
 		this.on('blur', () => {
-			if (!this.webContents.isDevToolsOpened()) {
-				this.hide();
-			}
+			// TODO: uncomment
+			// if (!this.webContents.isDevToolsOpened()) {
+			// 	this.hide();
+			// }
 		});
 		this.on('close', event => {
 			event.preventDefault();
@@ -83,7 +87,7 @@ class AppWindow extends BrowserWindow {
 		});
 	};
 
-	toggleWindow = () => {
+	toggleWindow = (): void => {
 		if (this.isVisible()) {
 			this.hide();
 			return;
@@ -92,12 +96,12 @@ class AppWindow extends BrowserWindow {
 		this.showWindow();
 	};
 
-	showWindow = () => {
+	showWindow = (): void => {
 		this.align();
 		this.show();
 	};
 
-	align = (position?: any) => {
+	align = (position?: any): void => {
 		let x, y;
 		if (position) {
 			x = position.x;
@@ -141,4 +145,28 @@ class AppWindow extends BrowserWindow {
 	};
 }
 
-export default AppWindow;
+let appWindow: AppWindow;
+
+export function createAppWindow(): void {
+	const username = os.userInfo().username;
+	const tray = new AppTray();
+	tray.on('click', () => {
+		getMixpanelInstance().track('Open window', {
+			source: 'Tray click',
+			distinct_id: username
+		});
+	});
+
+	// Context Menu
+	const contextMenu = Menu.buildFromTemplate([
+		{ label: 'Quit', click: () => app.quit() }
+	]);
+
+	// Setting context Menu
+	tray.on('right-click', () => tray.popUpContextMenu(contextMenu));
+	appWindow = new AppWindow({ tray, autoHide: true });
+}
+
+export function getAppWindow(): AppWindow {
+	return appWindow;
+}

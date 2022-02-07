@@ -1,95 +1,114 @@
-import { Knex } from 'knex';
+import {
+	Connection,
+	ConnectionOptions,
+	createConnection,
+	LessThanOrEqual
+} from 'typeorm';
+import { Habit } from '../../entity/habit';
+import { HabitEvent } from '../../entity/habitEvent';
+import { app } from 'electron';
 import { calculateNextReminderAt } from '../../helpers';
-import { CreateHabitRequest, Habit, HabitEventCounts } from '../../types';
+import { CreateHabitRequest } from '../../types';
+import path from 'path';
 
-class DatabaseService {
-	knex: Knex;
+const dbFile = app.isPackaged
+	? path.join(app.getPath('userData'), 'pixelpal.db')
+	: '.db/pixelpal.db';
 
-	constructor(knex: Knex) {
-		this.knex = knex;
+export class DatabaseService {
+	db!: Connection;
+	options: ConnectionOptions;
+
+	constructor() {
+		this.options = {
+			type: 'sqlite',
+			database: dbFile,
+			entities: [Habit, HabitEvent],
+			logging: false,
+			synchronize: true
+		};
+	}
+
+	async initConnection() {
+		this.db = await createConnection(this.options);
 	}
 
 	getAllHabits(day?: string): Promise<Array<Habit>> {
-		let query = this.knex.select().table('habits');
-		if (day) {
-			query = query.where('days', 'like', `%${day}%`);
-		}
-		return query;
+		return this.db
+			.getRepository(Habit)
+			.createQueryBuilder('habit')
+			.where('days LIKE :day', { day: `%${day}%` })
+			.getMany();
 	}
 
-	getHabitEventCountsForDay(
-		targetDateMillis: number = Date.now()
-	): Promise<Array<HabitEventCounts>> {
+	getTodayEventCountsForHabit(habitId: number): Promise<any> {
 		const targetDate = `date(${
-			targetDateMillis / 1000
+			Date.now() / 1000
 		}, 'unixepoch', 'start of day')`;
 
-		return this.knex
-			.select(
-				'habit_id',
-				'type',
-				this.knex.raw('count() as `num_events`')
-			)
-			.table('habit_events')
-			.where(
-				this.knex.raw('date(timestamp/1000, \'unixepoch\')'),
-				'=',
-				this.knex.raw(targetDate)
-			)
-			.groupBy('habit_id', 'type');
+		// raw query because typeorm did not like my date magic
+		return this.db.manager.query(`
+      SELECT 
+        habit_id, type, count() as num_events 
+      FROM 
+        habit_events
+      WHERE
+        date(timestamp/1000, 'unixepoch') = ${targetDate} AND habit_id = ${habitId}
+      GROUP BY type
+    `);
 	}
 
-	// TODO: use ORM :)?
-	insertHabit(createHabitRequest: CreateHabitRequest): Promise<boolean> {
+	insertHabit(createHabitRequest: CreateHabitRequest): Promise<Habit> {
 		const reminderAt = calculateNextReminderAt(createHabitRequest);
-		return this.knex('habits').insert({
-			...createHabitRequest,
-			reminder_at: reminderAt
-		});
+		const habitRepo = this.db.getRepository(Habit);
+
+		const habit = habitRepo.create(createHabitRequest);
+		habit.reminder_at = reminderAt;
+
+		return habitRepo.save(habit);
 	}
 
-	deleteHabit(id: number) {
-		return this.knex('habits').where('id', id).delete();
+	insertHabitEvent(type: string, habitId: number): Promise<HabitEvent> {
+		const habitEventRepo = this.db.getRepository(HabitEvent);
+		const habitEvent = habitEventRepo.create({
+			type,
+			habit_id: habitId,
+			timestamp: Date.now()
+		});
+
+		return habitEventRepo.save(habitEvent);
+	}
+
+	async deleteHabit(habitId: number): Promise<Habit> {
+		const habit = await Habit.findOne(habitId);
+		// todo: catch err
+
+		return habit!.remove();
+	}
+
+	async updateReminderAt(id: number, reminder_at: number): Promise<Habit> {
+		const habit = await Habit.findOne(id);
+		habit!.reminder_at = reminder_at;
+		return habit!.save();
 	}
 
 	async getNextPendingNotification(): Promise<Habit | undefined> {
-		const rows = await this.knex('habits')
-			.where('reminder_at', '<=', Date.now())
-			.limit(1);
-		return rows.length > 0 ? rows[0] : undefined;
-	}
-
-	async updateReminderAt(id: number, reminder_at: number): Promise<number> {
-		return this.knex('habits')
-			.where('id', id)
-			.update('reminder_at', reminder_at);
-	}
-
-	getSurvey(surveyId: string): Promise<Array<object>> {
-		// if id doesn't exist, create it
-		return this.knex.select().table('surveys').where('survey_id', surveyId);
-	}
-
-	insertSurvey(surveyId: string): Promise<Array<object>> {
-		return this.knex('surveys').insert({
-			survey_id: surveyId,
-			completed: false
-		});
-	}
-
-	completeSurvey(surveyId: string): Promise<Array<object>> {
-		return this.knex('surveys')
-			.where('survey_id', surveyId)
-			.update({ completed: true });
-	}
-
-	createHabitEvent(type: string, habitId: number): Promise<Array<object>> {
-		return this.knex('habit_events').insert({
-			habit_id: habitId,
-			type: type,
-			timestamp: Date.now()
-		});
+		const habitRepo = this.db.getRepository(Habit);
+		return habitRepo.findOne({ reminder_at: LessThanOrEqual(Date.now()) });
 	}
 }
 
-export default DatabaseService;
+let db: DatabaseService;
+
+export function startDatabaseService() {
+	db = new DatabaseService();
+	db.initConnection();
+}
+
+export function getDatabaseConnection() {
+	return db;
+}
+
+export function migrate() {
+	// noop for now
+}

@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+    "emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
 		"target": "esnext",
 		"lib": ["es2019"],
 		"module": "commonjs",
@@ -20,5 +22,5 @@
 		"noEmitOnError": true,
 		"jsx": "react-jsx"
 	},
-	"include": ["./**/*"]
+	"include": ["./**/*"],
 }
