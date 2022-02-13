@@ -20,12 +20,10 @@ function Notification(): JSX.Element {
 	const [celebrate, setCelebrate] = useState(false);
 
 	ipcRenderer.on('notification', (event: any, habit: any) => {
-		console.log('hello');
 		setBody({ name: habit.name, id: habit.id });
 		setPopUp(true);
 		setTimeout(() => {
 			setPopUp(false);
-			console.log('wave');
 		}, 1000);
 	});
 

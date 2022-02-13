@@ -33,13 +33,13 @@ export class DatabaseService {
 		this.db = await createConnection(this.options);
 	}
 
-	getAllHabits(day?: string): Promise<Array<Habit>> {
-		return this.db
-			.getRepository(Habit)
-			.createQueryBuilder('habit')
-			.where('days LIKE :day', { day: `%${day}%` })
-			.getMany();
-	}
+	// getAllHabits(day?: string): Promise<Array<Habit>> {
+	// 	// return this.db
+	// 	// 	.getRepository(Habit)
+	// 	// 	.createQueryBuilder('habit')
+	// 	// 	.where('days LIKE :day', { day: `%${day}%` })
+	// 	// 	.getMany();
+	// }
 
 	getTodayEventCountsForHabit(habitId: number): Promise<any> {
 		const targetDate = `date(${

@@ -53,20 +53,18 @@ export const DayContainer = styled.div<ContainerProps>`
 	justify-content: center;
 	align-items: center;
 	padding-top: 4px;
+	
+	/* ${({ current }) => !current && `
+		color: #ccc;
+  	`} */
 
 	> span {
 		font-size: 10px;
 
-		${({ isWeekend }) => isWeekend && `
+		/* ${({ isWeekend }) => isWeekend && `
 			color: #b4b4b4;
-  		`}
-	}
-
-	${({ current }) => !current && `
-		color: #ccc;
-  	`}
-
-	
+  		`} */
+	}	
 `;
 
 export const DateContainer = styled.div<ContainerProps>`

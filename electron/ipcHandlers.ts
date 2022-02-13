@@ -9,7 +9,7 @@ import {
 import { getMixpanelInstance } from './services/mixpanel/MixpanelService';
 import { AppWindow, getAppWindow } from './window/AppWindow';
 import { getNotificationWindow } from './window/NotificationWindow';
-import { getCountsForHabit } from './helpers';
+// import { getCountsForHabit } from './helpers';
 import { GoogleCalendar } from './services/calendar/google';
 import {
 	ACCOUNTS_INFO_KEY,
@@ -21,6 +21,7 @@ import { Provider } from './services/calendar/oauth';
 import { OutlookCalendar } from './services/calendar/outlook';
 import { Mixpanel } from 'mixpanel';
 import { Habit } from './entity/habit';
+import { isAfter, isBefore } from 'date-fns';
 
 let db: DatabaseService;
 let appWindow: AppWindow;
@@ -75,6 +76,16 @@ export function initHandlers(): void {
 		events = events.concat(
 			await platform.getEventsBetweenDates(start, end)
 		);
+
+		events.sort((eventA, eventB) => {
+			if (isBefore(eventA.start, eventB.start)) {
+				return -1;
+			} else if (isAfter(eventA.start, eventB.start)) {
+				return 1;
+			}
+
+			return 0;
+		});
 
 		return events;
 	});

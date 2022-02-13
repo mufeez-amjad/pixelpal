@@ -17,7 +17,7 @@ import LoadingWrapper, { LoadingIndicator } from '../../common/LoadingWrapper';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
-import { dayKeyFormat, setEvents, setSelectedDay as setDay }from '../../store/calendar';
+import { dayKeyFormat, setEvents, setSelectedDay as setDay } from '../../store/calendar';
 
 enum Showing {
 	All = 'All',
@@ -25,22 +25,27 @@ enum Showing {
 	Todo = 'Todos',
 }
 
-function Overview() : JSX.Element {
+function Overview(): JSX.Element {
 	const events = useAppSelector((state) => state.calendar.events);
 	const selectedDay = useAppSelector((state) => state.calendar.selectedDay);
 	const dispatch = useAppDispatch();
 
+	const [todaysEvents, setTodaysEvents] = React.useState<IEvent[]>([]);
+
 	const [isLoading, setLoading] = React.useState(true);
 
 	const setSelectedDay = (day: Date) => {
-		dispatch(setDay({
-			day
-		}));
+		dispatch(setDay({day: new Date(day)}));
 	};
+
+	React.useEffect(() => {
+		console.log('Changed day to', selectedDay.toDateString());
+		setTodaysEvents(events[dayKeyFormat(selectedDay)]);
+	}, [events, selectedDay]);
 
 	const { weekStart, weekEnd } = React.useMemo(() => {
 		return {
-			weekStart: startOfWeek(selectedDay).toISOString(), 
+			weekStart: startOfWeek(selectedDay).toISOString(),
 			weekEnd: endOfWeek(selectedDay).toISOString()
 		};
 	}, [selectedDay]);
@@ -51,7 +56,7 @@ function Overview() : JSX.Element {
 			let nextEvents: Array<IEvent> = [];
 			try {
 				nextEvents = await ipcRenderer.invoke('getEventsForWeek', {
-					start: new Date(weekStart), 
+					start: new Date(weekStart),
 					end: new Date(weekEnd)
 				});
 			} catch (err) {
@@ -60,22 +65,9 @@ function Overview() : JSX.Element {
 				setLoading(false);
 			}
 
-			nextEvents.sort((eventA, eventB) => {
-				if (isBefore(eventA.start, eventB.start)) {
-					return -1;
-				} else if (isAfter(eventA.start, eventB.start)) {
-					return 1;
-				}
-
-				return 0;
-			});
-			dispatch(setEvents({events: nextEvents}));
+			dispatch(setEvents({ events: nextEvents }));
 		})();
 	}, [weekStart, weekEnd]);
-
-	const todaysEvents = React.useMemo(() => {
-		return events[dayKeyFormat(selectedDay)] || [];
-	}, [events, selectedDay]);
 
 	React.useEffect(() => {
 		function handleWindowShow() {
@@ -96,9 +88,8 @@ function Overview() : JSX.Element {
 				>
 					<TopButtonsContainer>
 						{isLoading && <LoadingIndicator
-							style={{width: 18, height: 18, marginRight: 12}}
+							style={{ width: 18, height: 18, marginRight: 12 }}
 						/>}
-						
 						<TopButton
 							to={'/'}
 							hoverColor='tomato'
@@ -130,8 +121,6 @@ function Overview() : JSX.Element {
 		</PageContainer>
 	);
 }
-
-
 
 export default Overview;
 
@@ -210,5 +199,3 @@ const TopButton = styled(Link)`
 		margin-right: 12px;
 	}
 `;
-
-

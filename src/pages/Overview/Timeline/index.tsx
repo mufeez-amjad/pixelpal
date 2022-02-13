@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { CSSProperties } from 'styled-components';
 import { format, intervalToDuration, isSameDay, subMinutes } from 'date-fns';
 import { FaCircle } from 'react-icons/fa';
 
@@ -42,6 +42,12 @@ interface Props {
 }
 
 function Timeline({events, date}: Props): JSX.Element {
+	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
+
+	React.useEffect(() => {
+		setScheduledEvents(groupIntoNonOverlapping(events));
+	}, [events]);
+
 	const myRef = React.useRef<null | HTMLDivElement>(null);
 
 	const showRedLine = React.useMemo(() => {
@@ -68,18 +74,51 @@ function Timeline({events, date}: Props): JSX.Element {
 		return res;
 	}, []);
 
+	const scheduled = React.useMemo(() => {
+		return scheduledEvents.flatMap(group => {
+			return group.map((event, i) => {
+				const width = 100 / group.length;
+				return (
+					<Event 
+						event={event}
+						key={`${event.name}-${i}`}
+						style={{
+							width: `${width}%`,
+							left: `${width * i}%`
+						}}
+						divided={group.length > 1}
+					/>
+				);
+			});
+		});
+	}, [scheduledEvents]);
+
 	return (
 		<Container>
-			<Hours>
-				{hours.map((hour, index) => <Hour key={index}><span>{hour}</span></Hour>)}
-			</Hours>
-			<Events>
-				{grid}
-				{events.map((event, i) => (
-					<Event event={event} key={`${event.name}-${i}`} />
-				))}
-			</Events>
-			{showRedLine && <CurrentTime ref={myRef}/>}
+			<AllDay>
+				<div>
+					All-day
+				</div>
+				<div>
+					hi
+				</div>
+			</AllDay>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'row',
+					marginTop: 48
+				}}
+			>
+				<Hours>
+					{hours.map((hour, index) => <Hour key={index}><span>{hour}</span></Hour>)}
+				</Hours>
+				<Events>
+					{grid}
+					{scheduled}
+				</Events>
+				{showRedLine && <CurrentTime ref={myRef}/>}
+			</div>
 		</Container>
 	);
 }
@@ -102,6 +141,37 @@ const GridBox = styled.div`
 	border-left: 1px solid #e4e4e4;
 `;
 
+const AllDay = styled.div`
+	display: flex;
+	font-size: 10px;
+	font-weight: 300;
+	color: #646464;
+	margin-left: -20px;
+	padding-right: 20px;
+	width: 100%;
+
+	position: fixed;
+	z-index: 2;
+
+	div {
+		background-color: white;
+
+		&:first-child {
+			padding: 6px 0;
+			padding-left: 20px;
+			min-width: 60px;
+			border-right: 1px solid #e4e4e4;
+			border-bottom: 1px solid #e4e4e4;
+		}
+
+		&:nth-child(2) {
+			width: 100%;
+			border-bottom: 1px solid #e4e4e4;
+			border-right: 1px solid #e4e4e4;
+		}
+	}
+`;
+
 const Hour = styled.div`
 	height: ${hourHeight}px;
 	
@@ -109,10 +179,9 @@ const Hour = styled.div`
 		margin-top: -8px;
 	}
 
-
 	font-size: 10px;
 	font-weight: 300;
-	padding-right: 10px;
+	width: 40px;
 	color: #646464;
 
 	&:last-child {
@@ -122,11 +191,9 @@ const Hour = styled.div`
 
 const Container = styled.div`
 	position: relative;
-	margin-top: 12px;
-	padding: 16px 0;
 	margin: 0 20px;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 `;
 
 const Events = styled.div`
@@ -187,9 +254,11 @@ const RedLine = styled.div<IRedLine>`
 
 
 interface EventProps {
-	event: IEvent
+	event: IEvent;
+	style: CSSProperties;
+	divided?: boolean;
 }
-const Event = ({event}: EventProps): JSX.Element => {
+const Event = ({event, style, divided}: EventProps): JSX.Element => {
 	const offsetStart = (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight;
 	
 	const height = React.useMemo(() => {
@@ -199,23 +268,35 @@ const Event = ({event}: EventProps): JSX.Element => {
 		});
 
 		if (duration.hours != null && duration.minutes != null) {
-			return Math.max((duration.hours + duration.minutes / 60) * hourHeight, 15);
+			return (duration.hours + duration.minutes / 60) * hourHeight;
 		}
 	}, []);
+
+	const time = () => {
+		if (event.start.getMinutes()) {
+			return format(event.start, 'h:mm a');
+		} else {
+			return format(event.start, 'h a');
+		}
+	};
 
 	return (
 		<EventContainer
 			offsetStart={offsetStart}
 			color={event.calendar.color}
 			darkerColor={shadeColor(event.calendar.color, -20)}
-			height={height || 'fit-content'}
+			height={height || 0}
+			style={style}
+			divided={divided !== undefined && divided === true}
 		>
-			<span>
-				{event.name}
-			</span>
-			<span>
-				{format(event.start, ', h:mm')}
-			</span>
+			<div>
+				<div>
+					{event.name}
+				</div>
+				<Time id='time'>
+					{time()}
+				</Time>	
+			</div>
 		</EventContainer>
 	);
 };
@@ -224,26 +305,57 @@ interface IEventContainer {
 	offsetStart: number;
 	color: string;
 	darkerColor: string;
-	height: number | string;
+	height: number;
+	divided: boolean;
 }
 
 const EventContainer = styled.div<IEventContainer>`
+	display: flex;
+
 	position: absolute;
 	background-color: ${({color}) => color};
 	border-left: 3px solid ${({darkerColor}) => darkerColor};
 	width: 100%;
-	font-size: 12px;
+	font-size: 10px;
+	font-weight: 500;
 	top: ${({offsetStart}) => offsetStart}px;
+
 	border-radius: 4px;
 	padding-left: 4px;
+
+	min-height: fit-content;
 	height: ${({height}) => height}px;
-	display: flex;
+
 	color: white;
 
 	:hover {
 		cursor: default;
 		filter: brightness(97%);
 	}
+
+	${({ divided, height }) => !divided && height < 10 && `
+		align-content: center;
+  	`}
+	
+	> div {
+		display: flex;
+		${({divided}) => divided ? `
+		flex-direction: column;
+		margin-top: 2px;
+		`: `
+		flex-direction: row;
+		align-items: center;
+		
+		#time {
+			margin-left: 4px;
+		}
+
+		`};
+	}
+`;
+
+const Time = styled.div`
+	font-weight: 400;
 `;
 
 function shadeColor(color: string, percent: number) {
@@ -271,3 +383,39 @@ function shadeColor(color: string, percent: number) {
 }
 
 export default Timeline;
+
+function groupIntoNonOverlapping(events?: IEvent[]): IEvent[][] {
+	if (!events?.length) {
+		return [];
+	}
+
+	const groups = [];
+
+	const getMaxEnd = (events: IEvent[]) => {
+		if (events.length == 0) return false;
+		events.sort(function (a, b) {
+			if (a.end < b.end)
+				return 1;
+			if (a.end > b.end)
+				return -1;
+			return 0;
+		});
+		return events[0].end;
+	};
+
+	let group = 0;
+	groups.push([events[0]]);
+
+	for (let i = 1, l = events.length; i < l; i++) {
+		if (events[i].start >= events[i - 1].start && 
+			events[i].start < getMaxEnd(groups[group])) {
+			groups[group].push(events[i]);
+		} else {
+			group++;
+			groups[group] = [events[i]];
+		}
+	}
+
+	console.log(groups);
+	return groups;
+}

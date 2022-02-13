@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { createAppWindow } from './window/AppWindow';
 import { createNotificationWindow } from './window/NotificationWindow';
 import { migrate, startDatabaseService } from './services/db/DatabaseService';
-import { startSchedulerService } from './services/scheduler/SchedulerService';
+// import { startSchedulerService } from './services/scheduler/SchedulerService';
 import { initHandlers } from './ipcHandlers';
 import 'reflect-metadata';
 
@@ -15,7 +15,7 @@ async function init() {
 	createNotificationWindow();
 
 	startDatabaseService();
-	startSchedulerService();
+	// startSchedulerService();
 
 	initHandlers();
 

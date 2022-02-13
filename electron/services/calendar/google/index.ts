@@ -34,8 +34,6 @@ export class GoogleCalendar extends BaseCalendar {
 			]
 		};
 		this.oauth = new Auth(opts);
-
-		console.log('accounts', this.accounts);
 	}
 
 	async getLoggedInAccountInfo(): Promise<IUser> {
@@ -73,7 +71,8 @@ export class GoogleCalendar extends BaseCalendar {
 	protected async getAccountEventsBetweenDates(
 		account: IAccount,
 		start: Date,
-		end: Date
+		end: Date,
+		eventIds: Set<string>
 	): Promise<IEvent[]> {
 		const { data: colors } = await gcal.colors.get();
 
@@ -83,7 +82,10 @@ export class GoogleCalendar extends BaseCalendar {
 			(calendarsData.items || []).map(async calendar => {
 				const options: calendar_v3.Params$Resource$Events$List = {
 					timeMin: start.toISOString(),
-					timeMax: end.toISOString()
+					timeMax: end.toISOString(),
+					singleEvents: true,
+					showDeleted: false,
+					orderBy: 'startTime'
 				};
 
 				if (calendar.id) {
@@ -93,35 +95,43 @@ export class GoogleCalendar extends BaseCalendar {
 					options
 				);
 
+				console.log(calendarEventsData);
+
 				const cleanedEvents = (calendarEventsData.items || []).flatMap(
 					event => {
-						const { start, end } = event;
+						const { start, end, id, summary } = event;
 
-						if (start && end && event.summary) {
-							if (start.date && end.date) {
-								return {
-									name: event.summary,
-									start: new Date(start.date),
-									end: new Date(end.date),
-									allDay: true,
-									calendar: {
-										name: calendar.summary || 'primary',
-										color: getColor(event, calendar, colors)
-									}
-								};
-							} else if (start.dateTime && end.dateTime) {
-								return {
-									name: event.summary,
-									start: new Date(start.dateTime),
-									end: new Date(end.dateTime),
-									calendar: {
-										name: calendar.summary || 'primary',
-										color: getColor(event, calendar, colors)
-									}
-								};
+						// avoid duplicate events
+						if (id && summary) {
+							eventIds.add(id);
+
+							const common = {
+								id,
+								name: summary,
+								calendar: {
+									name: calendar.summary || 'primary',
+									color: getColor(event, calendar, colors)
+								}
+							};
+
+							if (start && end) {
+								// all day events
+								if (start.date && end.date) {
+									return {
+										...common,
+										start: new Date(start.date),
+										end: new Date(end.date),
+										allDay: true
+									};
+								} else if (start.dateTime && end.dateTime) {
+									return {
+										...common,
+										start: new Date(start.dateTime),
+										end: new Date(end.dateTime)
+									};
+								}
 							}
 						}
-
 						return [];
 					}
 				);

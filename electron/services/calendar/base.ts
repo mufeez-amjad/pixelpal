@@ -1,6 +1,7 @@
 import { Credentials } from './oauth';
 
 export interface IEvent {
+	id: string;
 	name: string;
 	start: Date;
 	end: Date;
@@ -52,14 +53,15 @@ export abstract class BaseCalendar {
 	protected abstract getAccountEventsBetweenDates(
 		account: IAccount,
 		start: Date,
-		end: Date
+		end: Date,
+		eventIds: Set<string>
 	): Promise<IEvent[]>;
 
 	async getEventsBetweenDates(start: Date, end: Date): Promise<IEvent[]> {
 		let events: IEvent[] = [];
+		const eventIds = new Set<string>();
 
 		for (const account of this.accounts) {
-			console.log('Getting events for', account);
 			try {
 				account.creds = await this.auth(account);
 			} catch (err) {
@@ -70,7 +72,8 @@ export abstract class BaseCalendar {
 			const accountEvents = await this.getAccountEventsBetweenDates(
 				account,
 				start,
-				end
+				end,
+				eventIds
 			);
 			events = events.concat(accountEvents);
 		}

@@ -50,12 +50,11 @@ export const calendarSlice = createSlice({
 					nextState[key].push(event);
 				});
 
-				console.log(nextState);
 				state.events = nextState;
 			}
 		},
 		setSelectedDay: (state, action: PayloadAction<DayPayload>) => {
-			state.selectedDay = action.payload.day;
+			state.selectedDay = new Date(action.payload.day);
 		}
 	}
 });

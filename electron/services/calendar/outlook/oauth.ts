@@ -31,7 +31,6 @@ export default class MicrosoftOAuth extends OAuthManager {
 	}
 
 	async getCreds(account?: IAccount): Promise<Credentials> {
-		console.log('getCreds entry', account);
 		if (account?.creds) {
 			if (!this.needToRefreshToken(account.creds)) {
 				return account.creds;

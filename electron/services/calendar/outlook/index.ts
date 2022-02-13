@@ -89,7 +89,8 @@ export class OutlookCalendar extends BaseCalendar {
 	protected async getAccountEventsBetweenDates(
 		account: IAccount,
 		start: Date,
-		end: Date
+		end: Date,
+		eventIds: Set<string>
 	): Promise<IEvent[]> {
 		const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -98,7 +99,6 @@ export class OutlookCalendar extends BaseCalendar {
 			.get();
 
 		const calendars = calendarsData.value as Array<OutlookICalendar>;
-		console.log(calendars);
 
 		const events = await Promise.all(
 			calendars.map(async calendar => {
@@ -121,6 +121,7 @@ export class OutlookCalendar extends BaseCalendar {
 					const { start, end } = event;
 
 					return {
+						id: event.id!,
 						name: event.subject!,
 						start: new Date(start!.dateTime!),
 						end: new Date(end!.dateTime!),

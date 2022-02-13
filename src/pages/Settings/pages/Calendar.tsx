@@ -19,7 +19,6 @@ export default function Calendar(): JSX.Element {
 	React.useEffect(() => {
 		(async () => {
 			const accountsInfo: IAccounts = await ipcRenderer.invoke('getConnectedAccounts');
-			console.log(accountsInfo);
 			setAccounts(accountsInfo);
 		})();
 	}, []);

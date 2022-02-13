@@ -31,7 +31,6 @@ const RoutesComponent = () => {
 
 	React.useEffect(() => {
 		function handleWindowHide() {
-			console.log('hiding!');
 			navigate('/');
 		}
 		ipcRenderer.on('hide-tray-window', handleWindowHide);
