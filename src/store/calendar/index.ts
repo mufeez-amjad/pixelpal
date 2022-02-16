@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { IEvent } from '../../../common/types';
 
 interface EventsPayload {
@@ -41,13 +41,20 @@ export const calendarSlice = createSlice({
 				});
 			} else {
 				const nextState: Record<string, IEvent[]> = {};
-				payload.events.forEach(event => {
-					const key = dayKeyFormat(event.start);
+				const addToState = (date: Date, event: IEvent) => {
+					const key = dayKeyFormat(date);
 
 					if (!(key in nextState)) {
 						nextState[key] = [];
 					}
 					nextState[key].push(event);
+				};
+
+				payload.events.forEach(event => {
+					addToState(event.start, event);
+					if (!isSameDay(event.start, event.end)) {
+						addToState(event.end, event);
+					}
 				});
 
 				state.events = nextState;

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { CSSProperties } from 'styled-components';
-import { format, intervalToDuration, isSameDay, subMinutes } from 'date-fns';
+import { format, intervalToDuration, isAfter, isSameDay, isSameMinute, subMinutes } from 'date-fns';
 import { FaCircle } from 'react-icons/fa';
 
 import { IEvent } from '../../../../common/types';
@@ -43,9 +43,11 @@ interface Props {
 
 function Timeline({events, date}: Props): JSX.Element {
 	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
+	const [allDayEvents, setAllDayEvents] = React.useState<IEvent[]>([]);
 
 	React.useEffect(() => {
-		setScheduledEvents(groupIntoNonOverlapping(events));
+		setScheduledEvents(groupIntoNonOverlapping((events || []).filter(event => !event.allDay)));
+		setAllDayEvents((events || []).filter(event => event.allDay));
 	}, [events]);
 
 	const myRef = React.useRef<null | HTMLDivElement>(null);
@@ -96,18 +98,24 @@ function Timeline({events, date}: Props): JSX.Element {
 	return (
 		<Container>
 			<AllDay>
+				<div>All-day</div>
 				<div>
-					All-day
-				</div>
-				<div>
-					hi
+					{allDayEvents.map((event, index) => (
+						<Event 
+							event={event}
+							key={index}
+							style={{
+								position: 'relative',
+							}}
+						/>
+					))}
 				</div>
 			</AllDay>
 			<div
 				style={{
 					display: 'flex',
 					flexDirection: 'row',
-					marginTop: 48
+					marginTop: 40
 				}}
 			>
 				<Hours>
@@ -148,12 +156,13 @@ const AllDay = styled.div`
 	color: #646464;
 	margin-left: -20px;
 	padding-right: 20px;
+
 	width: 100%;
 
 	position: fixed;
 	z-index: 2;
 
-	div {
+	> div {
 		background-color: white;
 
 		&:first-child {
@@ -168,6 +177,7 @@ const AllDay = styled.div`
 			width: 100%;
 			border-bottom: 1px solid #e4e4e4;
 			border-right: 1px solid #e4e4e4;
+			box-sizing: border-box;
 		}
 	}
 `;
@@ -252,20 +262,23 @@ const RedLine = styled.div<IRedLine>`
 	}
 `;
 
-
 interface EventProps {
 	event: IEvent;
-	style: CSSProperties;
+	style?: CSSProperties;
 	divided?: boolean;
 }
 const Event = ({event, style, divided}: EventProps): JSX.Element => {
-	const offsetStart = (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight;
+	const offsetStart = !event.allDay ? (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight: 0;
 	
 	const height = React.useMemo(() => {
 		const duration = intervalToDuration({
 			start: event.start,
 			end: event.end
 		});
+
+		if (event.allDay) {
+			return 0;
+		}
 
 		if (duration.hours != null && duration.minutes != null) {
 			return (duration.hours + duration.minutes / 60) * hourHeight;
@@ -285,7 +298,7 @@ const Event = ({event, style, divided}: EventProps): JSX.Element => {
 			offsetStart={offsetStart}
 			color={event.calendar.color}
 			darkerColor={shadeColor(event.calendar.color, -20)}
-			height={height || 0}
+			height={height || 'fit-content'}
 			style={style}
 			divided={divided !== undefined && divided === true}
 		>
@@ -293,9 +306,9 @@ const Event = ({event, style, divided}: EventProps): JSX.Element => {
 				<div>
 					{event.name}
 				</div>
-				<Time id='time'>
+				{!event.allDay && <Time id='time'>
 					{time()}
-				</Time>	
+				</Time>}
 			</div>
 		</EventContainer>
 	);
@@ -305,7 +318,7 @@ interface IEventContainer {
 	offsetStart: number;
 	color: string;
 	darkerColor: string;
-	height: number;
+	height: number | string;
 	divided: boolean;
 }
 
@@ -323,9 +336,10 @@ const EventContainer = styled.div<IEventContainer>`
 	border-radius: 4px;
 	padding-left: 4px;
 
-	min-height: fit-content;
-	height: ${({height}) => height}px;
+	min-height: fit-content !important;
+	height: ${({height}) => isNaN(Number(height)) ? height: `${height}px`};
 
+	display: block;
 	color: white;
 
 	:hover {
@@ -339,12 +353,12 @@ const EventContainer = styled.div<IEventContainer>`
 	
 	> div {
 		display: flex;
+
 		${({divided}) => divided ? `
 		flex-direction: column;
-		margin-top: 2px;
 		`: `
 		flex-direction: row;
-		align-items: center;
+		// align-items: center;
 		
 		#time {
 			margin-left: 4px;
@@ -354,7 +368,7 @@ const EventContainer = styled.div<IEventContainer>`
 	}
 `;
 
-const Time = styled.div`
+const Time = styled.span`
 	font-weight: 400;
 `;
 
@@ -415,7 +429,21 @@ function groupIntoNonOverlapping(events?: IEvent[]): IEvent[][] {
 			groups[group] = [events[i]];
 		}
 	}
+	
+	for (let i = 0; i < groups.length; i++) {
+		groups[i] = groups[i].sort((a, b) => {
+			if (isSameMinute(a.start, b.start)) {
+				if (isAfter(a.end, b.end)) {
+					return -1;
+				} else {
+					return 1;
+				}
+				
+			} else {
+				return a.start.getTime() - b.start.getTime();
+			}
+		});
+	}
 
-	console.log(groups);
 	return groups;
 }

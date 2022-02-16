@@ -11,7 +11,7 @@ import Timeline from './Timeline';
 import { IEvent } from '../../../common/types';
 
 import { IoAdd, IoSettingsSharp } from 'react-icons/io5';
-import { BiStopwatch } from 'react-icons/bi';
+import { BiPlus, BiStopwatch } from 'react-icons/bi';
 import stand from './stand.gif';
 import LoadingWrapper, { LoadingIndicator } from '../../common/LoadingWrapper';
 
@@ -90,6 +90,14 @@ function Overview(): JSX.Element {
 						{isLoading && <LoadingIndicator
 							style={{ width: 18, height: 18, marginRight: 12 }}
 						/>}
+						<TopButton
+							to={'/new'}
+							hoverColor='#333'
+						>
+
+							<BiPlus />
+						</TopButton>
+
 						<TopButton
 							to={'/'}
 							hoverColor='tomato'

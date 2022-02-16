@@ -10,6 +10,11 @@ export interface IEvent {
 	calendar: CalendarProperties;
 }
 
+export interface IScheduledEvent extends IEvent {
+	overlapsIn?: number;
+	overlapsOut?: number;
+}
+
 export interface IUser {
 	email?: string | null | undefined;
 }

@@ -125,6 +125,7 @@ export class OutlookCalendar extends BaseCalendar {
 						name: event.subject!,
 						start: new Date(start!.dateTime!),
 						end: new Date(end!.dateTime!),
+						allDay: event.isAllDay || false,
 						calendar: {
 							name: calendar.name!,
 							color:
