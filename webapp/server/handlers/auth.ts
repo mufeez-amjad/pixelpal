@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { User } from '../types/user';
 import { ApiHandler } from './apihandler';
 
 export class AuthHandler extends ApiHandler {
@@ -14,14 +15,16 @@ export class AuthHandler extends ApiHandler {
 			throw 'Received invalid signature';
 		}
 
-		const existingUser = await this.db('users').where({ ppid }).first();
+		const existingUser = await this.db<User>('users')
+			.where({ ppid })
+			.first();
 		if (existingUser) {
 			// Eventually we may want to give users the option to update their PPID to forget the old one
 			// in the event they got a new device/installation of pixelpal
 			throw `PPID '${ppid}' already registered to address ${existingUser.address}`;
 		}
 
-		await this.db('users').insert({ ppid, address });
+		await this.db<User>('users').insert({ ppid, address });
 		return 'ok!';
 	}
 }
