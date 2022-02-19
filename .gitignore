@@ -29,3 +29,4 @@ yarn-error.log*
 .db/
 
 electron/services/calendar/google/secretAccountKey.json
+/nft/art_engine/output/*

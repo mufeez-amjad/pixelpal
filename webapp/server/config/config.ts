@@ -7,7 +7,7 @@ function getConfig(env: string): AppConfig {
 			port: 3001,
 			db: {
 				client: 'postgres',
-				connection: 'postgres://test:test@localhost:5432/pixelpal' // move to env var for prod
+				connection: 'postgres://test:test@localhost:5432/pixelpal'
 			}
 		};
 	case 'production':
