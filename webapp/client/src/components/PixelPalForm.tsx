@@ -20,7 +20,7 @@ export default function PixelPalForm(props: { signer: Signer, id?: string }) {
     const signature = await props.signer.signMessage(ppidSafe);
     console.log({ address, ppidSafe, signature });
     
-    axios.post('/api/auth', { ppid, address, signature }); // requires backend server to be running on same host and nginx reverse proxy
+    axios.post('http://localhost:3001/auth', { ppidSafe, address, signature }); // requires backend server to be running on same host
   }
 
   return (

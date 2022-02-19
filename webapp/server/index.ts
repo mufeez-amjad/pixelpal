@@ -1,28 +1,26 @@
 import express, { Application } from 'express';
 import knex, { Knex } from 'knex';
+import { AuthHandler } from './handlers/auth';
+import { NFTHandler } from './handlers/nfthandler';
+import { handle } from './handlers/helpers';
 
 const app: Application = express();
 app.use(express.json());
 
+// TODO: move to config
 const db: Knex = knex({
-  client: 'postgres',
-  connection: 'postgres://test:test@localhost:5432/pixelpal',
+	client: 'postgres',
+	connection: 'postgres://test:test@localhost:5432/pixelpal'
 });
 
-app.post('/api/auth', async (req, res) => {
-  console.log(req.body);
-  const { ppid, address, signature } = req.body;
+const authHandler = new AuthHandler(db);
+const nftHander = new NFTHandler(db);
 
-  // TODO: verify signature
-  
-  // TODO: check if address already registered, if so
-  //       give user special flow "we noticed your address has been registered
-  //       on a different device" or something and link new device
+app.post('/auth', handle(authHandler.registerPublicKey.bind(authHandler)));
+app.get('/nft/:ppid', handle(nftHander.getPixelpalsForPPID.bind(nftHander)));
 
-  await db('users').insert({ ppid, address });
-  res.send('ok!');
-});
-
-app.listen(process.env.PORT || 3001, () => {
-  console.log('server started on port 3001');
-});
+if (require.main === module) {
+	app.listen(process.env.PORT || 3001, () => {
+		console.log('server started on port 3001');
+	});
+}
