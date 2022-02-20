@@ -1,9 +1,10 @@
 import React from 'react';
 import styled, { CSSProperties } from 'styled-components';
-import { format, intervalToDuration, isAfter, isSameDay, isSameMinute, subMinutes } from 'date-fns';
+import { addMinutes, differenceInMinutes, format, intervalToDuration, isAfter, isEqual, isSameDay, isSameMinute, min, startOfDay, subMinutes } from 'date-fns';
 import { FaCircle } from 'react-icons/fa';
 
 import { IEvent } from '../../../../common/types';
+import useDebounce from '../../../hooks/use_debounce';
 
 const hours = [
 	'12 AM',
@@ -36,35 +37,63 @@ const hours = [
 const hourHeight = 48; // px
 const totalHeight = hours.length - 1 * hourHeight; // px
 
+interface DateTimeRange {
+	start: Date | null;
+	end: Date | null;
+	click?: Date | null;
+}
 interface Props {
 	events: IEvent[];
 	date: Date;
+	newEvent?: IEvent | undefined;
+	onSelectRange: (start: Date, end: Date) => void;
 }
-
-function Timeline({events, date}: Props): JSX.Element {
+function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
 	const [allDayEvents, setAllDayEvents] = React.useState<IEvent[]>([]);
 
-	React.useEffect(() => {
-		setScheduledEvents(groupIntoNonOverlapping((events || []).filter(event => !event.allDay)));
-		setAllDayEvents((events || []).filter(event => event.allDay));
-	}, [events]);
+	const [selectedRange, setSelectedRange] = React.useState<DateTimeRange>({
+		start: null,
+		end: null,
+	});
 
-	const myRef = React.useRef<null | HTMLDivElement>(null);
+	const debouncedSelectedRange = useDebounce(selectedRange, 5);
+
+	React.useEffect(() => {
+		const {start, end} = debouncedSelectedRange;
+		if (start && end) {
+			console.log(format(start, 'h:mm'), format(end, 'h:mm'));
+			onSelectRange(start, end);
+		}
+	}, [debouncedSelectedRange]);
+
+	React.useEffect(() => {
+		let allEvents: IEvent[] = [];
+		if (events) {
+			allEvents = events;
+		}
+		if (newEvent) {
+			allEvents = [newEvent, ...allEvents];
+		}
+		setScheduledEvents(groupIntoNonOverlapping(allEvents.filter(event => event.allDay == undefined || event.allDay === false)));
+		setAllDayEvents(allEvents.filter(event => event.allDay));
+	}, [events, newEvent]);
+
+	const lineRef = React.useRef<null | HTMLDivElement>(null);
 
 	const showRedLine = React.useMemo(() => {
 		return isSameDay(date, new Date());
 	}, [date]);
 
 	React.useEffect(() => {
-		if (myRef.current && showRedLine) {
-			myRef.current.scrollIntoView({
+		if (lineRef.current && showRedLine) {
+			lineRef.current.scrollIntoView({
 				behavior: 'smooth',
 				block: 'start',
 				inline: 'nearest',
 			});
 		}
-	}, [myRef, showRedLine]);
+	}, [lineRef, showRedLine]);
 
 	const grid = React.useMemo(() => {
 		const res = [];
@@ -83,7 +112,7 @@ function Timeline({events, date}: Props): JSX.Element {
 				return (
 					<Event 
 						event={event}
-						key={`${event.name}-${i}`}
+						key={`${event.name}-${i}-${event.start.toISOString()}-${event.end.toISOString()}`}
 						style={{
 							width: `${width}%`,
 							left: `${width * i}%`
@@ -94,6 +123,58 @@ function Timeline({events, date}: Props): JSX.Element {
 			});
 		});
 	}, [scheduledEvents]);
+
+	const onMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
+		setSelectedRange({start: null, end: null});
+		const y = mouseEventToHours(e)[1];
+
+		if (y) {
+			const hours = Math.floor(y / hourHeight);
+			const minutes = (y / hourHeight - hours) * 60;
+			const nearest15 = (Math.round(minutes / 15) * 15) % 60;
+
+			const date = new Date();
+			date.setHours(hours, nearest15);
+			date.setSeconds(0);
+
+			setSelectedRange({start: date, end: null, click: date});
+		}
+	};
+
+	const onMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
+		const {start, end, click} = selectedRange;
+		if (click === undefined || click === null) {
+			return;
+		}
+
+		const y = mouseEventToHours(e)[1];
+
+		if (y) {
+			let hours = Math.floor(y / hourHeight);
+			const minutes = (y / hourHeight - hours) * 60;
+			const nearest15 = (Math.round(minutes / 15) * 15) % 60;
+			if (minutes > 30 && nearest15 == 0) {
+				hours += 1;
+			}
+
+			const date = new Date();
+			date.setHours(hours, nearest15);
+			date.setSeconds(0);
+
+			if (start) {
+				// dragging downwards
+				if (isAfter(date, click)) {
+					setSelectedRange({...selectedRange, start: click, end: date});
+				} else if (!isEqual(date, click)){
+					setSelectedRange({...selectedRange, start: date, end: click});
+				}
+			}
+		}
+	};
+
+	const onMouseUp: React.MouseEventHandler<HTMLDivElement> = (e) => {
+		setSelectedRange({...selectedRange, click: null});
+	};
 
 	return (
 		<Container>
@@ -121,15 +202,39 @@ function Timeline({events, date}: Props): JSX.Element {
 				<Hours>
 					{hours.map((hour, index) => <Hour key={index}><span>{hour}</span></Hour>)}
 				</Hours>
-				<Events>
+				<Events
+					id={'grid'} // needed for dragging
+					draggable={false}
+					onMouseDown={onMouseDown}
+					onMouseMove={onMouseMove}
+					onMouseUp={onMouseUp}
+				>
 					{grid}
 					{scheduled}
 				</Events>
-				{showRedLine && <CurrentTime ref={myRef}/>}
+				{showRedLine && <CurrentTime ref={lineRef}/>}
 			</div>
 		</Container>
 	);
 }
+
+const mouseEventToHours = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	const target = e.target as HTMLDivElement;
+	let parent = target.parentElement;
+	while (parent && parent.id != 'grid') {
+		parent = parent.parentElement;
+	}
+	if (!parent) {
+		return [null, null];
+	}
+
+	const rect = parent.getBoundingClientRect();
+
+	const x = e.clientX - rect.left;
+	const y = e.clientY - rect.top;
+
+	return [x, y];
+};
 
 const Hours = styled.div`
 	display: flex;
@@ -236,7 +341,6 @@ const CurrentTime = React.forwardRef<HTMLDivElement>((_props, ref) => {
 	);
 });
 
-
 interface IRedLine {
 	offsetTop: number;
 }
@@ -285,13 +389,16 @@ const Event = ({event, style, divided}: EventProps): JSX.Element => {
 		}
 	}, []);
 
-	const time = () => {
-		if (event.start.getMinutes()) {
-			return format(event.start, 'h:mm a');
-		} else {
-			return format(event.start, 'h a');
-		}
-	};
+	const [start, end] = React.useMemo(() => {
+		const formatTime = (date: Date) => {
+			if (date.getMinutes()) {
+				return format(date, 'h:mm a');
+			} else {
+				return format(date, 'h a');
+			}
+		};
+		return [formatTime(event.start), formatTime(event.end)];
+	}, [event.start, event.end]);
 
 	return (
 		<EventContainer
@@ -303,11 +410,11 @@ const Event = ({event, style, divided}: EventProps): JSX.Element => {
 			divided={divided !== undefined && divided === true}
 		>
 			<div>
-				<div>
+				{event.name && <div>
 					{event.name}
-				</div>
+				</div>}
 				{!event.allDay && <Time id='time'>
-					{time()}
+					{start} - {end}
 				</Time>}
 			</div>
 		</EventContainer>
@@ -358,18 +465,16 @@ const EventContainer = styled.div<IEventContainer>`
 		flex-direction: column;
 		`: `
 		flex-direction: row;
-		// align-items: center;
-		
-		#time {
-			margin-left: 4px;
-		}
-
 		`};
 	}
 `;
 
 const Time = styled.span`
 	font-weight: 400;
+
+	&:not(:first-child) {
+		margin-left: 4px;
+	}
 `;
 
 function shadeColor(color: string, percent: number) {
@@ -402,6 +507,14 @@ function groupIntoNonOverlapping(events?: IEvent[]): IEvent[][] {
 	if (!events?.length) {
 		return [];
 	}
+
+	events.sort(function (a, b) {
+		if (a.end < b.end)
+			return 1;
+		if (a.end > b.end)
+			return -1;
+		return 0;
+	});
 
 	const groups = [];
 
@@ -444,6 +557,5 @@ function groupIntoNonOverlapping(events?: IEvent[]): IEvent[][] {
 			}
 		});
 	}
-
 	return groups;
 }

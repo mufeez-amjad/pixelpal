@@ -7,6 +7,7 @@ const { ipcRenderer } = window.require('electron');
 import Overview from './pages/Overview';
 // import Notification from './pages/Notification';
 import Settings from './pages/Settings';
+import New from './pages/New';
 
 import 'normalize.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
@@ -40,6 +41,7 @@ const RoutesComponent = () => {
 	return (
 		<Routes>
 			<Route path="/" element={<Overview />} />
+			{/* <Route path="/new" element={<New />} /> */}
 			<Route path="/settings/*" element={<Settings />} />
 			{/* <Route path="/notification" component={Notification} /> */}
 		</Routes>

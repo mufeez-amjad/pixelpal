@@ -1,22 +1,22 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css, CSSProperties } from 'styled-components';
 import { Link } from 'react-router-dom';
-import { endOfWeek, format, isAfter, isBefore, isSameDay, startOfWeek } from 'date-fns';
+import { endOfWeek, startOfWeek } from 'date-fns';
 const { ipcRenderer } = window.require('electron');
 
 import WeekCalendar from './WeekCalendar';
 import { PageContainer } from '..';
 import Timeline from './Timeline';
+import LoadingWrapper, { LoadingIndicator } from '../../common/LoadingWrapper';
+import Event from './Event';
 
 import { IEvent } from '../../../common/types';
 
-import { IoAdd, IoSettingsSharp } from 'react-icons/io5';
+import { IoSettingsSharp } from 'react-icons/io5';
 import { BiPlus, BiStopwatch } from 'react-icons/bi';
 import stand from './stand.gif';
-import LoadingWrapper, { LoadingIndicator } from '../../common/LoadingWrapper';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-
 import { dayKeyFormat, setEvents, setSelectedDay as setDay } from '../../store/calendar';
 
 enum Showing {
@@ -33,13 +33,14 @@ function Overview(): JSX.Element {
 	const [todaysEvents, setTodaysEvents] = React.useState<IEvent[]>([]);
 
 	const [isLoading, setLoading] = React.useState(true);
+	const [isOverlayShowing, setOverlayShowing] = React.useState(false);
+	const [newEvent, setNewEvent] = React.useState<IEvent>();
 
 	const setSelectedDay = (day: Date) => {
 		dispatch(setDay({day: new Date(day)}));
 	};
 
 	React.useEffect(() => {
-		console.log('Changed day to', selectedDay.toDateString());
 		setTodaysEvents(events[dayKeyFormat(selectedDay)]);
 	}, [events, selectedDay]);
 
@@ -77,44 +78,62 @@ function Overview(): JSX.Element {
 		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowShow);
 	}, []);
 
+	const onSelectRange = (start: Date, end: Date) => {
+		setNewEvent({
+			name: '',
+			start,
+			end,
+			calendar: {
+				name: '',
+				color: '#fcb852', // TODO: accent
+			},
+			allDay: false
+		});
+	};
+
 	return (
 		<PageContainer>
 			<Top>
-				<div
-					style={{
-						padding: 20,
-						paddingBottom: 4
-					}}
-				>
-					<TopButtonsContainer>
-						{isLoading && <LoadingIndicator
-							style={{ width: 18, height: 18, marginRight: 12 }}
-						/>}
-						<TopButton
-							to={'/new'}
-							hoverColor='#333'
-						>
-
-							<BiPlus />
-						</TopButton>
-
-						<TopButton
-							to={'/'}
-							hoverColor='tomato'
-						>
-							<BiStopwatch />
-						</TopButton>
-
-						<TopButton
-							to={'/settings'}
-						>
-							<IoSettingsSharp />
-						</TopButton>
-					</TopButtonsContainer>
-					<WeekCalendar
-						selectedDay={selectedDay}
-						onWeekdaySelect={setSelectedDay}
-					/>
+				<div>
+					<div
+						style={{
+							padding: 20,
+							paddingBottom: 4
+						}}
+					>
+						<TopButtonsContainer>
+							{isLoading && <LoadingIndicator
+								style={{ width: 18, height: 18, marginRight: 12 }}
+							/>}
+							<TopButton
+								hoverColor='#333'
+								style={{
+									transition: 'ease-in .1s',
+									transform: isOverlayShowing ? 'rotate(45deg) translateZ(0)' : 'none',
+									zoom: '1.005',
+								}}
+								onClick={() => setOverlayShowing(!isOverlayShowing)}
+							>
+								<BiPlus />
+							</TopButton>
+							<TopButton
+								to={'/'}
+								hoverColor='tomato'
+							>
+								<BiStopwatch />
+							</TopButton>
+							<TopButton
+								to={'/settings'}
+							>
+								<IoSettingsSharp />
+							</TopButton>
+						</TopButtonsContainer>
+						<WeekCalendar
+							selectedDay={selectedDay}
+							onWeekdaySelect={setSelectedDay}
+						/>
+					</div>
+					{isOverlayShowing && <Event />}
 				</div>
 				<Character>
 					<img style={{ width: 100, height: 100 }} src={stand} />
@@ -124,6 +143,8 @@ function Overview(): JSX.Element {
 				<Timeline
 					events={todaysEvents}
 					date={selectedDay}
+					onSelectRange={onSelectRange}
+					newEvent={newEvent}
 				/>
 			</Bottom>
 		</PageContainer>
@@ -176,12 +197,38 @@ const TopButtonsContainer = styled.div`
 
 interface TopButtonProps {
 	hoverColor?: string;
+	to?: string;
+	children?: React.ReactNode;
+	style?: CSSProperties;
+	onClick?: () => void;
 }
-const TopButton = styled(Link)`
+const TopButton: React.FC<TopButtonProps> = ({to, hoverColor, children, style, onClick}: TopButtonProps) => {
+	if (to) {
+		return (
+			<TopButtonLink
+				to={to}
+				hoverColor={hoverColor}
+			>
+				{children}
+			</TopButtonLink>
+		);
+	} else {
+		return (
+			<TopButtonDiv
+				style={style}
+				onClick={onClick && (() => onClick())}
+			>
+				{children}
+			</TopButtonDiv>
+		);
+	}
+};
 
-	background-color: transparent;
+const baseButtonStyles = css`
+ 	background-color: transparent;
 	color: grey;
-
+	border: none;
+	
 	font-size: 16px;
 	width: 16px;
 	height: 18px;
@@ -189,9 +236,6 @@ const TopButton = styled(Link)`
 	svg {
 		display: block;
 	}
-
-	border: none;
-	filter: brightness(100%);
 
 	:hover {
 		color: ${({ hoverColor }: TopButtonProps) => hoverColor || 'grey'};
@@ -202,6 +246,19 @@ const TopButton = styled(Link)`
 	:focus {
 		outline: 0;
 	}
+`;
+
+const TopButtonLink = styled(Link)`
+	${baseButtonStyles}
+
+	&:not(:last-child) {
+		margin-right: 12px;
+	}
+`;
+
+
+const TopButtonDiv = styled.div`
+	${baseButtonStyles}
 
 	&:not(:last-child) {
 		margin-right: 12px;
