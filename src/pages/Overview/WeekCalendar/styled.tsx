@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { styled } from '../../../theme';
 
 export const Container = styled.div`
 	display: flex;
@@ -18,7 +18,7 @@ export const Month = styled.div`
 		}
 
 		&:last-child {
-			color: #fcb852;
+			color: ${({theme}) => theme.color.primary};
 		}
 	}
 
@@ -74,14 +74,14 @@ export const DateContainer = styled.div<ContainerProps>`
 	margin: 2px 4px;
 	width: 32px;
 	height: 32px;
-	border-radius: 24px;
+	border-radius: ${({theme}) => theme.all.borderRadius.round};
 
 	${({ current }) => !current && `
 		color: #ccc;
   	`}
 
-	${({ selected }) => selected && `
+	${({ selected, theme }) => selected && `
 		color: white;
-		background: #FCB852;
+		background: ${theme.color.primary};
   	`}
 `;

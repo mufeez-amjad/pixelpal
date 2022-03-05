@@ -236,8 +236,8 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 						placeholder='Description'
 						onChange={(e) => setDescription(e.target.value)}
 						style={{
-							height: 100,
-							width: '100%'
+							minWidth: '100%',
+							maxWidth: '100%',
 						}}
 					/>
 				</Row>
@@ -250,7 +250,7 @@ const Container = styled.div`
 	position: absolute;
 	background-color: #f3f3f3;
 	width: 100%;
-	/* height: 50%; */
+	height: fit-content;
 	z-index: 3;
 `;
 

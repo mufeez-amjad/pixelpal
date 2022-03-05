@@ -8,6 +8,8 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 
 import General from './pages/General';
 import Calendar from './pages/Calendar';
+import Customization from './pages/Customization';
+import { Theme } from '../../theme';
 
 const paths = [
 	{
@@ -48,7 +50,10 @@ const paths = [
 	}
 ];
 
-function Settings(): JSX.Element {
+interface Props {
+	setTheme: (theme: Theme) => void;
+}
+function Settings({setTheme}: Props): JSX.Element {
 	const location = useLocation();
 
 	return (
@@ -91,11 +96,11 @@ function Settings(): JSX.Element {
 					})}	
 				</Split>
 				<Split
-					flex={4}
+					flex={3}
 				>
 					<Routes>
 						<Route path="/" element={<General />} />	
-						<Route path="/customization"  element={<>Notifications</>} />
+						<Route path="/customization"  element={<Customization setTheme={setTheme} />} />
 						<Route path="/notifications"  element={<>Notifications</>} />
 						<Route path="/calendars"  element={<Calendar />} />
 						<Route path="/nft"  element={<>NFT</>} />
@@ -118,8 +123,6 @@ const SplitContainer = styled.div`
 	flex-direction: row;
 	height: 100%;
 	width: 100%;
-
-	
 `;
 const Split = styled.div<SplitProps>`
 	flex: ${({flex}) => flex};

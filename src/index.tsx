@@ -5,9 +5,7 @@ import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
 const { ipcRenderer } = window.require('electron');
 
 import Overview from './pages/Overview';
-// import Notification from './pages/Notification';
 import Settings from './pages/Settings';
-import New from './pages/New';
 
 import 'normalize.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
@@ -16,18 +14,22 @@ import './index.css';
 
 import store from './store';
 import { Provider } from 'react-redux';
+import { ThemeProvider } from 'styled-components';
+import { lightTheme } from './theme';
 
 const App = () => {
+
 	return (
 		<Provider store={store}>
 			<HashRouter>
 				<RoutesComponent />
-			</HashRouter>
+			</HashRouter>			
 		</Provider>
 	);
 };
 
 const RoutesComponent = () => {
+	const [theme, setTheme] = React.useState(lightTheme);
 	const navigate = useNavigate();
 
 	React.useEffect(() => {
@@ -39,12 +41,14 @@ const RoutesComponent = () => {
 	}, []);
 
 	return (
-		<Routes>
-			<Route path="/" element={<Overview />} />
-			{/* <Route path="/new" element={<New />} /> */}
-			<Route path="/settings/*" element={<Settings />} />
-			{/* <Route path="/notification" component={Notification} /> */}
-		</Routes>
+		<ThemeProvider theme={theme}>
+			<Routes>
+				<Route path="/" element={<Overview />} />
+				<Route path="/settings/*" element={<Settings setTheme={setTheme} />} />
+				{/* <Route path="/notification" component={Notification} /> */}
+			</Routes>
+		</ThemeProvider>
+		
 	);
 };
 

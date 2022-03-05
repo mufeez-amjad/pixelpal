@@ -1,5 +1,7 @@
 import React from 'react';
-import styled, { css, CSSProperties } from 'styled-components';
+import { css, CSSProperties, useTheme } from 'styled-components';
+import { styled, Theme } from '../../theme';
+
 import { Link } from 'react-router-dom';
 import { endOfWeek, startOfWeek } from 'date-fns';
 const { ipcRenderer } = window.require('electron');
@@ -26,6 +28,8 @@ enum Showing {
 }
 
 function Overview(): JSX.Element {
+	const theme = useTheme() as Theme;
+
 	const events = useAppSelector((state) => state.calendar.events);
 	const selectedDay = useAppSelector((state) => state.calendar.selectedDay);
 	const dispatch = useAppDispatch();
@@ -99,7 +103,7 @@ function Overview(): JSX.Element {
 				name: '',
 				calendar: {
 					name: '',
-					color: '#fcb852', // TODO: accent
+					color: theme.color.primary, // TODO: accent
 				},
 				allDay: false
 			});
