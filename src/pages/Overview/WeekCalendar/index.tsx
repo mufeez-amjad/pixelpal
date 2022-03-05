@@ -58,10 +58,10 @@ interface Props {
 function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 	const [refDay, setRefDay] = React.useState(startOfWeek(selectedDay));
 	const lastShortcut = useKeyboardShortcuts([
-		{name: SHORTCUT.ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT},
-		{name: SHORTCUT.ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT},
-		{name: SHORTCUT.SHIFT_ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT, shiftKey: true},
-		{name: SHORTCUT.SHIFT_ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT, shiftKey: true},
+		{name: SHORTCUT.ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT, altKey: true}, // TODO(mufeez): ctrlKey instead
+		{name: SHORTCUT.ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT, altKey: true},
+		{name: SHORTCUT.SHIFT_ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT, altKey: true, shiftKey: true},
+		{name: SHORTCUT.SHIFT_ARROW_RIGHT, keyCode: KEY_CODE.ARROW_RIGHT, altKey: true, shiftKey: true},
 	]);
 
 	React.useEffect(() => {

@@ -34,7 +34,7 @@ function Overview(): JSX.Element {
 
 	const [isLoading, setLoading] = React.useState(true);
 	const [isOverlayShowing, setOverlayShowing] = React.useState(false);
-	const [newEvent, setNewEvent] = React.useState<IEvent>();
+	const [event, setEvent] = React.useState<IEvent>();
 
 	const setSelectedDay = (day: Date) => {
 		dispatch(setDay({day: new Date(day)}));
@@ -78,17 +78,37 @@ function Overview(): JSX.Element {
 		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowShow);
 	}, []);
 
-	const onSelectRange = (start: Date, end: Date) => {
-		setNewEvent({
-			name: '',
+	const onSelectRange = (start: Date | null, end: Date | null, dragComplete = false) => {
+		if (!start || !end) {
+			setEvent(undefined);
+			return;
+		}
+		
+		const nextEvent = {
 			start,
 			end,
-			calendar: {
+		};
+		if (event) {
+			setEvent({
+				...event,
+				...nextEvent,
+			});
+		} else {
+			setEvent({
+				...nextEvent,
 				name: '',
-				color: '#fcb852', // TODO: accent
-			},
-			allDay: false
-		});
+				calendar: {
+					name: '',
+					color: '#fcb852', // TODO: accent
+				},
+				allDay: false
+			});
+		}
+		setOverlayShowing(dragComplete);
+	};
+
+	const onUpdateEvent = (newEvent: IEvent) => {
+		setEvent({...event, ...newEvent});
 	};
 
 	return (
@@ -133,7 +153,10 @@ function Overview(): JSX.Element {
 							onWeekdaySelect={setSelectedDay}
 						/>
 					</div>
-					{isOverlayShowing && <Event />}
+					{(isOverlayShowing && event) && <Event 
+						event={event}
+						onUpdateEvent={onUpdateEvent}
+					/>}
 				</div>
 				<Character>
 					<img style={{ width: 100, height: 100 }} src={stand} />
@@ -144,7 +167,7 @@ function Overview(): JSX.Element {
 					events={todaysEvents}
 					date={selectedDay}
 					onSelectRange={onSelectRange}
-					newEvent={newEvent}
+					event={event}
 				/>
 			</Bottom>
 		</PageContainer>
@@ -161,7 +184,7 @@ const Top = styled.div`
 `;
 
 const Bottom = styled.div`
-	flex: 4;
+	flex-grow: 4;
 	overflow: overlay;
 	position: relative;
 `;

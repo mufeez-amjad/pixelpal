@@ -45,10 +45,10 @@ interface DateTimeRange {
 interface Props {
 	events: IEvent[];
 	date: Date;
-	newEvent?: IEvent | undefined;
-	onSelectRange: (start: Date, end: Date) => void;
+	event?: IEvent | undefined;
+	onSelectRange: (start: Date | null, end: Date | null, dragComplete: boolean) => void;
 }
-function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
+function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
 	const [allDayEvents, setAllDayEvents] = React.useState<IEvent[]>([]);
 
@@ -60,10 +60,12 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 	const debouncedSelectedRange = useDebounce(selectedRange, 5);
 
 	React.useEffect(() => {
-		const {start, end} = debouncedSelectedRange;
+		const {start, end, click} = debouncedSelectedRange;
 		if (start && end) {
-			console.log(format(start, 'h:mm'), format(end, 'h:mm'));
-			onSelectRange(start, end);
+			// console.log(format(start, 'h:mm'), format(end, 'h:mm'));
+			onSelectRange(start, end, click === null);
+		} else {
+			onSelectRange(null, null, false);
 		}
 	}, [debouncedSelectedRange]);
 
@@ -72,12 +74,12 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 		if (events) {
 			allEvents = events;
 		}
-		if (newEvent) {
-			allEvents = [newEvent, ...allEvents];
+		if (event) {
+			allEvents = [event, ...allEvents];
 		}
 		setScheduledEvents(groupIntoNonOverlapping(allEvents.filter(event => event.allDay == undefined || event.allDay === false)));
 		setAllDayEvents(allEvents.filter(event => event.allDay));
-	}, [events, newEvent]);
+	}, [events, event]);
 
 	const lineRef = React.useRef<null | HTMLDivElement>(null);
 
@@ -126,18 +128,10 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 
 	const onMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
 		setSelectedRange({start: null, end: null});
-		const y = mouseEventToHours(e)[1];
+		const date = mouseEventToDate(e);
 
-		if (y) {
-			const hours = Math.floor(y / hourHeight);
-			const minutes = (y / hourHeight - hours) * 60;
-			const nearest15 = (Math.round(minutes / 15) * 15) % 60;
-
-			const date = new Date();
-			date.setHours(hours, nearest15);
-			date.setSeconds(0);
-
-			setSelectedRange({start: date, end: null, click: date});
+		if (date) {
+			setSelectedRange({start: null, end: null, click: date});
 		}
 	};
 
@@ -147,20 +141,9 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 			return;
 		}
 
-		const y = mouseEventToHours(e)[1];
+		const date = mouseEventToDate(e);
 
-		if (y) {
-			let hours = Math.floor(y / hourHeight);
-			const minutes = (y / hourHeight - hours) * 60;
-			const nearest15 = (Math.round(minutes / 15) * 15) % 60;
-			if (minutes > 30 && nearest15 == 0) {
-				hours += 1;
-			}
-
-			const date = new Date();
-			date.setHours(hours, nearest15);
-			date.setSeconds(0);
-
+		if (date) {
 			if (start) {
 				// dragging downwards
 				if (isAfter(date, click)) {
@@ -168,6 +151,8 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 				} else if (!isEqual(date, click)){
 					setSelectedRange({...selectedRange, start: date, end: click});
 				}
+			} else {
+				setSelectedRange({...selectedRange, start: click, end: date});
 			}
 		}
 	};
@@ -194,9 +179,10 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 			</AllDay>
 			<div
 				style={{
+					position: 'relative',
 					display: 'flex',
 					flexDirection: 'row',
-					marginTop: 40
+					marginTop: 40,
 				}}
 			>
 				<Hours>
@@ -218,7 +204,7 @@ function Timeline({events, date, onSelectRange, newEvent}: Props): JSX.Element {
 	);
 }
 
-const mouseEventToHours = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+const mouseEventToCoordinate = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
 	const target = e.target as HTMLDivElement;
 	let parent = target.parentElement;
 	while (parent && parent.id != 'grid') {
@@ -234,6 +220,24 @@ const mouseEventToHours = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
 	const y = e.clientY - rect.top;
 
 	return [x, y];
+};
+
+const mouseEventToDate = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	const y = mouseEventToCoordinate(e)[1];
+
+	if (y) {
+		let hours = Math.floor(y / hourHeight);
+		const minutes = (y / hourHeight - hours) * 60;
+		const nearest15 = (Math.round(minutes / 15) * 15) % 60;
+		if (minutes > 30 && nearest15 == 0) {
+			hours += 1;
+		}
+
+		const date = new Date();
+		date.setHours(hours, nearest15);
+		date.setSeconds(0);
+		return date;
+	}
 };
 
 const Hours = styled.div`
@@ -313,20 +317,36 @@ const Container = styled.div`
 
 const Events = styled.div`
 	position: relative;
-	flex-grow: 1;
+	width: 100%;
 `;
 
 // eslint-disable-next-line react/display-name
 const CurrentTime = React.forwardRef<HTMLDivElement>((_props, ref) => {
 	const [currentTime, setCurrentTime] = React.useState(new Date());
+	const [seconds, setSeconds] = React.useState(currentTime.getSeconds());
 	
 	React.useEffect(() => {
-		setTimeout(() => setCurrentTime(new Date()), 60000);
-	}, []);
+		const interval = setInterval(() => {
+			const newTime = new Date();
+			if (newTime.getMinutes() != currentTime.getMinutes()) {
+				setCurrentTime(newTime);
+			}
+			if (newTime.getSeconds() > 2) {
+				setSeconds(newTime.getSeconds());
+			}
+		}, (60-seconds) * 1000);
+		return () => {
+			clearInterval(interval);
+		};
+	}, [seconds]);
 
-	const time = format(currentTime, 'h:mm');
+	const time = React.useMemo(() => {
+		return format(currentTime, 'h:mm');
+	}, [currentTime]);
 
-	const offsetTop = (currentTime.getHours() + currentTime.getMinutes() / 60) * hourHeight;
+	const offsetTop = React.useMemo(() => {
+		return (currentTime.getHours() + currentTime.getMinutes() / 60) * hourHeight;
+	}, [currentTime]);
 
 	return (
 		<RedLine
@@ -346,7 +366,7 @@ interface IRedLine {
 }
 const RedLine = styled.div<IRedLine>`
 	position: absolute;
-	top: ${({offsetTop}) => offsetTop}px;
+	top: ${({offsetTop}) => offsetTop - 8}px;
 	font-size: 11px;
 	color: red;
 	width: 100%;
@@ -354,7 +374,7 @@ const RedLine = styled.div<IRedLine>`
 	span {
 		background-color: red;
 		color: white;
-		padding: 4px 4px;
+		padding: 4px 6px;
 		border-radius: 8px;
 		margin-left: -8px;
 	}
@@ -362,7 +382,7 @@ const RedLine = styled.div<IRedLine>`
 	hr {
 		border: 1px solid red;
 		margin-top: -8px;
-		margin-left: 26px;
+		margin-left: -8px;
 	}
 `;
 
@@ -434,6 +454,7 @@ const EventContainer = styled.div<IEventContainer>`
 
 	position: absolute;
 	background-color: ${({color}) => color};
+	opacity: 0.9;
 	border-left: 3px solid ${({darkerColor}) => darkerColor};
 	width: 100%;
 	font-size: 10px;

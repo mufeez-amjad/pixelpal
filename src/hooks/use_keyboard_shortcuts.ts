@@ -59,7 +59,6 @@ export interface IShortcut {
 export default function useKeyboardShortcuts(
 	shortcuts: IShortcut[] = []
 ): SHORTCUT {
-	const [isShiftPressed, setIsShiftPressed] = React.useState(false);
 	const [lastKeyPress, setLastKeyPress] = React.useState<string>('');
 	const shortcutsLookup = React.useMemo(
 		() =>
