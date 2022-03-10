@@ -62,7 +62,6 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 	React.useEffect(() => {
 		const {start, end, click} = debouncedSelectedRange;
 		if (start && end) {
-			// console.log(format(start, 'h:mm'), format(end, 'h:mm'));
 			onSelectRange(start, end, click === null);
 		} else {
 			onSelectRange(null, null, false);

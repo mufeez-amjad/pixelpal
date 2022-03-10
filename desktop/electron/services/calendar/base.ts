@@ -6,10 +6,13 @@ export interface IEvent {
 	start: Date;
 	end: Date;
 	allDay?: boolean;
-	calendar: CalendarProperties;
+	calendar: ICalendar;
 }
 
-export interface CalendarProperties {
+export interface ICalendar {
+	platform: string;
+	account: string;
+	id: string | null | undefined;
 	name: string;
 	color: string;
 }
@@ -17,7 +20,7 @@ export interface CalendarProperties {
 export const ACCOUNTS_INFO_KEY = 'connected-accounts-info';
 
 export interface IUser {
-	email?: string | null | undefined;
+	email: string;
 }
 
 export interface IAccount {
@@ -50,6 +53,8 @@ export abstract class BaseCalendar {
 		});
 	}
 
+	abstract auth(account?: IAccount): Promise<Credentials>;
+
 	protected abstract getAccountEventsBetweenDates(
 		account: IAccount,
 		start: Date,
@@ -81,5 +86,23 @@ export abstract class BaseCalendar {
 		return events;
 	}
 
-	abstract auth(account?: IAccount): Promise<Credentials>;
+	protected abstract getAccountCalendars(
+		account: IAccount
+	): Promise<ICalendar[]>;
+
+	async getCalendars(): Promise<Record<string, ICalendar[]>> {
+		const calendars: Record<string, ICalendar[]> = {};
+		for (const account of this.accounts) {
+			try {
+				account.creds = await this.auth(account);
+			} catch (err) {
+				console.error(err);
+				continue;
+			}
+
+			const accountCalendars = await this.getAccountCalendars(account);
+			calendars[account.user.email] = accountCalendars;
+		}
+		return calendars;
+	}
 }

@@ -17,8 +17,10 @@ export const lightTheme = {
 	},
 	color: {
 		primary: COLORS.orange,
-		lightGrey: '#e4e4e4',
-		grey: '#f3f3f3'
+		lighterGrey: '#dedede',
+		lightGrey: '#cdcdcd',
+		midGrey: '#b9b9b9',
+		grey: '#808080'
 	}
 };
 

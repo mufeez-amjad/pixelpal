@@ -1,4 +1,4 @@
-interface CalendarProperties {
+export interface ICalendar {
 	name: string;
 	color: string;
 }
@@ -7,7 +7,7 @@ export interface IEvent {
 	start: Date;
 	end: Date;
 	allDay?: boolean;
-	calendar: CalendarProperties;
+	calendar: ICalendar;
 }
 
 export interface IScheduledEvent extends IEvent {

@@ -3,7 +3,7 @@ import {
 	Client
 } from '@microsoft/microsoft-graph-client';
 
-import { BaseCalendar, IAccount, IEvent } from '../base';
+import { BaseCalendar, IAccount, ICalendar, IEvent } from '../base';
 import { ACCOUNTS_INFO_KEY, IAccounts } from '../base';
 import { Credentials } from '../oauth';
 import Auth from './oauth';
@@ -73,9 +73,12 @@ export class OutlookCalendar extends BaseCalendar {
 		const user = await this.getLoggedInAccountInfo();
 
 		if (user) {
+			const email = user.mail || user.userPrincipalName!;
 			accounts.microsoft = Object.assign(accounts.microsoft || {}, {
-				[user.mail || user.userPrincipalName!]: {
-					user,
+				[email]: {
+					user: {
+						email
+					},
 					creds: this.creds
 				}
 			});
@@ -94,11 +97,7 @@ export class OutlookCalendar extends BaseCalendar {
 	): Promise<IEvent[]> {
 		const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-		const calendarsData = await this.client!.api('/me/calendars')
-			.header('Authorization', `Bearer ${account.creds!.access_token}`)
-			.get();
-
-		const calendars = calendarsData.value as Array<OutlookICalendar>;
+		const calendars = await this.getAccountCalendars(account);
 
 		const events = await Promise.all(
 			calendars.map(async calendar => {
@@ -126,11 +125,7 @@ export class OutlookCalendar extends BaseCalendar {
 						start: new Date(start!.dateTime!),
 						end: new Date(end!.dateTime!),
 						allDay: event.isAllDay || false,
-						calendar: {
-							name: calendar.name!,
-							color:
-								calendar.hexColor || calendar.color || '#ffffff'
-						}
+						calendar
 					};
 				});
 
@@ -139,5 +134,28 @@ export class OutlookCalendar extends BaseCalendar {
 		);
 
 		return events.flat();
+	}
+
+	protected async getAccountCalendars(
+		account: IAccount
+	): Promise<ICalendar[]> {
+		const calendarsData = await this.client!.api('/me/calendars')
+			.header('Authorization', `Bearer ${account.creds!.access_token}`)
+			.get();
+
+		const calendars = calendarsData.value as Array<OutlookICalendar>;
+		return calendars.flatMap(calendar => {
+			if (!calendar.name) {
+				return [];
+			}
+
+			return {
+				platform: 'outlook',
+				account: account.user.email,
+				id: calendar.id,
+				name: calendar.name,
+				color: calendar.hexColor || calendar.color || '#ffffff'
+			};
+		});
 	}
 }

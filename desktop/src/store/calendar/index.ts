@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { format, isSameDay } from 'date-fns';
-import { IEvent } from '../../../common/types';
+import { ICalendar, IEvent } from '../../../common/types';
 
 interface EventsPayload {
 	day?: Date;
@@ -11,14 +11,20 @@ interface DayPayload {
 	day: Date;
 }
 
+interface CalendarsPayload {
+	calendars: Record<string, ICalendar[]>;
+}
+
 // Define a type for the slice state
 interface EventsState {
+	calendars: Record<string, ICalendar[]>;
 	events: Record<string, IEvent[]>;
 	selectedDay: Date;
 }
 
 // Define the initial state using that type
 const initialState: EventsState = {
+	calendars: {},
 	events: {},
 	selectedDay: new Date()
 };
@@ -62,11 +68,15 @@ export const calendarSlice = createSlice({
 		},
 		setSelectedDay: (state, action: PayloadAction<DayPayload>) => {
 			state.selectedDay = new Date(action.payload.day);
+		},
+		setCalendars(state, action: PayloadAction<CalendarsPayload>) {
+			state.calendars = action.payload.calendars;
 		}
 	}
 });
 
 // Action creators are generated for each case reducer function
-export const { setEvents, setSelectedDay } = calendarSlice.actions;
+export const { setEvents, setSelectedDay, setCalendars } =
+	calendarSlice.actions;
 
 export default calendarSlice.reducer;
