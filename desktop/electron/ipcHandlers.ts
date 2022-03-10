@@ -15,6 +15,7 @@ import {
 	ACCOUNTS_INFO_KEY,
 	BaseCalendar,
 	IAccounts,
+	ICalendar,
 	IEvent
 } from './services/calendar/base';
 import { Provider } from './services/calendar/oauth';
@@ -55,6 +56,18 @@ export function initHandlers(): void {
 		await platform.auth();
 
 		return (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
+	});
+
+	ipcMain.handle('getCalendars', async () => {
+		const calendars: Record<string, ICalendar[]> = {};
+
+		let platform: BaseCalendar = new GoogleCalendar();
+		Object.assign(calendars, await platform.getCalendars());
+
+		platform = new OutlookCalendar();
+		Object.assign(calendars, await platform.getCalendars());
+
+		return calendars;
 	});
 
 	ipcMain.handle('getConnectedAccounts', async () => {

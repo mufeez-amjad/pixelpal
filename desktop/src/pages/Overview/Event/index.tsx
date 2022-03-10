@@ -1,14 +1,19 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import { Dropdown, TextArea, TextInput } from '../../../common/input';
-import { format, parse, intervalToDuration, formatDuration, addSeconds, isSameDay } from 'date-fns';
-import { IEvent } from '../../../../common/types';
+const { ipcRenderer } = window.require('electron');
 
-import { IoCalendarClearSharp } from 'react-icons/io5';
+import { Dropdown, DropdownOptions, TextArea, TextInput } from '../../../common/input';
+import { format, parse, intervalToDuration, formatDuration, addSeconds, isSameDay } from 'date-fns';
+import { ICalendar, IEvent } from '../../../../common/types';
+
+import { IoCalendarClearOutline, IoCalendarClearSharp } from 'react-icons/io5';
 import { GoCheck } from 'react-icons/go';
 import { BiTimeFive } from 'react-icons/bi';
+
 import { BsArrowRight } from 'react-icons/bs';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { setCalendars } from '../../../store/calendar';
 interface EventProps {
 	event: IEvent;
 	onUpdateEvent: (event: IEvent) => void;
@@ -16,7 +21,6 @@ interface EventProps {
 
 function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 	const [isEvent, setIsEvent] = React.useState(true);
-	
 	const [range, setRange] = React.useState({
 		start: {
 			time: '',
@@ -31,9 +35,7 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 			dirty: false
 		},
 	});
-
 	const [description, setDescription] = React.useState('');
-	
 	const [errors, setErrors] = React.useState<Record<keyof IEvent, string | null>>({
 		name: null,
 		start: null,
@@ -41,6 +43,9 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 		allDay: null,
 		calendar: null
 	});
+
+	const calendars = useAppSelector((state) => state.calendar.calendars);
+	const dispatch = useAppDispatch();
 
 	React.useEffect(() => {
 		const dayFormat = 'EEE MMMM d';
@@ -61,6 +66,19 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 		});
 		setErrors({...errors, start: null, end: null});
 	}, [event]);
+
+	React.useEffect(() => {
+		(async () => {
+			let nextCalendars: Record<string, ICalendar[]> = {};
+			try {
+				nextCalendars = await ipcRenderer.invoke('getCalendars');
+			} catch (err) {
+				console.error(err);
+			}
+			console.log(nextCalendars);
+			dispatch(setCalendars({ calendars: nextCalendars }));
+		})();
+	}, []);
 
 	const duration = React.useMemo(() => {
 		const duration = intervalToDuration({
@@ -109,6 +127,20 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 
 		onUpdateEvent({...event, start, end});
 	}, [range]);
+
+	const calendarOptions = React.useMemo(() => {
+		return Object.entries(calendars).map((entry) => {
+			const [name, cals] = entry;
+			console.log(name, cals);
+			return {
+				subheading: name,
+				items: cals.map(cal => ({
+					value: cal.name,
+					data: cal,
+				}))
+			} as DropdownOptions;
+		});
+	}, [calendars]);
 
 	return (
 		<Container>
@@ -228,7 +260,24 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 					</Column>
 				</Row>
 				<Row>
-					<Dropdown />
+					<div
+						style={{
+							flex: 2
+						}}
+					>
+						<Dropdown 
+							options={calendarOptions}
+							Icon={IoCalendarClearOutline}
+							valueField='name'
+						/>
+					</div>
+					{/* <div
+						style={{
+							flex: 1
+						}}
+					>
+						hi
+					</div> */}
 				</Row>
 				<Row>
 					<TextArea

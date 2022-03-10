@@ -1,8 +1,11 @@
-import React from 'react';
-import styled, { CSSProperties } from 'styled-components';
+import React, { ChangeEvent } from 'react';
+import { CSSProperties } from 'styled-components';
+import { styled } from '../theme';
 
 import { BiErrorCircle } from 'react-icons/bi';
 import { IconType } from 'react-icons/lib';
+import { FiCheck } from 'react-icons/fi';
+
 interface TextInputProps {
 	value: string;
 	placeholder: string;
@@ -13,6 +16,8 @@ interface TextInputProps {
 	Icon?: IconType;
 	iconStyle?: React.CSSProperties;
 	flex?: number;
+	onClick?: React.MouseEventHandler<HTMLInputElement>;
+	focused?: boolean;
 }
 
 export const TextInput = ({
@@ -23,7 +28,9 @@ export const TextInput = ({
 	onChange,
 	error,
 	Icon, iconStyle,
-	flex
+	flex,
+	onClick,
+	focused
 }: TextInputProps): JSX.Element => {
 	function handleKeyUp(event: any) {
 		//key code for enter
@@ -37,13 +44,16 @@ export const TextInput = ({
 		<Container
 			style={style}
 		>
-			<InputContainer>
+			<InputContainer
+				focused={focused}
+			>
 				{Icon && <Icon style={{marginRight: 4, ...iconStyle}} />}	
 				<Input
 					value={value}
 					placeholder={placeholder}
 					onKeyUp={handleKeyUp}
 					onChange={onChange}
+					onClick={onClick}
 				/>
 			</InputContainer>
 			{error && <ErrorContainer>
@@ -60,10 +70,15 @@ const Container = styled.div`
 	flex-direction: column;
 `;
 
-const InputContainer = styled.div`
+interface InputContainerProps {
+	focused?: boolean;
+}
+const InputContainer = styled.div<InputContainerProps>`
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+
+	height: 28px;
 
 	padding: 4px 4px;
 	border-radius: 4px;
@@ -73,6 +88,10 @@ const InputContainer = styled.div`
 	&:hover {
 		border: 0.5px solid grey;
 	}
+
+	${({focused, theme}) => focused && `
+		background-color: ${theme.color.lightGrey};
+	`}
 `;
 
 const Input = styled.input`
@@ -174,10 +193,135 @@ const AreaInput = styled.textarea`
 	}
 `;
 
-export const Dropdown = () => {
+interface Option {
+	value: string,
+	data: any;
+}
+export interface DropdownOptions {
+	subheading?: string;
+	items: Option[];
+}
+interface DropdownProps {
+	options: DropdownOptions[];
+	onSelectValue?: () => void;
+	Icon?: IconType;
+	valueField: string;
+	dividerField?: string;
+}
+export const Dropdown = ({options, Icon, valueField}: DropdownProps): JSX.Element => {
+	const [value, setValue] = React.useState('');
+	const [isDropped, setIsDropped] = React.useState(false);
+
 	return (
-		<div>
-			hi
-		</div>
+		<Container
+			style={{
+				flexGrow: 1,
+			}}
+		>
+			<TextInput
+				value={value} 
+				placeholder={value}
+				onChange={(e) => setValue(e.target.value)}
+				Icon={Icon}
+				onClick={() => setIsDropped(!isDropped)}
+				focused={isDropped}
+			/>
+			{isDropped && <DropdownContainer>
+				{options.map((os) => {
+					return (
+						<>
+							{os.subheading && <Subheading>{os.subheading}</Subheading>}
+							<div>
+								{os.items.map((option, index) => (
+									<Option
+										key={index}
+										onClick={() => setValue(option.value)}
+									>
+										<div
+											style={{
+												display: 'flex',
+												justifyContent: 'center',
+												width: 12,
+												height: 12,
+											}}
+										>
+											{value === option.value && <FiCheck
+												color='black'
+												size={12}
+											/>}
+										</div>
+										<span
+											style={{
+												marginLeft: 4
+											}}
+										>{option.value}</span>
+									</Option>								
+								))}
+							</div>
+						</>
+						
+					);
+				})}
+			</DropdownContainer>}
+		</Container>
 	);
 };
+
+const DropdownContainer = styled.div`
+	position: absolute;
+	top: 28px;
+	z-index: 3;
+	width: 100%;
+	max-height: 128px;
+	overflow-y: scroll;
+	padding: 8px 12px;
+	background-color: ${({theme}) => theme.color.lighterGrey};
+	border-radius: 0 0 ${({theme}) => theme.all.borderRadius.standard} ${({theme}) => theme.all.borderRadius.standard};
+
+	* {
+		overflow-x: hidden;
+		text-overflow: ellipsis;
+	}
+
+	&::-webkit-scrollbar {
+      width: 7px;
+    }
+	
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.4);
+      border-radius: 10rem;
+      /* border: 1px solid #fff; */
+    }
+
+    &::-webkit-scrollbar-track-piece {
+		&:start, :end {
+			background: none;
+		}
+	}
+`;
+
+const Subheading = styled.div`
+	font-size: 10px;
+	color: ${({theme}) => theme.color.grey};
+`;
+
+const Option = styled.div`
+	display: flex;
+	flex-direction: row;
+	font-size: 12px;
+	align-items: center;
+	padding: 8px 4px;
+	color: black;
+	border-radius: ${({theme}) => theme.all.borderRadius.standard};
+
+	&:first-child {
+		margin-top: 2px;
+	}
+	&:last-child {
+		margin-bottom: 2px;
+	}
+	/* background-color: red; */
+	&:hover {
+		background-color: ${({theme}) => theme.color.midGrey};
+	}
+`;

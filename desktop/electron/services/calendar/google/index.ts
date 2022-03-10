@@ -3,6 +3,7 @@ import {
 	BaseCalendar,
 	IAccount,
 	IAccounts,
+	ICalendar,
 	IEvent,
 	IUser
 } from '../base';
@@ -39,7 +40,7 @@ export class GoogleCalendar extends BaseCalendar {
 	async getLoggedInAccountInfo(): Promise<IUser> {
 		const { data } = await google.oauth2('v2').userinfo.get();
 		return {
-			email: data.email
+			email: data.email!
 		};
 	}
 
@@ -68,6 +69,30 @@ export class GoogleCalendar extends BaseCalendar {
 		return creds;
 	}
 
+	protected async getAccountCalendars(
+		account: IAccount
+	): Promise<ICalendar[]> {
+		const { data: colors } = await gcal.colors.get();
+		const { data } = await gcal.calendarList.list();
+		if (!data.items) {
+			return [];
+		}
+
+		return data.items.flatMap(calendar => {
+			if (!calendar.summary) {
+				return [];
+			}
+
+			return {
+				platform: 'google',
+				account: account.user.email,
+				id: calendar.id,
+				name: calendar.summary,
+				color: getColor(calendar, colors)
+			};
+		});
+	}
+
 	protected async getAccountEventsBetweenDates(
 		account: IAccount,
 		start: Date,
@@ -75,11 +100,10 @@ export class GoogleCalendar extends BaseCalendar {
 		eventIds: Set<string>
 	): Promise<IEvent[]> {
 		const { data: colors } = await gcal.colors.get();
-
-		const { data: calendarsData } = await gcal.calendarList.list();
+		const calendars = await this.getAccountCalendars(account);
 
 		const events = await Promise.all(
-			(calendarsData.items || []).map(async calendar => {
+			calendars.map(async calendar => {
 				const options: calendar_v3.Params$Resource$Events$List = {
 					timeMin: start.toISOString(),
 					timeMax: end.toISOString(),
@@ -95,8 +119,6 @@ export class GoogleCalendar extends BaseCalendar {
 					options
 				);
 
-				console.log(calendarEventsData);
-
 				const cleanedEvents = (calendarEventsData.items || []).flatMap(
 					event => {
 						const { start, end, id, summary } = event;
@@ -109,8 +131,8 @@ export class GoogleCalendar extends BaseCalendar {
 								id,
 								name: summary,
 								calendar: {
-									name: calendar.summary || 'primary',
-									color: getColor(event, calendar, colors)
+									...calendar
+									// color: getColor(calendar, colors, event)
 								}
 							};
 
@@ -145,13 +167,18 @@ export class GoogleCalendar extends BaseCalendar {
 }
 
 function getColor(
-	event: calendar_v3.Schema$Event,
 	calendar: calendar_v3.Schema$CalendarListEntry,
-	colors: calendar_v3.Schema$Colors
+	colors: calendar_v3.Schema$Colors,
+	event?: calendar_v3.Schema$Event
 ): string {
 	if (calendar.backgroundColor) {
 		return calendar.backgroundColor;
-	} else if (event.colorId && colors.event && colors.event[event.colorId]) {
+	} else if (
+		event &&
+		event.colorId &&
+		colors.event &&
+		colors.event[event.colorId]
+	) {
 		return colors.event[event.colorId].background!;
 	} else if (
 		calendar.colorId &&
@@ -161,5 +188,5 @@ function getColor(
 		return colors.calendar[calendar.colorId].background!;
 	}
 
-	return '#333333';
+	return '#1a73e8';
 }
