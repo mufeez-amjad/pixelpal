@@ -1,21 +1,9 @@
 # Pixel Pal
 
-## Setup Project
-
-```
-yarn
-yarn build
-yarn electron:serve
-```
-
 ## Structure
 
--   `electron/` - electron app
+-   `desktop/` - electron app
 
--   `src/` - web app
+-   `webapp/` - web app
 
--   `migrations/` - database migrations
-
-## Create migrations
-
-Run `yarn migrate:make <migration name>` and edit the generated file under `migrations/`.
+-   `nft/` - web3 stuff
