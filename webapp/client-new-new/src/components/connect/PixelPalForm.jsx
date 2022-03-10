@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 
 export default function PixelPalForm(props) {
   const [ppid, setPPID] = React.useState(props.ppid || "");
@@ -21,7 +22,7 @@ export default function PixelPalForm(props) {
   }
 
   return (
-    <form>
+    <div>
       <div className="flex flex-wrap -mx-3 mb-4">
         <div className="w-full px-3">
           <label className="block text-gray-800 text-sm font-medium mb-1" htmlFor="name">PixelPal ID <span className="text-red-600">*</span></label>
@@ -36,6 +37,6 @@ export default function PixelPalForm(props) {
       <div className="text-sm text-gray-500 text-center mt-3">
         By creating an account, you agree to the <a className="underline" href="#0">terms & conditions</a>, and our <a className="underline" href="#0">privacy policy</a>.
       </div>
-    </form>
+    </div>
   )
 }
