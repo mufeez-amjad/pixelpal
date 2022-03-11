@@ -202,15 +202,53 @@ export interface DropdownOptions {
 	items: Option[];
 }
 interface DropdownProps {
+	value: any;
 	options: DropdownOptions[];
-	onSelectValue?: () => void;
+	onSelectValue: (data: Option['data']) => void;
 	Icon?: IconType;
-	valueField: string;
-	dividerField?: string;
 }
-export const Dropdown = ({options, Icon, valueField}: DropdownProps): JSX.Element => {
-	const [value, setValue] = React.useState('');
+export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: DropdownProps): JSX.Element => {
 	const [isDropped, setIsDropped] = React.useState(false);
+
+	const [value, setValue] = React.useState('');
+	const [option, setOption] = React.useState<Option | null>(null);
+
+	React.useEffect(() => {
+		if (option) {
+			setIsDropped(false);
+			onSelectValue(option.data);
+		}
+	}, [option]);
+
+	React.useEffect(() => {
+		for (const opt of options) {
+			for (const item of opt.items) {
+				if (item.value == initialValue) {
+					setOption(item);
+				}
+			}
+		}
+	}, []);
+
+	// TODO: fix filtering
+	const filteredOptions = React.useMemo(() => {
+		return options;
+		// if (!value.length) {
+		// 	return options;
+		// }
+
+		// const res: DropdownOptions[] = [];
+		// for (const opt of options) {
+		// 	const filteredItems = opt.items.filter(item => item.value.toLowerCase().includes(value.toLowerCase()));
+		// 	if (filteredItems.length) {
+		// 		res.push({
+		// 			...opt,
+		// 			items: filteredItems
+		// 		});
+		// 	}
+		// }
+		// return res;
+	}, [options, value]);
 
 	return (
 		<Container
@@ -227,15 +265,16 @@ export const Dropdown = ({options, Icon, valueField}: DropdownProps): JSX.Elemen
 				focused={isDropped}
 			/>
 			{isDropped && <DropdownContainer>
-				{options.map((os) => {
+				{filteredOptions.map((os) => {
 					return (
 						<>
 							{os.subheading && <Subheading>{os.subheading}</Subheading>}
 							<div>
-								{os.items.map((option, index) => (
-									<Option
+								{os.items.map((opt, index) => (
+									<OptionItem
 										key={index}
-										onClick={() => setValue(option.value)}
+										onClick={() => { setValue(opt.value); setOption(opt); }}
+										onMouseEnter={() => setValue(opt.value)}
 									>
 										<div
 											style={{
@@ -245,7 +284,7 @@ export const Dropdown = ({options, Icon, valueField}: DropdownProps): JSX.Elemen
 												height: 12,
 											}}
 										>
-											{value === option.value && <FiCheck
+											{(opt == option) && <FiCheck
 												color='black'
 												size={12}
 											/>}
@@ -254,8 +293,8 @@ export const Dropdown = ({options, Icon, valueField}: DropdownProps): JSX.Elemen
 											style={{
 												marginLeft: 4
 											}}
-										>{option.value}</span>
-									</Option>								
+										>{opt.value}</span>
+									</OptionItem>								
 								))}
 							</div>
 						</>
@@ -305,7 +344,7 @@ const Subheading = styled.div`
 	color: ${({theme}) => theme.color.grey};
 `;
 
-const Option = styled.div`
+const OptionItem = styled.div`
 	display: flex;
 	flex-direction: row;
 	font-size: 12px;

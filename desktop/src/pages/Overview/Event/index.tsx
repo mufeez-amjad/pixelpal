@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import { styled } from '../../../theme';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -43,6 +43,8 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 		allDay: null,
 		calendar: null
 	});
+
+	const [calendar, setCalendar] = React.useState<ICalendar>(event.calendar);
 
 	const calendars = useAppSelector((state) => state.calendar.calendars);
 	const dispatch = useAppDispatch();
@@ -141,6 +143,12 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 			} as DropdownOptions;
 		});
 	}, [calendars]);
+
+	const onSelectCalendar = (cal: any) => {
+		const newCalendar = cal as ICalendar;
+		setCalendar(newCalendar);
+		onUpdateEvent({...event, calendar: newCalendar});
+	};
 
 	return (
 		<Container>
@@ -265,10 +273,11 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 							flex: 2
 						}}
 					>
-						<Dropdown 
+						<Dropdown
+							value={calendar}
 							options={calendarOptions}
 							Icon={IoCalendarClearOutline}
-							valueField='name'
+							onSelectValue={onSelectCalendar}
 						/>
 					</div>
 					{/* <div
@@ -355,7 +364,7 @@ const Switch = styled.div<SwitchProps>`
 
 	width: 60px;
 	border-radius: 5px;
-	background-color: #e0dede;
+	background-color: ${({theme}) => theme.color.lighterGrey};
 	padding: 4px 6px;
 
 	.slider {
@@ -364,7 +373,7 @@ const Switch = styled.div<SwitchProps>`
 		position: absolute;
 		width: 50%;
 		height: 100%;
-		background-color: #b9b9b9;
+		background-color: ${({theme}) => theme.color.midGrey};
 		z-index: 0;
 
 		border-radius: 5px;
@@ -383,9 +392,9 @@ const Switch = styled.div<SwitchProps>`
 		z-index: 1;
 		width: 18px;
 
-		${({toggle}) => toggle ? `
+		${({toggle, theme}) => toggle ? `
 		&:first-child {
-			color: #b3b3b3;
+			color: ${theme.color.midGrey};
 		}
 
 		&:not(:first-child) {
@@ -397,7 +406,7 @@ const Switch = styled.div<SwitchProps>`
 		}
 
 		&:not(:first-child) {
-			color: #b3b3b3;
+			color: ${theme.color.midGrey};;
 		}
 		`};
 	}

@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+**/node_modules
 /.pnp
 .pnp.js
 
@@ -9,8 +9,8 @@
 /coverage
 
 # production
-/build
-/dist
+**/build
+**/dist
 
 # misc
 .DS_Store
@@ -29,5 +29,5 @@ yarn-error.log*
 # dev db
 .db/
 
-electron/services/calendar/google/secretAccountKey.json
+desktop/electron/services/calendar/google/secretAccountKey.json
 /nft/art_engine/output/*

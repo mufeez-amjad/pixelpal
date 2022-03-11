@@ -45,6 +45,12 @@ function Overview(): JSX.Element {
 	};
 
 	React.useEffect(() => {
+		if (!isOverlayShowing) {
+			setEvent(undefined);
+		}
+	}, [isOverlayShowing]);
+
+	React.useEffect(() => {
 		setTodaysEvents(events[dayKeyFormat(selectedDay)]);
 	}, [events, selectedDay]);
 

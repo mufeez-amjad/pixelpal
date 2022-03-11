@@ -17,10 +17,10 @@ export const lightTheme = {
 	},
 	color: {
 		primary: COLORS.orange,
-		lighterGrey: '#dedede',
+		lighterGrey: '#e0dede',
 		lightGrey: '#cdcdcd',
 		midGrey: '#b9b9b9',
-		grey: '#808080'
+		grey: '#808080',
 	}
 };
 
