@@ -4,9 +4,11 @@ import { AuthHandler } from './handlers/auth';
 import { NFTHandler } from './handlers/nfthandler';
 import { handle } from './handlers/helpers';
 import { config } from './config/config';
+import cors from 'cors';
 
 const app: Application = express();
 app.use(express.json());
+app.use(cors());
 
 const db: Knex = knex(config.db);
 

@@ -9,6 +9,8 @@ export class AuthHandler extends ApiHandler {
 		body: { ppid: string; address: string; signature: string }
 	) {
 		const { ppid, address, signature } = body;
+		console.log('got %s %s %s', ppid, address, signature);
+		
 
 		// Verify signature
 		const signedBy = ethers.utils.verifyMessage(ppid, signature);
