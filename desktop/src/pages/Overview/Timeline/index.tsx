@@ -183,9 +183,6 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 					flexDirection: 'row',
 					marginTop: 40,
 				}}
-				onMouseDown={onMouseDown}
-				onMouseMove={onMouseMove}
-				onMouseUp={onMouseUp}
 			>
 				<Hours>
 					{hours.map((hour, index) => <Hour key={index}><span>{hour}</span></Hour>)}
@@ -193,6 +190,9 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 				<Events
 					id={'grid'} // needed for dragging
 					draggable={false}
+					onMouseDown={onMouseDown}
+					onMouseMove={onMouseMove}
+					onMouseUp={onMouseUp}
 				>
 					{grid}
 					{scheduled}
@@ -205,24 +205,18 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 
 const mouseEventToCoordinate = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
 	const target = e.target as HTMLDivElement;
-
-	let x, y;
-	if (target.id == 'red-line') {
-		x = target.offsetLeft;
-		y = target.offsetTop;
-	} else {
-		let parent = target.parentElement;
-		while (parent && parent.id != 'grid') {
-			parent = parent.parentElement;
-		}
-		if (!parent) {
-			return [null, null];
-		}
-		const rect = parent.getBoundingClientRect();
-
-		x = e.clientX - rect.left;
-		y = e.clientY - rect.top;
+	
+	let parent = target.parentElement;
+	while (parent && parent.id != 'grid') {
+		parent = parent.parentElement;
 	}
+	if (!parent) {
+		return [null, null];
+	}
+	const rect = parent.getBoundingClientRect();
+
+	const x = e.clientX - rect.left;
+	const y = e.clientY - rect.top;
 
 	return [x, y];
 };
@@ -376,6 +370,7 @@ const RedLine = styled.div<IRedLine>`
 	font-size: 11px;
 	color: red;
 	width: 100%;
+	pointer-events: none;
 
 	span {
 		background-color: red;
