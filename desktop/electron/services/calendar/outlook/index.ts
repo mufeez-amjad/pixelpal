@@ -145,17 +145,21 @@ export class OutlookCalendar extends BaseCalendar {
 
 		const calendars = calendarsData.value as Array<OutlookICalendar>;
 		return calendars.flatMap(calendar => {
-			if (!calendar.name) {
+			if (!calendar.name || !calendar.id) {
 				return [];
 			}
 
 			return {
-				platform: 'outlook',
+				platform: 'microsoft',
 				account: account.user.email,
 				id: calendar.id,
 				name: calendar.name,
 				color: calendar.hexColor || calendar.color || '#ffffff'
 			};
 		});
+	}
+
+	async createEvent(event: IEvent): Promise<boolean> {
+		return false;
 	}
 }

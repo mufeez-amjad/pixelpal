@@ -16,9 +16,9 @@ import store from './store';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { lightTheme } from './theme';
+import { useLocalStorage } from './hooks/use_localstorage';
 
 const App = () => {
-
 	return (
 		<Provider store={store}>
 			<HashRouter>
@@ -29,7 +29,7 @@ const App = () => {
 };
 
 const RoutesComponent = () => {
-	const [theme, setTheme] = React.useState(lightTheme);
+	const [theme, setTheme] = useLocalStorage('theme', lightTheme);
 	const navigate = useNavigate();
 
 	React.useEffect(() => {

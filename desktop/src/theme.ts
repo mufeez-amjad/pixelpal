@@ -21,6 +21,8 @@ export const lightTheme = {
 		lightGrey: '#cdcdcd',
 		midGrey: '#b9b9b9',
 		grey: '#808080',
+		darkGrey: '#333333',
+		success: '#50af50',
 	}
 };
 

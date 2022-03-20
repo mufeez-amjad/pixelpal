@@ -14,9 +14,10 @@ import { BiTimeFive } from 'react-icons/bi';
 import { BsArrowRight } from 'react-icons/bs';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { setCalendars } from '../../../store/calendar';
+import { Button, ButtonType } from '../../../common/buttons';
 interface EventProps {
 	event: IEvent;
-	onUpdateEvent: (event: IEvent) => void;
+	onUpdateEvent: (event: IEvent | null) => void;
 }
 
 function Event({event, onUpdateEvent}: EventProps): JSX.Element {
@@ -45,6 +46,8 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 	});
 
 	const [calendar, setCalendar] = React.useState<ICalendar>(event.calendar);
+
+	const [isLoading, setIsLoading] = React.useState(false);
 
 	const calendars = useAppSelector((state) => state.calendar.calendars);
 	const dispatch = useAppDispatch();
@@ -77,7 +80,6 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 			} catch (err) {
 				console.error(err);
 			}
-			console.log(nextCalendars);
 			dispatch(setCalendars({ calendars: nextCalendars }));
 		})();
 	}, []);
@@ -89,6 +91,13 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 		});
 		return formatDuration(duration, {format: ['hours', 'minutes']}).replace(' hour', 'hr').replace(' minutes', 'm');
 	}, [event.start, event.end]);
+
+	const createEvent = async () => {
+		setIsLoading(true);
+		await ipcRenderer.invoke('createEvent', event);
+		setIsLoading(false);
+		onUpdateEvent(null);
+	};
 
 	React.useEffect(() => {
 		if (!range.start.dirty && !range.end.dirty) {
@@ -133,7 +142,6 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 	const calendarOptions = React.useMemo(() => {
 		return Object.entries(calendars).map((entry) => {
 			const [name, cals] = entry;
-			console.log(name, cals);
 			return {
 				subheading: name,
 				items: cals.map(cal => ({
@@ -280,26 +288,39 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 							onSelectValue={onSelectCalendar}
 						/>
 					</div>
-					{/* <div
-						style={{
-							flex: 1
-						}}
-					>
-						hi
-					</div> */}
 				</Row>
-				<Row>
+				<Row
+					style={{ height: 64 }}
+				>
 					<TextArea
 						value={description}
 						placeholder='Description'
 						onChange={(e) => setDescription(e.target.value)}
+						resizable={false}
 						style={{
 							minWidth: '100%',
-							maxWidth: '100%',
+							maxWidth: '100%'
 						}}
 					/>
 				</Row>
 			</Form>
+			<Row
+				style={{
+					justifyContent: 'flex-end',
+				}}
+			>
+				<Button
+					text='Cancel'
+					type={ButtonType.Default}
+					onClick={() => onUpdateEvent(null)}
+				/>
+				<Button
+					text='Save'
+					type={ButtonType.Primary}
+					onClick={createEvent}
+					loading={isLoading}
+				/>
+			</Row>
 		</Container>
 	);
 }
@@ -327,8 +348,8 @@ const Row = styled.div`
 
 	padding: 8px 12px;
 
-	&:not(:first-child) {
-		border-top: 1px solid #e4e4e4;
+	&:not(:last-child) {
+		border-bottom: 1px solid #e4e4e4;
 	}
 `;
 

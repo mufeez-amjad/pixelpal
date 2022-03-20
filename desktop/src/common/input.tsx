@@ -68,6 +68,7 @@ const Container = styled.div`
 	position: relative;
 	display: flex;
 	flex-direction: column;
+	height: 100%;
 `;
 
 interface InputContainerProps {
@@ -78,7 +79,7 @@ const InputContainer = styled.div<InputContainerProps>`
 	flex-direction: row;
 	align-items: center;
 
-	height: 28px;
+	height: 100%;
 
 	padding: 4px 4px;
 	border-radius: 4px;
@@ -135,6 +136,7 @@ interface TextAreaProps {
 	Icon?: IconType;
 	iconStyle?: React.CSSProperties;
 	flex?: number;
+	resizable: boolean;
 }
 
 export const TextArea = ({
@@ -145,7 +147,8 @@ export const TextArea = ({
 	onChange,
 	error,
 	Icon, iconStyle,
-	flex
+	flex,
+	resizable
 }: TextAreaProps): JSX.Element => {
 	function handleKeyUp(event: any) {
 		//key code for enter
@@ -166,6 +169,9 @@ export const TextArea = ({
 					placeholder={placeholder}
 					onKeyUp={handleKeyUp}
 					onChange={onChange}
+					style={{
+						resize: resizable ? 'initial' : 'none'
+					}}
 				/>
 			</InputContainer>
 			{error && <ErrorContainer>
@@ -183,6 +189,7 @@ const AreaInput = styled.textarea`
 	width: 100%;
 	background: none;
 	color: black;
+	height: 100%;
 
 	&::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
 		opacity: 0.65;
@@ -219,6 +226,12 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 			onSelectValue(option.data);
 		}
 	}, [option]);
+
+	React.useEffect(() => {
+		if (!isDropped && !option) {
+			setValue('');
+		}
+	}, [isDropped]);
 
 	React.useEffect(() => {
 		for (const opt of options) {
@@ -265,14 +278,16 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 				focused={isDropped}
 			/>
 			{isDropped && <DropdownContainer>
-				{filteredOptions.map((os) => {
+				{filteredOptions.map((os, i) => {
 					return (
-						<>
+						<div
+							key={i}	
+						>
 							{os.subheading && <Subheading>{os.subheading}</Subheading>}
 							<div>
-								{os.items.map((opt, index) => (
+								{os.items.map((opt, j) => (
 									<OptionItem
-										key={index}
+										key={j}
 										onClick={() => { setValue(opt.value); setOption(opt); }}
 										onMouseEnter={() => setValue(opt.value)}
 									>
@@ -297,7 +312,7 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 									</OptionItem>								
 								))}
 							</div>
-						</>
+						</div>
 						
 					);
 				})}
@@ -329,7 +344,6 @@ const DropdownContainer = styled.div`
     &::-webkit-scrollbar-thumb {
       background-color: rgba(0,0,0,0.4);
       border-radius: 10rem;
-      /* border: 1px solid #fff; */
     }
 
     &::-webkit-scrollbar-track-piece {

@@ -14,6 +14,7 @@ import { GoogleCalendar } from './services/calendar/google';
 import {
 	ACCOUNTS_INFO_KEY,
 	BaseCalendar,
+	IAccount,
 	IAccounts,
 	ICalendar,
 	IEvent
@@ -73,6 +74,30 @@ export function initHandlers(): void {
 	ipcMain.handle('getConnectedAccounts', async () => {
 		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
 		return accounts;
+	});
+
+	ipcMain.handle('createEvent', async (_, event: IEvent) => {
+		let platform: BaseCalendar;
+		const accounts = (store.get(ACCOUNTS_INFO_KEY) as IAccounts) || {};
+
+		switch (event.calendar.platform) {
+		case 'google':
+			platform = new GoogleCalendar();
+			break;
+		case 'microsoft':
+			platform = new OutlookCalendar();
+			break;
+		default:
+			throw Error('Unsupported platform.');
+		}
+		
+		const platformAccounts = accounts[event.calendar.platform as keyof IAccounts];
+
+		if (platformAccounts !== undefined) {
+			const account = platformAccounts[event.calendar.account];
+			platform.auth(account);
+			platform.createEvent(event);
+		}
 	});
 
 	ipcMain.handle('getEventsForWeek', async (_, week) => {

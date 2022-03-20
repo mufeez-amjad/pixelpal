@@ -117,8 +117,13 @@ function Overview(): JSX.Element {
 		setOverlayShowing(dragComplete);
 	};
 
-	const onUpdateEvent = (newEvent: IEvent) => {
-		setEvent({...event, ...newEvent});
+	const onUpdateEvent = (newEvent: IEvent | null) => {
+		if (newEvent) {
+			setEvent({...event, ...newEvent});
+		} else {
+			setEvent(undefined);
+			setOverlayShowing(false);
+		}
 	};
 
 	return (

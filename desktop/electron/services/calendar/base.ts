@@ -12,7 +12,7 @@ export interface IEvent {
 export interface ICalendar {
 	platform: string;
 	account: string;
-	id: string | null | undefined;
+	id: string;
 	name: string;
 	color: string;
 }
@@ -105,4 +105,6 @@ export abstract class BaseCalendar {
 		}
 		return calendars;
 	}
+
+	abstract createEvent(event: IEvent): Promise<boolean>;
 }

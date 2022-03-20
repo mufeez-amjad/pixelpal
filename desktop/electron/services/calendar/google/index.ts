@@ -15,6 +15,7 @@ const gcal = google.calendar('v3');
 
 import Store from 'electron-store';
 import { Credentials } from '../oauth';
+import { format } from 'date-fns';
 const store = new Store();
 
 export class GoogleCalendar extends BaseCalendar {
@@ -29,7 +30,7 @@ export class GoogleCalendar extends BaseCalendar {
 			clientSecret: secretAccountKey.installed.client_secret,
 			scopes: [
 				'https://www.googleapis.com/auth/calendar.readonly',
-				'https://www.googleapis.com/auth/calendar.events.readonly',
+				'https://www.googleapis.com/auth/calendar.events',
 				// 'https://www.googleapis.com/auth/userinfo.profile',
 				'https://www.googleapis.com/auth/userinfo.email'
 			]
@@ -79,7 +80,7 @@ export class GoogleCalendar extends BaseCalendar {
 		}
 
 		return data.items.flatMap(calendar => {
-			if (!calendar.summary) {
+			if (!calendar.summary || !calendar.id) {
 				return [];
 			}
 
@@ -163,6 +164,40 @@ export class GoogleCalendar extends BaseCalendar {
 		);
 
 		return events.flat();
+	}
+
+	async createEvent(event: IEvent): Promise<boolean> {
+		console.log('Creating event!', event);
+		const e = {
+			'summary': event.name,
+			// 'location': '800 Howard St., San Francisco, CA 94103',
+			'description': 'Test Event',
+			'start': {
+				'dateTime': event.start.toISOString(),
+				'timeZone': format(event.start, 'OOOO')
+			},
+			'end': {
+				'dateTime': event.end.toISOString(),
+				'timeZone': format(event.end, 'OOOO')
+			},
+			// 'recurrence': [
+			// 	'RRULE:FREQ=DAILY;COUNT=2'
+			// ],
+			// 'attendees': [
+			// 	{'email': 'lpage@example.com'},
+			// 	{'email': 'sbrin@example.com'}
+			// ],
+			// 'reminders': {
+			// 	'useDefault': false,
+			// 	'overrides': [
+			// 		{'method': 'email', 'minutes': 24 * 60},
+			// 		{'method': 'popup', 'minutes': 10}
+			// 	]
+			// }
+		};
+		gcal.events.insert({calendarId: event.calendar.id, requestBody: e});
+
+		return true;
 	}
 }
 
