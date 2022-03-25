@@ -41,7 +41,6 @@ export class AppWindow extends BrowserWindow {
 			webPreferences: {
 				backgroundThrottling: false,
 				nodeIntegration: true,
-				enableRemoteModule: true,
 				contextIsolation: false
 			}
 		});

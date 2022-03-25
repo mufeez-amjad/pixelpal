@@ -159,7 +159,7 @@ export class OutlookCalendar extends BaseCalendar {
 		});
 	}
 
-	async createEvent(event: IEvent): Promise<boolean> {
-		return false;
+	async createEvent(event: IEvent): Promise<IEvent> {
+		return event;
 	}
 }

@@ -7,6 +7,21 @@ export interface IEvent {
 	end: Date;
 	allDay?: boolean;
 	calendar: ICalendar;
+	conference?: IConference[];
+	url: string;
+	// hangoutLink
+	// conferenceData
+}
+
+interface IConference {
+	name: string;
+	entryPoint: EntryPoint[];
+
+}
+
+interface EntryPoint {
+	uri: string;
+	label: string;
 }
 
 export interface ICalendar {
@@ -106,5 +121,5 @@ export abstract class BaseCalendar {
 		return calendars;
 	}
 
-	abstract createEvent(event: IEvent): Promise<boolean>;
+	abstract createEvent(event: IEvent): Promise<IEvent>;
 }

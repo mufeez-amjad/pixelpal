@@ -203,6 +203,7 @@ const AreaInput = styled.textarea`
 interface Option {
 	value: string,
 	data: any;
+	checkbox?: string; // hex string of checkbox
 }
 export interface DropdownOptions {
 	subheading?: string;
@@ -268,6 +269,10 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 			style={{
 				flexGrow: 1,
 			}}
+			onMouseLeave={() => {
+				if (option)
+					setValue(option.value);
+			}}
 		>
 			<TextInput
 				value={value} 
@@ -281,7 +286,7 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 				{filteredOptions.map((os, i) => {
 					return (
 						<div
-							key={i}	
+							key={i}
 						>
 							{os.subheading && <Subheading>{os.subheading}</Subheading>}
 							<div>
@@ -295,13 +300,18 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 											style={{
 												display: 'flex',
 												justifyContent: 'center',
+												alignItems: 'center',
 												width: 12,
 												height: 12,
+												backgroundColor: opt.checkbox,
+												borderRadius: 3,
+												marginRight: 4,
+												marginLeft: 4
 											}}
 										>
 											{(opt == option) && <FiCheck
-												color='black'
-												size={12}
+												color='white'
+												size={10}
 											/>}
 										</div>
 										<span

@@ -121,42 +121,7 @@ export class GoogleCalendar extends BaseCalendar {
 				);
 
 				const cleanedEvents = (calendarEventsData.items || []).flatMap(
-					event => {
-						const { start, end, id, summary } = event;
-
-						// avoid duplicate events
-						if (id && summary) {
-							eventIds.add(id);
-
-							const common = {
-								id,
-								name: summary,
-								calendar: {
-									...calendar
-									// color: getColor(calendar, colors, event)
-								}
-							};
-
-							if (start && end) {
-								// all day events
-								if (start.date && end.date) {
-									return {
-										...common,
-										start: new Date(start.date),
-										end: new Date(end.date),
-										allDay: true
-									};
-								} else if (start.dateTime && end.dateTime) {
-									return {
-										...common,
-										start: new Date(start.dateTime),
-										end: new Date(end.dateTime)
-									};
-								}
-							}
-						}
-						return [];
-					}
+					event => cleanEvent(event, calendar)
 				);
 
 				return cleanedEvents;
@@ -166,38 +131,30 @@ export class GoogleCalendar extends BaseCalendar {
 		return events.flat();
 	}
 
-	async createEvent(event: IEvent): Promise<boolean> {
-		console.log('Creating event!', event);
-		const e = {
-			'summary': event.name,
+	async createEvent(event: IEvent): Promise<IEvent> {
+		const payload: calendar_v3.Schema$Event = {
+			summary: event.name,
 			// 'location': '800 Howard St., San Francisco, CA 94103',
-			'description': 'Test Event',
-			'start': {
-				'dateTime': event.start.toISOString(),
-				'timeZone': format(event.start, 'OOOO')
+			description: 'Test Event',
+			start: {
+				dateTime: event.start.toISOString(),
+				timeZone: format(event.start, 'OOOO')
 			},
-			'end': {
-				'dateTime': event.end.toISOString(),
-				'timeZone': format(event.end, 'OOOO')
+			end: {
+				dateTime: event.end.toISOString(),
+				timeZone: format(event.end, 'OOOO')
 			},
-			// 'recurrence': [
-			// 	'RRULE:FREQ=DAILY;COUNT=2'
-			// ],
-			// 'attendees': [
-			// 	{'email': 'lpage@example.com'},
-			// 	{'email': 'sbrin@example.com'}
-			// ],
-			// 'reminders': {
-			// 	'useDefault': false,
-			// 	'overrides': [
-			// 		{'method': 'email', 'minutes': 24 * 60},
-			// 		{'method': 'popup', 'minutes': 10}
-			// 	]
-			// }
+			conferenceData: {
+				createRequest: {
+					conferenceSolutionKey: {
+						type: 'hangoutsMeet',
+					},
+				}
+			}
 		};
-		gcal.events.insert({calendarId: event.calendar.id, requestBody: e});
-
-		return true;
+		const res = await gcal.events.insert({calendarId: event.calendar.id, requestBody: payload});
+		console.log(res.data);
+		return cleanEvent(res.data, event.calendar);
 	}
 }
 
@@ -224,4 +181,34 @@ function getColor(
 	}
 
 	return '#1a73e8';
+}
+
+function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent {
+	const { start, end, id, summary, htmlLink } = res;
+
+	const common = {
+		id: id!,
+		name: summary!,
+		calendar: {
+			...calendar
+			// color: getColor(calendar, colors, event)
+		},
+		url: htmlLink!,
+	};
+
+	if (start?.dateTime && end?.dateTime) {
+		return {
+			...common,
+			start: new Date(start!.dateTime),
+			end: new Date(end!.dateTime)
+		};
+	} else {
+		// all-day event
+		return {
+			...common,
+			start: new Date(start!.date!),
+			end: new Date(end!.date!),
+			allDay: true
+		};
+	}
 }

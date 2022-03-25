@@ -10,17 +10,19 @@ import { ICalendar, IEvent } from '../../../../common/types';
 import { IoCalendarClearOutline, IoCalendarClearSharp } from 'react-icons/io5';
 import { GoCheck } from 'react-icons/go';
 import { BiTimeFive } from 'react-icons/bi';
-
+import {HiOutlineExternalLink} from 'react-icons/hi';
 import { BsArrowRight } from 'react-icons/bs';
+
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { setCalendars } from '../../../store/calendar';
 import { Button, ButtonType } from '../../../common/buttons';
 interface EventProps {
 	event: IEvent;
+	created: boolean;
 	onUpdateEvent: (event: IEvent | null) => void;
 }
 
-function Event({event, onUpdateEvent}: EventProps): JSX.Element {
+function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 	const [isEvent, setIsEvent] = React.useState(true);
 	const [range, setRange] = React.useState({
 		start: {
@@ -147,6 +149,7 @@ function Event({event, onUpdateEvent}: EventProps): JSX.Element {
 				items: cals.map(cal => ({
 					value: cal.name,
 					data: cal,
+					checkbox: cal.color
 				}))
 			} as DropdownOptions;
 		});
