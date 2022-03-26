@@ -10,7 +10,10 @@ import WeekCalendar from './WeekCalendar';
 import { PageContainer } from '..';
 import Timeline from './Timeline';
 import LoadingWrapper, { LoadingIndicator } from '../../common/LoadingWrapper';
-import Event from './Event';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
+import moment from 'moment';
+import Day from './Timeline/Day'
 
 import { IEvent } from '../../../common/types';
 
@@ -20,6 +23,15 @@ import stand from './stand.gif';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { dayKeyFormat, setEvents, setSelectedDay as setDay } from '../../store/calendar';
+
+const localizer = momentLocalizer(moment);
+// @ts-ignore
+const DnDCalendar = withDragAndDrop(Calendar);
+
+// using default styles but can use custom styles: https://github.com/jquense/react-big-calendar#custom-styling
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+import Event from './Event';
 
 enum Showing {
 	All = 'All',
@@ -121,6 +133,23 @@ function Overview(): JSX.Element {
 		setEvent({...event, ...newEvent});
 	};
 
+	// drag n drop stuff not set up
+	const onEventResize = (data: any) => {
+
+  };
+
+  const onEventDrop = (data: any) => {
+    console.log(data);
+  };
+
+	const {views, ...otherProps} = React.useMemo(() => ({
+		views: {
+			month: false,
+			week: false,
+			day: Day
+		},
+	}), [])
+
 	return (
 		<PageContainer>
 			<Top>
@@ -173,11 +202,18 @@ function Overview(): JSX.Element {
 				</Character>
 			</Top>
 			<Bottom>
-				<Timeline
-					events={todaysEvents}
+				<DnDCalendar
+					toolbar={false}
 					date={selectedDay}
-					onSelectRange={onSelectRange}
-					event={event}
+					localizer={localizer}
+					//@ts-ignore
+					titleAccessor={(event) => event.name}
+					events={todaysEvents}
+					defaultView={"day"}
+					//@ts-ignore
+					views={views}
+					onEventDrop={onEventDrop}
+          onEventResize={onEventResize}
 				/>
 			</Bottom>
 		</PageContainer>
