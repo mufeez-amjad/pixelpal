@@ -8,7 +8,7 @@ export interface IEvent {
 	allDay?: boolean;
 	calendar: ICalendar;
 	conference?: IConference[];
-	url: string;
+	url?: string;
 	// hangoutLink
 	// conferenceData
 }
