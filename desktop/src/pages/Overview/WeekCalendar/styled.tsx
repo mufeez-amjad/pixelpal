@@ -68,7 +68,10 @@ export const DayContainer = styled.div<ContainerProps>`
 `;
 
 export const DateContainer = styled.div<ContainerProps>`
+	position: relative;
+
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	margin: 2px 4px;
@@ -84,4 +87,26 @@ export const DateContainer = styled.div<ContainerProps>`
 		color: white;
 		background: ${theme.color.primary};
   	`}
+
+	> * {
+		margin-top: -2px;
+	}
+`;
+
+export const DotsContainer = styled.div`
+	position: absolute;
+	bottom: 4px;
+	display: flex;
+`;
+
+interface DotProps {
+	color: string;
+}
+export const Dot = styled.div<DotProps>`
+	height: 4px;
+	width: 4px;
+	margin: 0.5px;
+	background-color: ${({color}) => color};
+	border-radius: 50%;
+	display: inline-block;
 `;

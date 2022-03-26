@@ -15,6 +15,9 @@ import {
 
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import useKeyboardShortcuts, { KEY_CODE, SHORTCUT } from '../../../hooks/use_keyboard_shortcuts';
+import { IEvent } from '../../../../common/types';
+import { useAppSelector } from '../../../store/hooks';
+import { dayKeyFormat } from '../../../store/calendar';
 
 interface IDay {
 	day: Date;
@@ -22,9 +25,10 @@ interface IDay {
 	onClick: () => void;
 	isCurrentMonth: boolean;
 	isWeekend: boolean;
+	events: IEvent[];
 }
 
-function Day({ day, selectedDay, onClick, isCurrentMonth, isWeekend}: IDay) {
+function Day({ day, selectedDay, onClick, isCurrentMonth, isWeekend, events}: IDay) {
 	const isSelected = () => {
 		return isSameDay(selectedDay, day);
 	};
@@ -32,6 +36,10 @@ function Day({ day, selectedDay, onClick, isCurrentMonth, isWeekend}: IDay) {
 	const weekday = () => {
 		return ['S', 'M', 'T', 'W', 'T', 'F', 'S'][getDay(day)];
 	};
+
+	const colors = React.useMemo(() => {
+		return Array.from(new Set(events.map(e => e.calendar.color)));
+	}, [events]);
 
 	return (
 		<Styled.DayContainer
@@ -45,6 +53,12 @@ function Day({ day, selectedDay, onClick, isCurrentMonth, isWeekend}: IDay) {
 				onClick={() => onClick()}
 			>
 				<span>{day.getDate()}</span>
+				<Styled.DotsContainer>
+					{colors.map((c, i) => <Styled.Dot 
+						color={c}
+						key={i}
+					/>)}
+				</Styled.DotsContainer>
 			</Styled.DateContainer>
 		</Styled.DayContainer>
 	);
@@ -56,6 +70,8 @@ interface Props {
 }
 
 function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
+	const events = useAppSelector((state) => state.calendar.events);
+
 	const [refDay, setRefDay] = React.useState(startOfWeek(selectedDay));
 	const lastShortcut = useKeyboardShortcuts([
 		{name: SHORTCUT.ARROW_LEFT, keyCode: KEY_CODE.ARROW_LEFT, altKey: true}, // TODO(mufeez): ctrlKey instead
@@ -119,6 +135,7 @@ function WeekCalendar({ selectedDay, onWeekdaySelect }: Props) : JSX.Element {
 							onClick={() => onWeekdaySelect(day)}
 							isCurrentMonth={isSameMonth(refDay, day)}
 							isWeekend={index % 6 == 0}
+							events={events[dayKeyFormat(day)] || []}
 						/>
 					))}
 				</Styled.DaysContainer>
