@@ -169,6 +169,7 @@ function Overview(): JSX.Element {
 						/>
 					</div>
 					{(isOverlayShowing && event) && <Event 
+						created={false}
 						event={event}
 						onUpdateEvent={onUpdateEvent}
 					/>}

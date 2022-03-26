@@ -1,15 +1,25 @@
-import { Tray, nativeImage } from 'electron';
+import { Tray, nativeImage, NativeImage } from 'electron';
 import path from 'path';
 
-const ICON_WIDTH = 32;
-const ICON_HEIGHT = 32;
+const ICON_WIDTH = 26;
+const ICON_HEIGHT = 20;
 
 class AppTray extends Tray {
+	pressed = false;
 	constructor() {
-		const image = nativeImage.createFromPath(
-			path.join(__dirname, '../../assets/icon.png')
+		const standard = nativeImage.createFromPath(
+			path.join(__dirname, '../../assets/icon-standard.png')
 		);
-		super(image.resize({ width: ICON_WIDTH, height: ICON_HEIGHT }));
+		const pressed = nativeImage.createFromPath(
+			path.join(__dirname, '../../assets/icon-pressed.png')
+		);
+		super(standard.resize({ width: ICON_WIDTH, height: ICON_HEIGHT }));
+
+		this.addListener('click', () => {
+			this.pressed = !this.pressed;
+			const img = this.pressed ? pressed : standard;
+			this.setImage(img.resize({ width: ICON_WIDTH, height: ICON_HEIGHT }));
+		});
 	}
 }
 
