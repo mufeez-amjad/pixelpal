@@ -18,6 +18,7 @@ interface TextInputProps {
 	flex?: number;
 	onClick?: React.MouseEventHandler<HTMLInputElement>;
 	focused?: boolean;
+	autofocus?: boolean;
 }
 
 export const TextInput = ({
@@ -30,7 +31,8 @@ export const TextInput = ({
 	Icon, iconStyle,
 	flex,
 	onClick,
-	focused
+	focused, 
+	autofocus
 }: TextInputProps): JSX.Element => {
 	function handleKeyUp(event: any) {
 		//key code for enter
@@ -54,6 +56,7 @@ export const TextInput = ({
 					onKeyUp={handleKeyUp}
 					onChange={onChange}
 					onClick={onClick}
+					autoFocus={autofocus}
 				/>
 			</InputContainer>
 			{error && <ErrorContainer>

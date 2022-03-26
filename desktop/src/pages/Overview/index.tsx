@@ -19,7 +19,7 @@ import { BiPlus, BiStopwatch } from 'react-icons/bi';
 import stand from './stand.gif';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { dayKeyFormat, setEvents, setSelectedDay as setDay } from '../../store/calendar';
+import { dayKeyFormat, addEvents, setEvents, setSelectedDay as setDay } from '../../store/calendar';
 
 enum Showing {
 	All = 'All',
@@ -117,13 +117,25 @@ function Overview(): JSX.Element {
 		setOverlayShowing(dragComplete);
 	};
 
-	const onUpdateEvent = (newEvent: IEvent | null) => {
-		if (newEvent) {
-			setEvent({...event, ...newEvent});
-		} else {
+	const onUpdateEvent = (newEvent: IEvent | null, created: boolean) => {
+		if (created && newEvent) {
+			dispatch(addEvents({events: [newEvent]}));
 			setEvent(undefined);
 			setOverlayShowing(false);
+		} else {
+			if (newEvent) {
+				setEvent({...event, ...newEvent});
+			} else {
+				setEvent(undefined);
+				setOverlayShowing(false);
+			}
 		}
+	};
+
+	const onSelectEvent = (event: IEvent) => {
+		console.log('Clicked!', event);
+		setEvent(event);
+		setOverlayShowing(true);
 	};
 
 	return (
@@ -184,6 +196,7 @@ function Overview(): JSX.Element {
 					date={selectedDay}
 					onSelectRange={onSelectRange}
 					event={event}
+					onSelectEvent={onSelectEvent}
 				/>
 			</Bottom>
 		</PageContainer>

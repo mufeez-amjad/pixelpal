@@ -19,7 +19,7 @@ import { Button, ButtonType } from '../../../common/buttons';
 interface EventProps {
 	event: IEvent;
 	created: boolean;
-	onUpdateEvent: (event: IEvent | null) => void;
+	onUpdateEvent: (event: IEvent | null, created: boolean) => void;
 }
 
 function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
@@ -96,9 +96,9 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 
 	const createEvent = async () => {
 		setIsLoading(true);
-		await ipcRenderer.invoke('createEvent', event);
+		const newEvent: IEvent = await ipcRenderer.invoke('createEvent', event);
 		setIsLoading(false);
-		onUpdateEvent(null);
+		onUpdateEvent(newEvent, true);
 	};
 
 	React.useEffect(() => {
@@ -133,12 +133,11 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 			}
 		}
 
-		console.log(start, end);
 		if (start == undefined || end == undefined) {
 			return;
 		}
 
-		onUpdateEvent({...event, start, end});
+		onUpdateEvent({...event, start, end}, false);
 	}, [range]);
 
 	const calendarOptions = React.useMemo(() => {
@@ -158,7 +157,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 	const onSelectCalendar = (cal: any) => {
 		const newCalendar = cal as ICalendar;
 		setCalendar(newCalendar);
-		onUpdateEvent({...event, calendar: newCalendar});
+		onUpdateEvent({...event, calendar: newCalendar}, false);
 	};
 
 	return (
@@ -172,7 +171,8 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 							flexGrow: 1,
 							marginRight: 8
 						}}
-						onChange={(e) => onUpdateEvent({...event, name: e.target.value }) }
+						autofocus
+						onChange={(e) => onUpdateEvent({...event, name: e.target.value }, false) }
 					/>
 					<Switch
 						toggle={!isEvent}
@@ -315,7 +315,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 				<Button
 					text='Cancel'
 					type={ButtonType.Default}
-					onClick={() => onUpdateEvent(null)}
+					onClick={() => onUpdateEvent(null, false)}
 				/>
 				<Button
 					text='Save'

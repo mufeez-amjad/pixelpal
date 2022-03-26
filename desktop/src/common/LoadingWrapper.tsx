@@ -84,11 +84,11 @@ const Spinner = styled.div`
 	color: official;
 	display: inline-block;
 	position: relative;
-	width: 20px;
-	height: 20px;
+	width: 18px;
+	height: 18px;
 
 	div {
-		transform-origin: 10px 10px;
+		transform-origin: 9px 9px;
 		animation: lds-spinner 1.2s linear infinite;
 	}
 	div:after {
@@ -96,7 +96,7 @@ const Spinner = styled.div`
 		display: block;
 		position: absolute;
 		top: 0px;
-		left: 10px;
+		left: 7px;
 		width: 2px;
 		height: 5px;
 		border-radius: 20%;

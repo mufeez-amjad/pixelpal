@@ -96,8 +96,9 @@ export function initHandlers(): void {
 		if (platformAccounts !== undefined) {
 			const account = platformAccounts[event.calendar.account];
 			platform.auth(account);
-			platform.createEvent(event);
+			return await platform.createEvent(event);
 		}
+		throw Error('Error creating event, try again later.');
 	});
 
 	ipcMain.handle('getEventsForWeek', async (_, week) => {

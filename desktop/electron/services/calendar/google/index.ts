@@ -4,6 +4,7 @@ import {
 	IAccount,
 	IAccounts,
 	ICalendar,
+	IConference,
 	IEvent,
 	IUser
 } from '../base';
@@ -149,11 +150,11 @@ export class GoogleCalendar extends BaseCalendar {
 					conferenceSolutionKey: {
 						type: 'hangoutsMeet',
 					},
+					requestId: `${event.name}-${event.start.toISOString()}-${event.end.toISOString()}`
 				}
 			}
 		};
-		const res = await gcal.events.insert({calendarId: event.calendar.id, requestBody: payload});
-		console.log(res.data);
+		const res = await gcal.events.insert({calendarId: event.calendar.id, requestBody: payload, conferenceDataVersion: 1});
 		return cleanEvent(res.data, event.calendar);
 	}
 }
@@ -184,7 +185,29 @@ function getColor(
 }
 
 function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent {
-	const { start, end, id, summary, htmlLink } = res;
+	const { start, end, id, summary, htmlLink, conferenceData } = res;
+
+	const conference: IConference[] = [];
+
+	if (conferenceData) {
+		if (conferenceData.conferenceSolution) {
+			const {name, iconUri} = conferenceData.conferenceSolution!;
+			
+			if (name && iconUri && conferenceData.entryPoints) {
+				conferenceData.entryPoints.forEach(ep => {
+					const conferenceSolution = {
+						name: name!,
+						icon: iconUri!,
+						entryPoint: [{
+							label: ep.label!,
+							uri: ep.uri!,
+						}]
+					};
+					conference.push(conferenceSolution);
+				});
+			}
+		}
+	}
 
 	const common = {
 		id: id!,
@@ -194,13 +217,14 @@ function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent 
 			// color: getColor(calendar, colors, event)
 		},
 		url: htmlLink!,
+		conference
 	};
 
 	if (start?.dateTime && end?.dateTime) {
 		return {
 			...common,
 			start: new Date(start!.dateTime),
-			end: new Date(end!.dateTime)
+			end: new Date(end!.dateTime),
 		};
 	} else {
 		// all-day event
@@ -208,7 +232,7 @@ function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent 
 			...common,
 			start: new Date(start!.date!),
 			end: new Date(end!.date!),
-			allDay: true
+			allDay: true,
 		};
 	}
 }

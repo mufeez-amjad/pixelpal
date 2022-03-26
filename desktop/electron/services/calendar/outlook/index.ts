@@ -125,7 +125,10 @@ export class OutlookCalendar extends BaseCalendar {
 						start: new Date(start!.dateTime!),
 						end: new Date(end!.dateTime!),
 						allDay: event.isAllDay || false,
-						calendar
+						calendar,
+						// TODO(mufeez): conference
+						conference: [],
+						url: event.webLink!
 					};
 				});
 

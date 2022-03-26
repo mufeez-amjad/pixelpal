@@ -7,19 +7,17 @@ export interface IEvent {
 	end: Date;
 	allDay?: boolean;
 	calendar: ICalendar;
-	conference?: IConference[];
-	url?: string;
-	// hangoutLink
-	// conferenceData
+	conference: IConference[];
+	url: string;
 }
 
-interface IConference {
+export interface IConference {
 	name: string;
+	icon: string;
 	entryPoint: EntryPoint[];
-
 }
 
-interface EntryPoint {
+export interface EntryPoint {
 	uri: string;
 	label: string;
 }

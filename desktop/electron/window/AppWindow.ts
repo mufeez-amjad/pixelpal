@@ -13,14 +13,14 @@ const WINDOW_HEIGHT = 540;
 interface IOptions {
 	transparent?: boolean;
 	autoHide?: boolean;
-	tray?: Tray;
+	tray?: AppTray;
 	position?: { x: number; y: number };
 	dimensions?: { width: number; height: number };
 	path?: string;
 }
 
 export class AppWindow extends BrowserWindow {
-	tray?: Tray;
+	tray?: AppTray;
 	width: number;
 	height: number;
 
@@ -77,7 +77,10 @@ export class AppWindow extends BrowserWindow {
 		this.on('blur', () => {
 			// TODO: uncomment
 			// if (!this.webContents.isDevToolsOpened()) {
-			// 	this.hide();
+			// 	if (this.tray) {
+			// 		this.tray.setPressed(false);
+			// 	}
+			// 	this.hide(); // TODO: change to close?
 			// }
 		});
 		this.on('close', event => {
@@ -158,7 +161,7 @@ export function createAppWindow(): void {
 
 	// Context Menu
 	const contextMenu = Menu.buildFromTemplate([
-		{ label: 'Quit', click: () => app.quit() }
+		{ label: 'Quit PixelPal', click: () => app.quit() }
 	]);
 
 	// Setting context Menu

@@ -47,8 +47,9 @@ interface Props {
 	date: Date;
 	event?: IEvent | undefined;
 	onSelectRange: (start: Date | null, end: Date | null, dragComplete: boolean) => void;
+	onSelectEvent: (event: IEvent) => void;
 }
-function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
+function Timeline({events, date, event, onSelectRange, onSelectEvent}: Props): JSX.Element {
 	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
 	const [allDayEvents, setAllDayEvents] = React.useState<IEvent[]>([]);
 
@@ -88,10 +89,10 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 
 	React.useEffect(() => {
 		if (lineRef.current && showRedLine) {
+			// TODO(mufeez): fix scrolling
 			lineRef.current.scrollIntoView({
 				behavior: 'smooth',
 				block: 'start',
-				inline: 'nearest',
 			});
 		}
 	}, [lineRef, showRedLine]);
@@ -119,6 +120,7 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 							left: `${width * i}%`
 						}}
 						divided={group.length > 1}
+						onClick={() => onSelectEvent(event)}
 					/>
 				);
 			});
@@ -172,6 +174,7 @@ function Timeline({events, date, onSelectRange, event}: Props): JSX.Element {
 							style={{
 								position: 'relative',
 							}}
+							onClick={() => onSelectEvent(event)}
 						/>
 					))}
 				</div>
@@ -368,7 +371,6 @@ const RedLine = styled.div<IRedLine>`
 	position: absolute;
 	top: ${({offsetTop}) => offsetTop - 8}px;
 	font-size: 11px;
-	color: red;
 	width: 100%;
 	pointer-events: none;
 
@@ -381,7 +383,7 @@ const RedLine = styled.div<IRedLine>`
 	}
 
 	hr {
-		border: 1px solid red;
+		border: 1px solid rgba(255,0,0, 0.7);
 		margin-top: -8px;
 		margin-left: -8px;
 	}
@@ -391,8 +393,9 @@ interface EventProps {
 	event: IEvent;
 	style?: CSSProperties;
 	divided?: boolean;
+	onClick?: () => void;
 }
-const Event = ({event, style, divided}: EventProps): JSX.Element => {
+const Event = ({event, style, divided, onClick}: EventProps): JSX.Element => {
 	const offsetStart = !event.allDay ? (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight: 0;
 	
 	const height = React.useMemo(() => {
@@ -429,6 +432,12 @@ const Event = ({event, style, divided}: EventProps): JSX.Element => {
 			height={height || 'fit-content'}
 			style={style}
 			divided={divided !== undefined && divided === true}
+			onClick={(e) => {
+				if (onClick) {
+					onClick();
+				}
+				e.preventDefault();
+			}}
 		>
 			<div>
 				{event.name && <div>
