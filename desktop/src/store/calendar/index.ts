@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { format, isSameDay } from 'date-fns';
+import { addHours, format, isSameDay } from 'date-fns';
 import { ICalendar, IEvent } from '../../../common/types';
 
 interface EventPayload {
 	day?: Date;
-	event: IEvent;
-	created: boolean;
+	event: IEvent | null;
+	state: EventState;
 }
 interface EventsPayload {
 	day?: Date;
@@ -18,27 +18,47 @@ interface CalendarsPayload {
 	calendars: Record<string, ICalendar[]>;
 }
 
+export enum EventState {
+	none,
+	dragging,
+	creating,
+	created,
+	selected
+}
+
 // Define a type for the slice state
 interface EventsState {
 	calendars: Record<string, ICalendar[]>;
 	events: Record<string, IEvent[]>;
 	event: {
 		value: IEvent;
-		created: boolean;
+		state: EventState;
 	} | null;
 	selectedDay: Date;
 }
 
+export const dayKeyFormat = (date: Date) => {
+	return format(date, 'd/M/yyyy');
+};
+
 // Define the initial state using that type
 const initialState: EventsState = {
 	calendars: {},
-	events: {},
+	events: {
+		'27/3/2022': [
+			{
+				name: 'Test',
+				start: new Date(),
+				end: addHours(new Date(), 1),
+				calendar: {
+					name: 'primary',
+					color: 'red'
+				}
+			}
+		]
+	},
 	event: null,
 	selectedDay: new Date()
-};
-
-export const dayKeyFormat = (date: Date) => {
-	return format(date, 'd/M/yyyy');
 };
 
 export const calendarSlice = createSlice({
@@ -46,10 +66,14 @@ export const calendarSlice = createSlice({
 	initialState,
 	reducers: {
 		setEvent: (state, action: PayloadAction<EventPayload>) => {
-			state.event = {
-				value: action.payload.event,
-				created: action.payload.created
-			};
+			if (action.payload.event) {
+				state.event = {
+					value: action.payload.event,
+					state: action.payload.state,
+				};
+			} else {
+				state.event = null;
+			}
 		},
 		addEvents: (state, action: PayloadAction<EventsPayload>) => {
 			const {payload} = action;
@@ -109,7 +133,7 @@ export const calendarSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { addEvents, setEvents, setSelectedDay, setCalendars } =
+export const { addEvents, setEvent, setEvents, setSelectedDay, setCalendars } =
 	calendarSlice.actions;
 
 export default calendarSlice.reducer;

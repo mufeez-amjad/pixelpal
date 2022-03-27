@@ -38,7 +38,7 @@ function Day({ day, selectedDay, onClick, isCurrentMonth, isWeekend, events}: ID
 	};
 
 	const colors = React.useMemo(() => {
-		return Array.from(new Set(events.map(e => e.calendar.color)));
+		return Array.from(new Set(events.map(e => e.calendar.color))).sort();
 	}, [events]);
 
 	return (

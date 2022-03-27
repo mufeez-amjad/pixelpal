@@ -1,6 +1,6 @@
 import React from 'react';
-import { css, CSSProperties, useTheme } from 'styled-components';
-import { styled, Theme } from '../../theme';
+import { css, CSSProperties } from 'styled-components';
+import { styled } from '../../theme';
 
 import { Link } from 'react-router-dom';
 import { endOfWeek, startOfWeek } from 'date-fns';
@@ -19,7 +19,7 @@ import { BiPlus, BiStopwatch } from 'react-icons/bi';
 import stand from './stand.gif';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { dayKeyFormat, addEvents, setEvents, setSelectedDay as setDay } from '../../store/calendar';
+import { dayKeyFormat, addEvents, setEvent, setEvents, setSelectedDay, EventState } from '../../store/calendar';
 
 enum Showing {
 	All = 'All',
@@ -28,27 +28,15 @@ enum Showing {
 }
 
 function Overview(): JSX.Element {
-	const theme = useTheme() as Theme;
-
 	const events = useAppSelector((state) => state.calendar.events);
+	const event = useAppSelector((state) => state.calendar.event);
+
 	const selectedDay = useAppSelector((state) => state.calendar.selectedDay);
 	const dispatch = useAppDispatch();
 
 	const [todaysEvents, setTodaysEvents] = React.useState<IEvent[]>([]);
 
 	const [isLoading, setLoading] = React.useState(true);
-	const [isOverlayShowing, setOverlayShowing] = React.useState(false);
-	const [event, setEvent] = React.useState<IEvent>();
-
-	const setSelectedDay = (day: Date) => {
-		dispatch(setDay({day: new Date(day)}));
-	};
-
-	React.useEffect(() => {
-		if (!isOverlayShowing) {
-			setEvent(undefined);
-		}
-	}, [isOverlayShowing]);
 
 	React.useEffect(() => {
 		setTodaysEvents(events[dayKeyFormat(selectedDay)]);
@@ -70,73 +58,24 @@ function Overview(): JSX.Element {
 					start: new Date(weekStart),
 					end: new Date(weekEnd)
 				});
+				dispatch(setEvents({ events: nextEvents }));
 			} catch (err) {
 				console.error(err);
 			} finally {
 				setLoading(false);
 			}
-
-			dispatch(setEvents({ events: nextEvents }));
 		})();
 	}, [weekStart, weekEnd]);
 
 	React.useEffect(() => {
 		function handleWindowShow() {
-			setSelectedDay(new Date());
+			dispatch(setSelectedDay({day: new Date()}));
 		}
 		ipcRenderer.on('hide-tray-window', handleWindowShow);
 		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowShow);
 	}, []);
 
-	const onSelectRange = (start: Date | null, end: Date | null, dragComplete = false) => {
-		if (!start || !end) {
-			setEvent(undefined);
-			return;
-		}
-		
-		const nextEvent = {
-			start,
-			end,
-		};
-		if (event) {
-			setEvent({
-				...event,
-				...nextEvent,
-			});
-		} else {
-			setEvent({
-				...nextEvent,
-				name: '',
-				calendar: {
-					name: '',
-					color: theme.color.primary, // TODO: accent
-				},
-				allDay: false
-			});
-		}
-		setOverlayShowing(dragComplete);
-	};
-
-	const onUpdateEvent = (newEvent: IEvent | null, created: boolean) => {
-		if (created && newEvent) {
-			dispatch(addEvents({events: [newEvent]}));
-			setEvent(undefined);
-			setOverlayShowing(false);
-		} else {
-			if (newEvent) {
-				setEvent({...event, ...newEvent});
-			} else {
-				setEvent(undefined);
-				setOverlayShowing(false);
-			}
-		}
-	};
-
-	const onSelectEvent = (event: IEvent) => {
-		console.log('Clicked!', event);
-		setEvent(event);
-		setOverlayShowing(true);
-	};
+	
 
 	return (
 		<PageContainer>
@@ -156,10 +95,10 @@ function Overview(): JSX.Element {
 								hoverColor='#333'
 								style={{
 									transition: 'ease-in .1s',
-									transform: isOverlayShowing ? 'rotate(45deg) translateZ(0)' : 'none',
+									transform: event ? 'rotate(45deg) translateZ(0)' : 'none',
 									zoom: '1.005',
 								}}
-								onClick={() => setOverlayShowing(!isOverlayShowing)}
+								onClick={() => dispatch(setEvent({event: null, state: EventState.none}))}
 							>
 								<BiPlus />
 							</TopButton>
@@ -177,13 +116,12 @@ function Overview(): JSX.Element {
 						</TopButtonsContainer>
 						<WeekCalendar
 							selectedDay={selectedDay}
-							onWeekdaySelect={setSelectedDay}
+							onWeekdaySelect={(d: Date) => dispatch(setSelectedDay({day: new Date(d)}))}
 						/>
 					</div>
-					{(isOverlayShowing && event) && <Event 
-						created={false}
-						event={event}
-						onUpdateEvent={onUpdateEvent}
+					{(event && event.state != EventState.dragging) && <Event 
+						created={event.state == EventState.created}
+						event={event.value}
 					/>}
 				</div>
 				<Character>
@@ -194,9 +132,6 @@ function Overview(): JSX.Element {
 				<Timeline
 					events={todaysEvents}
 					date={selectedDay}
-					onSelectRange={onSelectRange}
-					event={event}
-					onSelectEvent={onSelectEvent}
 				/>
 			</Bottom>
 		</PageContainer>
@@ -259,7 +194,7 @@ const TopButton: React.FC<TopButtonProps> = ({to, hoverColor, children, style, o
 		return (
 			<TopButtonLink
 				to={to}
-				hoverColor={hoverColor}
+				$hoverColor={hoverColor}
 			>
 				{children}
 			</TopButtonLink>
@@ -290,7 +225,7 @@ const baseButtonStyles = css`
 	}
 
 	:hover {
-		color: ${({ hoverColor }: TopButtonProps) => hoverColor || 'grey'};
+		color: ${({ $hoverColor }: {$hoverColor?: string}) => $hoverColor || 'grey'};
 		cursor: default;
 		filter: brightness(85%);
 	}

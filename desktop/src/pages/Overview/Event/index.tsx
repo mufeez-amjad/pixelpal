@@ -14,15 +14,13 @@ import {HiOutlineExternalLink} from 'react-icons/hi';
 import { BsArrowRight } from 'react-icons/bs';
 
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { setCalendars } from '../../../store/calendar';
+import { addEvents, EventState, setCalendars, setEvent } from '../../../store/calendar';
 import { Button, ButtonType } from '../../../common/buttons';
 interface EventProps {
 	event: IEvent;
 	created: boolean;
-	onUpdateEvent: (event: IEvent | null, created: boolean) => void;
 }
-
-function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
+function Event({event, created}: EventProps): JSX.Element {
 	const [isEvent, setIsEvent] = React.useState(true);
 	const [range, setRange] = React.useState({
 		start: {
@@ -72,6 +70,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 			}})
 		});
 		setErrors({...errors, start: null, end: null});
+		setCalendar(event.calendar);
 	}, [event]);
 
 	React.useEffect(() => {
@@ -98,47 +97,9 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 		setIsLoading(true);
 		const newEvent: IEvent = await ipcRenderer.invoke('createEvent', event);
 		setIsLoading(false);
-		onUpdateEvent(newEvent, true);
+		dispatch(addEvents({events: [newEvent]}));
+		dispatch(setEvent({event: null, state: EventState.none}));
 	};
-
-	React.useEffect(() => {
-		if (!range.start.dirty && !range.end.dirty) {
-			return;
-		}
-
-		const validateDate = (d: string): Date => {
-			const date = parse(d, 'h:mm aaa', new Date());
-			if (isNaN(date.getTime())) {
-				throw Error('invalid time');
-			}
-			return date;
-		};
-
-		let start, end: Date | undefined;
-
-		try {
-			start = validateDate(range.start.time);
-		} catch (e: unknown) {
-			console.log('error!');
-			if (e instanceof Error) {
-				setErrors({...errors, start: e.message});
-			}
-		}
-		try {
-			end = validateDate(range.end.time);
-		} catch (e: unknown) {
-			console.log('error!');
-			if (e instanceof Error) {
-				setErrors({...errors, end: e.message});
-			}
-		}
-
-		if (start == undefined || end == undefined) {
-			return;
-		}
-
-		onUpdateEvent({...event, start, end}, false);
-	}, [range]);
 
 	const calendarOptions = React.useMemo(() => {
 		return Object.entries(calendars).map((entry) => {
@@ -156,8 +117,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 
 	const onSelectCalendar = (cal: any) => {
 		const newCalendar = cal as ICalendar;
-		setCalendar(newCalendar);
-		onUpdateEvent({...event, calendar: newCalendar}, false);
+		dispatch(setEvent({event: {...event, calendar: newCalendar}, state: EventState.creating}));
 	};
 
 	return (
@@ -172,7 +132,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 							marginRight: 8
 						}}
 						autofocus
-						onChange={(e) => onUpdateEvent({...event, name: e.target.value }, false) }
+						onChange={(e) => dispatch(setEvent({event: {...event, name: e.target.value}, state: EventState.creating}))}
 					/>
 					<Switch
 						toggle={!isEvent}
@@ -285,7 +245,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 						}}
 					>
 						<Dropdown
-							value={calendar}
+							value={calendar.name}
 							options={calendarOptions}
 							Icon={IoCalendarClearOutline}
 							onSelectValue={onSelectCalendar}
@@ -315,7 +275,7 @@ function Event({event, created, onUpdateEvent}: EventProps): JSX.Element {
 				<Button
 					text='Cancel'
 					type={ButtonType.Default}
-					onClick={() => onUpdateEvent(null, false)}
+					onClick={() => dispatch(setEvent({event: null, state: EventState.none}))}
 				/>
 				<Button
 					text='Save'
@@ -333,7 +293,7 @@ const Container = styled.div`
 	background-color: #f3f3f3;
 	width: 100%;
 	height: fit-content;
-	z-index: 3;
+	z-index: 1000;
 `;
 
 const Form = styled.div`

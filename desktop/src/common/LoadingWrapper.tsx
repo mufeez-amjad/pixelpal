@@ -21,7 +21,6 @@ export const LoadingIndicator: React.FC<ILoadingProps> = ({ style }): JSX.Elemen
 const LoadingContainer = styled.div`
 	width: 100%;
 	height: fit-content;
-	z-index: 2;
 	
 	display: flex;
 

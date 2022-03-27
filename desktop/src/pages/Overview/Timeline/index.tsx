@@ -1,10 +1,12 @@
 import React from 'react';
-import styled, { CSSProperties } from 'styled-components';
-import { addMinutes, differenceInMinutes, format, intervalToDuration, isAfter, isEqual, isSameDay, isSameMinute, min, startOfDay, subMinutes } from 'date-fns';
-import { FaCircle } from 'react-icons/fa';
+import styled, { CSSProperties, useTheme } from 'styled-components';
+import { format, intervalToDuration, isAfter, isSameDay, isSameMinute } from 'date-fns';
 
 import { IEvent } from '../../../../common/types';
 import useDebounce from '../../../hooks/use_debounce';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { EventState, setEvent } from '../../../store/calendar';
+import { Theme } from '../../../theme';
 
 const hours = [
 	'12 AM',
@@ -40,46 +42,111 @@ const totalHeight = hours.length - 1 * hourHeight; // px
 interface DateTimeRange {
 	start: Date | null;
 	end: Date | null;
-	click?: Date | null;
+}
+interface MousePositionRange {
+	click: number | null;
+	current: number | null;
+	dragging: boolean;
 }
 interface Props {
 	events: IEvent[];
 	date: Date;
-	event?: IEvent | undefined;
-	onSelectRange: (start: Date | null, end: Date | null, dragComplete: boolean) => void;
-	onSelectEvent: (event: IEvent) => void;
 }
-function Timeline({events, date, event, onSelectRange, onSelectEvent}: Props): JSX.Element {
+function Timeline({events, date}: Props): JSX.Element {
+	const theme = useTheme() as Theme;
+
+	const dispatch = useAppDispatch();
+	const event = useAppSelector((state) => state.calendar.event);
+	
 	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
 	const [allDayEvents, setAllDayEvents] = React.useState<IEvent[]>([]);
 
+	/* 
+	 * Drag variables
+	*/
+	const [mousePosition, setMousePosition] = React.useState<MousePositionRange>({
+		click: null,
+		current: null,
+		dragging: false,
+	});
 	const [selectedRange, setSelectedRange] = React.useState<DateTimeRange>({
 		start: null,
 		end: null,
 	});
-
 	const debouncedSelectedRange = useDebounce(selectedRange, 5);
 
 	React.useEffect(() => {
-		const {start, end, click} = debouncedSelectedRange;
+		const {start, end} = selectedRange;
+		const {click, current} = mousePosition;
+
 		if (start && end) {
-			onSelectRange(start, end, click === null);
-		} else {
-			onSelectRange(null, null, false);
+			// New click
+			if (click && !current) {
+				setSelectedRange({start: null, end: null});
+			}
 		}
-	}, [debouncedSelectedRange]);
+
+		// Only mouseDown - no drag yet
+		if (!current || !click) {
+			return;
+		}
+
+		// Both click and current are set
+
+		if (Math.abs(click - current) > 10) {
+			const d1 = mouseCoordinateToDate(click);
+			const d2 = mouseCoordinateToDate(current);
+			if (!d1 || !d2) {
+				return;
+			}
+			setSelectedRange({
+				start: click < current ? d1 : d2,
+				end: click < current ? d2 : d1
+			});
+		}
+	}, [mousePosition]);
 
 	React.useEffect(() => {
-		let allEvents: IEvent[] = [];
-		if (events) {
-			allEvents = events;
+		const {start, end} = debouncedSelectedRange;
+
+		// Clear event
+		if (!start || !end) {
+			dispatch(setEvent({event: null, state: EventState.none}));
+		} else {
+			const nextEvent = {
+				start,
+				end,
+				allDay: false
+			};
+
+			if (event) {
+				dispatch(setEvent({
+					event: {
+						...event.value,
+						...nextEvent,
+					},
+					state: mousePosition.dragging ? EventState.dragging : EventState.creating
+				}));
+			} else {
+				dispatch(setEvent({
+					event: {
+						...nextEvent,
+						name: '',
+						calendar: {
+							name: '',
+							color: theme.color.primary,
+						},
+					},
+					state: mousePosition.dragging ? EventState.dragging : EventState.creating
+				}));
+			}
 		}
-		if (event) {
-			allEvents = [event, ...allEvents];
-		}
-		setScheduledEvents(groupIntoNonOverlapping(allEvents.filter(event => event.allDay == undefined || event.allDay === false)));
-		setAllDayEvents(allEvents.filter(event => event.allDay));
-	}, [events, event]);
+	}, [debouncedSelectedRange, mousePosition.dragging]);
+
+	React.useEffect(() => {
+		setScheduledEvents(groupIntoNonOverlapping((events || []).filter(event => event.allDay == undefined || event.allDay === false)));
+		setAllDayEvents((events || []).filter(event => event.allDay));
+	}, [events]);
 
 	const lineRef = React.useRef<null | HTMLDivElement>(null);
 
@@ -120,46 +187,69 @@ function Timeline({events, date, event, onSelectRange, onSelectEvent}: Props): J
 							left: `${width * i}%`
 						}}
 						divided={group.length > 1}
-						onClick={() => onSelectEvent(event)}
+						onClick={() => dispatch(setEvent({event, state: EventState.selected}))}
 					/>
 				);
 			});
 		});
 	}, [scheduledEvents]);
 
-	const onMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
-		setSelectedRange({start: null, end: null});
-		const date = mouseEventToDate(e);
+	const selectedEventRef = React.useRef<null | HTMLDivElement>(null);
 
-		if (date) {
-			setSelectedRange({start: null, end: null, click: date});
-		}
-	};
-
-	const onMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
-		const {start, end, click} = selectedRange;
-		if (click === undefined || click === null) {
+	const creating = React.useMemo(() => {
+		console.log(event?.state);
+		
+		if (event?.state === EventState.selected) {
 			return;
 		}
 
-		const date = mouseEventToDate(e);
-
-		if (date) {
-			if (start) {
-				// dragging downwards
-				if (isAfter(date, click)) {
-					setSelectedRange({...selectedRange, start: click, end: date});
-				} else if (!isEqual(date, click)){
-					setSelectedRange({...selectedRange, start: date, end: click});
-				}
-			} else {
-				setSelectedRange({...selectedRange, start: click, end: date});
-			}
+		if (event?.value) {
+			return (
+				<Event 
+					event={event.value}
+					zIndex={2}
+					ref={selectedEventRef}
+				/>
+			);
 		}
+	}, [event]);
+
+	React.useEffect(() => {
+		// if (selectedEventRef.current && event?.state === EventState.creating) {
+		// 	selectedEventRef.current.scrollIntoView({
+		// 		behavior: 'smooth',
+		// 		block: 'end'
+		// 	});
+		// }
+	}, [selectedEventRef, event]);
+
+	const onMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
+		// Not a left click
+		if (e.button != 0) {
+			return;
+		}
+		setMousePosition({ click: mouseEventToCoordinate(e)[1], current: null, dragging: true });
+	};
+
+	const onMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
+		// Not a left click
+		if (e.button != 0) {
+			return;
+		}
+		
+		if (!mousePosition.dragging) {
+			return;
+		}
+
+		setMousePosition({click: mousePosition.click, current: mouseEventToCoordinate(e)[1], dragging: true });
 	};
 
 	const onMouseUp: React.MouseEventHandler<HTMLDivElement> = (e) => {
-		setSelectedRange({...selectedRange, click: null});
+		// Not a left click
+		if (e.button != 0) {
+			return;
+		}
+		setMousePosition({ click: null, current: null, dragging: false });
 	};
 
 	return (
@@ -174,7 +264,7 @@ function Timeline({events, date, event, onSelectRange, onSelectEvent}: Props): J
 							style={{
 								position: 'relative',
 							}}
-							onClick={() => onSelectEvent(event)}
+							onClick={() => dispatch(setEvent({event, state: EventState.selected}))}
 						/>
 					))}
 				</div>
@@ -198,6 +288,7 @@ function Timeline({events, date, event, onSelectRange, onSelectEvent}: Props): J
 					onMouseUp={onMouseUp}
 				>
 					{grid}
+					{creating}
 					{scheduled}
 				</Events>
 				{showRedLine && <CurrentTime ref={lineRef}/>}
@@ -226,20 +317,25 @@ const mouseEventToCoordinate = (e: React.MouseEvent<HTMLDivElement, MouseEvent>)
 
 const mouseEventToDate = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
 	const y = mouseEventToCoordinate(e)[1];
+	return mouseCoordinateToDate(y);
+};
 
-	if (y) {
-		let hours = Math.floor(y / hourHeight);
-		const minutes = (y / hourHeight - hours) * 60;
-		const nearest15 = (Math.round(minutes / 15) * 15) % 60;
-		if (minutes > 30 && nearest15 == 0) {
-			hours += 1;
-		}
-
-		const date = new Date();
-		date.setHours(hours, nearest15);
-		date.setSeconds(0);
-		return date;
+const mouseCoordinateToDate = (y: number | null) => {
+	if (!y) {
+		return;
 	}
+
+	let hours = Math.floor(y / hourHeight);
+	const minutes = (y / hourHeight - hours) * 60;
+	const nearest15 = (Math.round(minutes / 15) * 15) % 60;
+	if (minutes > 30 && nearest15 == 0) {
+		hours += 1;
+	}
+
+	const date = new Date();
+	date.setHours(hours, nearest15);
+	date.setSeconds(0);
+	return date;
 };
 
 const Hours = styled.div`
@@ -271,7 +367,7 @@ const AllDay = styled.div`
 	width: 100%;
 
 	position: fixed;
-	z-index: 2;
+	z-index: 3;
 
 	> div {
 		background-color: white;
@@ -394,8 +490,10 @@ interface EventProps {
 	style?: CSSProperties;
 	divided?: boolean;
 	onClick?: () => void;
+	zIndex?: number;
 }
-const Event = ({event, style, divided, onClick}: EventProps): JSX.Element => {
+// eslint-disable-next-line react/display-name
+const Event = React.forwardRef<HTMLDivElement, EventProps>(({event, style, divided, zIndex, onClick}, ref) => {
 	const offsetStart = !event.allDay ? (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight: 0;
 	
 	const height = React.useMemo(() => {
@@ -411,7 +509,7 @@ const Event = ({event, style, divided, onClick}: EventProps): JSX.Element => {
 		if (duration.hours != null && duration.minutes != null) {
 			return (duration.hours + duration.minutes / 60) * hourHeight;
 		}
-	}, []);
+	}, [event]);
 
 	const [start, end] = React.useMemo(() => {
 		const formatTime = (date: Date) => {
@@ -426,18 +524,16 @@ const Event = ({event, style, divided, onClick}: EventProps): JSX.Element => {
 
 	return (
 		<EventContainer
+			zIndex={zIndex || 1}
 			offsetStart={offsetStart}
 			color={event.calendar.color}
 			darkerColor={shadeColor(event.calendar.color, -20)}
 			height={height || 'fit-content'}
 			style={style}
 			divided={divided !== undefined && divided === true}
-			onClick={(e) => {
-				if (onClick) {
-					onClick();
-				}
-				e.preventDefault();
-			}}
+			onMouseDown={(e) => e.stopPropagation()}
+			onClick={onClick}
+			ref={ref}
 		>
 			<div>
 				{event.name && <div>
@@ -449,7 +545,7 @@ const Event = ({event, style, divided, onClick}: EventProps): JSX.Element => {
 			</div>
 		</EventContainer>
 	);
-};
+});
 
 interface IEventContainer {
 	offsetStart: number;
@@ -457,6 +553,7 @@ interface IEventContainer {
 	darkerColor: string;
 	height: number | string;
 	divided: boolean;
+	zIndex: number;
 }
 
 const EventContainer = styled.div<IEventContainer>`
@@ -470,6 +567,7 @@ const EventContainer = styled.div<IEventContainer>`
 	font-size: 10px;
 	font-weight: 500;
 	top: ${({offsetStart}) => offsetStart}px;
+	z-index: ${({zIndex}) => zIndex};
 
 	border-radius: 4px;
 	padding-left: 4px;
