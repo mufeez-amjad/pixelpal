@@ -39,6 +39,7 @@
 		"semi": ["error", "always"],
 		"react/no-unescaped-entities": 0,
 		"react/prop-types": 0,
-		"@typescript-eslint/no-empty-function": 0
+		"@typescript-eslint/no-empty-function": 0,
+		"@typescript-eslint/ban-ts-comment": 0
 	}
 }

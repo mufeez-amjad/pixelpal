@@ -21,6 +21,19 @@ import stand from './stand.gif';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { dayKeyFormat, addEvents, setEvents, setSelectedDay as setDay } from '../../store/calendar';
 
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import moment from 'moment';
+
+const localizer = momentLocalizer(moment);
+
+// @ts-ignore
+const DnDCalendar = withDragAndDrop(Calendar);
+
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import CustomDay from './Timeline/CustomDay';
+
 enum Showing {
 	All = 'All',
 	Events = 'Events',
@@ -138,6 +151,15 @@ function Overview(): JSX.Element {
 		setOverlayShowing(true);
 	};
 
+	const onEventResize = (data: any) => {
+		// resize event and tell gcal
+	};
+
+	const onEventDrop = (data: any) => {
+		// move event and tell gcal
+		console.log(data);
+	};
+
 	return (
 		<PageContainer>
 			<Top>
@@ -191,12 +213,18 @@ function Overview(): JSX.Element {
 				</Character>
 			</Top>
 			<Bottom>
-				<Timeline
-					events={todaysEvents}
+				<DnDCalendar
+					toolbar={false}
 					date={selectedDay}
-					onSelectRange={onSelectRange}
-					event={event}
-					onSelectEvent={onSelectEvent}
+					localizer={localizer}
+					//@ts-ignore
+					titleAccessor={(event) => event.name}
+					events={todaysEvents}
+					defaultView={'day'}
+					//@ts-ignore
+					views={{ day: CustomDay }}
+					onEventDrop={onEventDrop}
+					onEventResize={onEventResize}
 				/>
 			</Bottom>
 		</PageContainer>
