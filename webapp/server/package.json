@@ -11,12 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.26.1",
+    "cors": "^2.8.5",
     "ethers": "^5.5.4",
     "express": "^4.17.2",
     "knex": "^1.0.2",
     "pg": "^8.7.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.14",
     "nodemon": "^2.0.15",

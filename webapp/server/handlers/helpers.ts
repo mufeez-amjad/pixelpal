@@ -8,6 +8,9 @@ export function handle<Params, Body, Returns>(
 	res: Response<Returns | { name?: string; error: string }>
 ) => Promise<void> {
 	return async (req, res) => {
+		res.set('Access-Control-Allow-Origin', '*');
+		console.log('hello');
+		
 		try {
 			const returns = await fn(req.params, req.body);
 			res.json(returns);
@@ -20,3 +23,4 @@ export function handle<Params, Body, Returns>(
 		}
 	};
 }
+
