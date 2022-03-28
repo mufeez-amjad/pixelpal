@@ -5,6 +5,7 @@ import { NFTHandler } from './handlers/nfthandler';
 import { handle } from './handlers/helpers';
 import { config } from './config/config';
 import cors from 'cors';
+import path from 'path';
 
 const app: Application = express();
 app.use(express.json());
@@ -15,8 +16,17 @@ const db: Knex = knex(config.db);
 const authHandler = new AuthHandler(db);
 const nftHander = new NFTHandler(db);
 
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 app.post('/auth', handle(authHandler.registerPublicKey.bind(authHandler)));
 app.get('/nft/:ppid', handle(nftHander.getPixelpalsForPPID.bind(nftHander)));
+app.get('/ping', (_req, res) => {
+	res.status(200).json({ 'message': 'pong!' });
+});
 
 if (require.main === module) {
 	app.listen(config.port, () => {
