@@ -22,7 +22,6 @@ export enum EventState {
 	none,
 	dragging,
 	creating,
-	created,
 	selected
 }
 
@@ -44,19 +43,7 @@ export const dayKeyFormat = (date: Date) => {
 // Define the initial state using that type
 const initialState: EventsState = {
 	calendars: {},
-	events: {
-		'27/3/2022': [
-			{
-				name: 'Test',
-				start: new Date(),
-				end: addHours(new Date(), 1),
-				calendar: {
-					name: 'primary',
-					color: 'red'
-				}
-			}
-		]
-	},
+	events: {},
 	event: null,
 	selectedDay: new Date()
 };
@@ -66,6 +53,8 @@ export const calendarSlice = createSlice({
 	initialState,
 	reducers: {
 		setEvent: (state, action: PayloadAction<EventPayload>) => {
+			console.log('Setting event in reducer!', action.payload);
+
 			if (action.payload.event) {
 				state.event = {
 					value: action.payload.event,

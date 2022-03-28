@@ -9,13 +9,14 @@ import { ICalendar, IEvent } from '../../../../common/types';
 
 import { IoCalendarClearOutline, IoCalendarClearSharp } from 'react-icons/io5';
 import { GoCheck } from 'react-icons/go';
-import { BiTimeFive } from 'react-icons/bi';
-import {HiOutlineExternalLink} from 'react-icons/hi';
+import { BiPencil, BiTimeFive } from 'react-icons/bi';
+import { HiOutlineExternalLink } from 'react-icons/hi';
 import { BsArrowRight } from 'react-icons/bs';
 
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { addEvents, EventState, setCalendars, setEvent } from '../../../store/calendar';
 import { Button, ButtonType } from '../../../common/buttons';
+import { LinkWithIcon } from '..';
 interface EventProps {
 	event: IEvent;
 	created: boolean;
@@ -37,13 +38,13 @@ function Event({event, created}: EventProps): JSX.Element {
 		},
 	});
 	const [description, setDescription] = React.useState('');
-	const [errors, setErrors] = React.useState<Record<keyof IEvent, string | null>>({
-		name: null,
-		start: null,
-		end: null,
-		allDay: null,
-		calendar: null
-	});
+	// const [errors, setErrors] = React.useState<Record<keyof IEvent, string | null>>({
+	// 	name: null,
+	// 	start: null,
+	// 	end: null,
+	// 	allDay: null,
+	// 	calendar: null
+	// });
 
 	const [calendar, setCalendar] = React.useState<ICalendar>(event.calendar);
 
@@ -69,7 +70,7 @@ function Event({event, created}: EventProps): JSX.Element {
 				dirty: false
 			}})
 		});
-		setErrors({...errors, start: null, end: null});
+		// setErrors({...errors, start: null, end: null});
 		setCalendar(event.calendar);
 	}, [event]);
 
@@ -134,18 +135,40 @@ function Event({event, created}: EventProps): JSX.Element {
 						autofocus
 						onChange={(e) => dispatch(setEvent({event: {...event, name: e.target.value}, state: EventState.creating}))}
 					/>
-					<Switch
-						toggle={!isEvent}
-					>
-						<IoCalendarClearSharp 
-							onClick={() => setIsEvent(true)}
-						/>
-						<GoCheck
-							fontWeight={700}
-							onClick={() => setIsEvent(false)}
-						/>
-						<div className="slider"></div>
-					</Switch>
+					{!created ? (
+						<Switch
+							toggle={!isEvent}
+						>
+							<IoCalendarClearSharp 
+								onClick={() => setIsEvent(true)}
+							/>
+							<GoCheck
+								fontWeight={700}
+								onClick={() => setIsEvent(false)}
+							/>
+							<div className="slider"></div>
+						</Switch>
+					) : (
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center'
+							}}
+						>
+							<LinkWithIcon>
+								<BiPencil
+									size={16}
+								/>
+							</LinkWithIcon>
+							<LinkWithIcon
+								onClick={() => ipcRenderer.invoke('externalLink', event.url)}
+							>
+								<HiOutlineExternalLink 
+									size={16}
+								/>
+							</LinkWithIcon>
+						</div>
+					)}
 				</Row>
 				<Row
 					style={{
@@ -166,7 +189,7 @@ function Event({event, created}: EventProps): JSX.Element {
 								time: e.target.value,
 								dirty: true,
 							}})}
-							error={errors['start']}
+							// error={errors['start']}
 							Icon={BiTimeFive}
 							iconStyle={{
 								fontSize: 16,
@@ -180,7 +203,7 @@ function Event({event, created}: EventProps): JSX.Element {
 								day: e.target.value,
 								dirty: true,
 							}})}
-							error={errors['end']}
+							// error={errors['end']}
 							style={{
 								marginLeft: 16,
 							}}
@@ -210,7 +233,7 @@ function Event({event, created}: EventProps): JSX.Element {
 								iconStyle={{
 									fontSize: 18,
 								}}
-								error={errors['end']}
+								// error={errors['end']}
 								style={{
 									width: 100
 								}}
@@ -234,7 +257,7 @@ function Event({event, created}: EventProps): JSX.Element {
 								day: e.target.value,
 								dirty: true,
 							}})}
-							error={errors['end']}
+							// error={errors['end']}
 						/>}
 					</Column>
 				</Row>

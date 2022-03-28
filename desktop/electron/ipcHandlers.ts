@@ -1,7 +1,7 @@
 import os from 'os';
 
 import Store from 'electron-store';
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import {
 	DatabaseService,
 	getDatabaseConnection
@@ -99,6 +99,10 @@ export function initHandlers(): void {
 			return await platform.createEvent(event);
 		}
 		throw Error('Error creating event, try again later.');
+	});
+
+	ipcMain.handle('externalLink', (_, url) => {
+		shell.openExternal(url);
 	});
 
 	ipcMain.handle('getEventsForWeek', async (_, week) => {

@@ -224,12 +224,6 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 	const [value, setValue] = React.useState('');
 	const [option, setOption] = React.useState<Option | null>(null);
 
-	React.useEffect(() => {
-		if (option) {
-			setIsDropped(false);
-			onSelectValue(option.data);
-		}
-	}, [option]);
 
 	React.useEffect(() => {
 		if (!isDropped && !option) {
@@ -296,7 +290,12 @@ export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: Dr
 								{os.items.map((opt, j) => (
 									<OptionItem
 										key={j}
-										onClick={() => { setValue(opt.value); setOption(opt); }}
+										onClick={() => { 
+											setValue(opt.value);
+											setOption(opt);
+											setIsDropped(false);
+											onSelectValue(opt.data);
+										}}
 										onMouseEnter={() => setValue(opt.value)}
 									>
 										<div

@@ -75,8 +75,6 @@ function Overview(): JSX.Element {
 		return () => ipcRenderer.removeListener('hide-tray-window', handleWindowShow);
 	}, []);
 
-	
-
 	return (
 		<PageContainer>
 			<Top>
@@ -91,7 +89,7 @@ function Overview(): JSX.Element {
 							{isLoading && <LoadingIndicator
 								style={{ width: 18, height: 18, marginRight: 12 }}
 							/>}
-							<TopButton
+							<LinkWithIcon
 								hoverColor='#333'
 								style={{
 									transition: 'ease-in .1s',
@@ -101,18 +99,18 @@ function Overview(): JSX.Element {
 								onClick={() => dispatch(setEvent({event: null, state: EventState.none}))}
 							>
 								<BiPlus />
-							</TopButton>
-							<TopButton
+							</LinkWithIcon>
+							<LinkWithIcon
 								to={'/'}
 								hoverColor='tomato'
 							>
 								<BiStopwatch />
-							</TopButton>
-							<TopButton
+							</LinkWithIcon>
+							<LinkWithIcon
 								to={'/settings'}
 							>
 								<IoSettingsSharp />
-							</TopButton>
+							</LinkWithIcon>
 						</TopButtonsContainer>
 						<WeekCalendar
 							selectedDay={selectedDay}
@@ -120,7 +118,7 @@ function Overview(): JSX.Element {
 						/>
 					</div>
 					{(event && event.state != EventState.dragging) && <Event 
-						created={event.state == EventState.created}
+						created={event.state == EventState.selected}
 						event={event.value}
 					/>}
 				</div>
@@ -189,7 +187,7 @@ interface TopButtonProps {
 	style?: CSSProperties;
 	onClick?: () => void;
 }
-const TopButton: React.FC<TopButtonProps> = ({to, hoverColor, children, style, onClick}: TopButtonProps) => {
+export const LinkWithIcon: React.FC<TopButtonProps> = ({to, hoverColor, children, style, onClick}: TopButtonProps) => {
 	if (to) {
 		return (
 			<TopButtonLink

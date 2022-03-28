@@ -136,6 +136,9 @@ function Timeline({events, date}: Props): JSX.Element {
 							name: '',
 							color: theme.color.primary,
 						},
+						conference: [],
+						url: '',
+						id: '',
 					},
 					state: mousePosition.dragging ? EventState.dragging : EventState.creating
 				}));
@@ -197,8 +200,6 @@ function Timeline({events, date}: Props): JSX.Element {
 	const selectedEventRef = React.useRef<null | HTMLDivElement>(null);
 
 	const creating = React.useMemo(() => {
-		console.log(event?.state);
-		
 		if (event?.state === EventState.selected) {
 			return;
 		}
