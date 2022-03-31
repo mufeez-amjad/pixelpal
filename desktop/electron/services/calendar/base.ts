@@ -9,6 +9,7 @@ export interface IEvent {
 	calendar: ICalendar;
 	conference: IConference[];
 	url: string;
+	description: string;
 }
 
 export interface IConference {
@@ -19,7 +20,7 @@ export interface IConference {
 
 export interface EntryPoint {
 	uri: string;
-	label: string;
+	type: string;
 }
 
 export interface ICalendar {

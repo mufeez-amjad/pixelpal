@@ -185,7 +185,7 @@ function getColor(
 }
 
 function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent {
-	const { start, end, id, summary, htmlLink, conferenceData } = res;
+	const { start, end, id, summary, htmlLink, conferenceData, description } = res;
 
 	const conference: IConference[] = [];
 
@@ -194,16 +194,13 @@ function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent 
 			const {name, iconUri} = conferenceData.conferenceSolution!;
 			
 			if (name && iconUri && conferenceData.entryPoints) {
-				conferenceData.entryPoints.forEach(ep => {
-					const conferenceSolution = {
-						name: name!,
-						icon: iconUri!,
-						entryPoint: [{
-							label: ep.label!,
-							uri: ep.uri!,
-						}]
-					};
-					conference.push(conferenceSolution);
+				conference.push({
+					name: name!,
+					icon: iconUri!,
+					entryPoint: conferenceData.entryPoints.map(ep => ({
+						type: ep.entryPointType!,
+						uri: ep.uri!,
+					}))
 				});
 			}
 		}
@@ -217,7 +214,8 @@ function cleanEvent(res: calendar_v3.Schema$Event, calendar: ICalendar): IEvent 
 			// color: getColor(calendar, colors, event)
 		},
 		url: htmlLink!,
-		conference
+		conference,
+		description: description || ''
 	};
 
 	if (start?.dateTime && end?.dateTime) {

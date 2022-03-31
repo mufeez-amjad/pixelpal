@@ -95,7 +95,7 @@ export function initHandlers(): void {
 
 		if (platformAccounts !== undefined) {
 			const account = platformAccounts[event.calendar.account];
-			platform.auth(account);
+			await platform.auth(account);
 			return await platform.createEvent(event);
 		}
 		throw Error('Error creating event, try again later.');

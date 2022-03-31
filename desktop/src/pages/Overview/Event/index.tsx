@@ -17,11 +17,28 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { addEvents, EventState, setCalendars, setEvent } from '../../../store/calendar';
 import { Button, ButtonType } from '../../../common/buttons';
 import { LinkWithIcon } from '..';
+import useKeyboardShortcuts, { KEY_CODE, SHORTCUT } from '../../../hooks/use_keyboard_shortcuts';
 interface EventProps {
 	event: IEvent;
 	created: boolean;
 }
 function Event({event, created}: EventProps): JSX.Element {
+	const dispatch = useAppDispatch();
+
+	const lastShortcut = useKeyboardShortcuts([
+		{name: SHORTCUT.ESCAPE, keyCode: KEY_CODE.ESCAPE},
+	]);
+
+	// Act on keyboard shortcuts
+	React.useEffect(() => {
+		switch (lastShortcut) {
+		case SHORTCUT.ESCAPE:
+			dispatch(setEvent({event: null, state: EventState.none}));
+			break;
+		}
+	}, [lastShortcut]);
+
+
 	const [isEvent, setIsEvent] = React.useState(true);
 	const [range, setRange] = React.useState({
 		start: {
@@ -37,21 +54,13 @@ function Event({event, created}: EventProps): JSX.Element {
 			dirty: false
 		},
 	});
-	const [description, setDescription] = React.useState('');
-	// const [errors, setErrors] = React.useState<Record<keyof IEvent, string | null>>({
-	// 	name: null,
-	// 	start: null,
-	// 	end: null,
-	// 	allDay: null,
-	// 	calendar: null
-	// });
+	const [description, setDescription] = React.useState(event.description);
 
 	const [calendar, setCalendar] = React.useState<ICalendar>(event.calendar);
 
 	const [isLoading, setIsLoading] = React.useState(false);
 
 	const calendars = useAppSelector((state) => state.calendar.calendars);
-	const dispatch = useAppDispatch();
 
 	React.useEffect(() => {
 		const dayFormat = 'EEE MMMM d';
@@ -72,6 +81,7 @@ function Event({event, created}: EventProps): JSX.Element {
 		});
 		// setErrors({...errors, start: null, end: null});
 		setCalendar(event.calendar);
+		setDescription(event.description);
 	}, [event]);
 
 	React.useEffect(() => {
@@ -119,6 +129,13 @@ function Event({event, created}: EventProps): JSX.Element {
 	const onSelectCalendar = (cal: any) => {
 		const newCalendar = cal as ICalendar;
 		dispatch(setEvent({event: {...event, calendar: newCalendar}, state: EventState.creating}));
+	};
+
+	const handleConferenceClick = (c: IEvent['conference'][number]) => {
+		const link = c.entryPoint.find(ep => ep.type == 'video')?.uri;
+		if (link) {
+			ipcRenderer.invoke('externalLink', link);
+		}
 	};
 
 	return (
@@ -261,6 +278,46 @@ function Event({event, created}: EventProps): JSX.Element {
 						/>}
 					</Column>
 				</Row>
+				{(!created || event.conference.length > 0) && <Row>
+					{created ? (event.conference.map((c, i) => (
+						<ConferencingSolution
+							key={`${c.name}-${i}`}
+						>
+							<div>
+								<img src={c.icon} />
+								<div
+									onClick={() => handleConferenceClick(c)}
+								>
+									Join {c.name}
+								</div>
+							</div>
+							{/* <div>
+								{c.entryPoint.map((ep, j) => (
+									<div
+										key={`${ep.type}-${j}`}
+									>
+										<span>{ep.type}</span>
+										<span>{ep.uri}</span>
+									</div>
+								))}
+							</div> */}
+						</ConferencingSolution>
+					))) : (
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center'
+							}}
+						>
+							<input type="checkbox" />
+							<span
+								style={{
+									marginLeft: 8
+								}}
+							>Add meeting room</span>
+						</div>
+					)}
+				</Row>}
 				<Row>
 					<div
 						style={{
@@ -290,7 +347,7 @@ function Event({event, created}: EventProps): JSX.Element {
 					/>
 				</Row>
 			</Form>
-			<Row
+			{!created && <Row
 				style={{
 					justifyContent: 'flex-end',
 				}}
@@ -306,7 +363,7 @@ function Event({event, created}: EventProps): JSX.Element {
 					onClick={createEvent}
 					loading={isLoading}
 				/>
-			</Row>
+			</Row>}
 		</Container>
 	);
 }
@@ -315,8 +372,12 @@ const Container = styled.div`
 	position: absolute;
 	background-color: #f3f3f3;
 	width: 100%;
-	height: fit-content;
+	max-height: 350px;
+	overflow: overlay;
+	/* overflow-y: scroll; */
 	z-index: 1000;
+
+	--scrollbar-color: #00000040 !important; // always show scrollbar
 `;
 
 const Form = styled.div`
@@ -413,9 +474,30 @@ const Switch = styled.div<SwitchProps>`
 		}
 
 		&:not(:first-child) {
-			color: ${theme.color.midGrey};;
+			color: ${theme.color.midGrey};
 		}
 		`};
+	}
+`;
+
+const ConferencingSolution = styled.div`
+	img {
+		width: 18px;
+		height: 18px;
+	}
+
+	> div:first-child {
+		display: flex;
+		align-items: center;
+		
+		div {
+			color: white;
+			margin-left: 8px;
+
+			padding: 6px 12px;
+			background-color: #1a73e8;
+			border-radius: 8px;
+		}
 	}
 `;
 

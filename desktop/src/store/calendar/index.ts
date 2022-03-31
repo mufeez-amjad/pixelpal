@@ -53,8 +53,6 @@ export const calendarSlice = createSlice({
 	initialState,
 	reducers: {
 		setEvent: (state, action: PayloadAction<EventPayload>) => {
-			console.log('Setting event in reducer!', action.payload);
-
 			if (action.payload.event) {
 				state.event = {
 					value: action.payload.event,

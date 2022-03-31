@@ -76,6 +76,15 @@ function Timeline({events, date}: Props): JSX.Element {
 	const debouncedSelectedRange = useDebounce(selectedRange, 5);
 
 	React.useEffect(() => {
+		if (!event?.value) {
+			setSelectedRange({
+				start: null,
+				end: null,
+			});
+		}
+	}, [event]);
+
+	React.useEffect(() => {
 		const {start, end} = selectedRange;
 		const {click, current} = mousePosition;
 
@@ -135,10 +144,14 @@ function Timeline({events, date}: Props): JSX.Element {
 						calendar: {
 							name: '',
 							color: theme.color.primary,
+							platform: '',
+							account: '',
+							id: ''
 						},
 						conference: [],
 						url: '',
 						id: '',
+						description: ''
 					},
 					state: mousePosition.dragging ? EventState.dragging : EventState.creating
 				}));
@@ -470,6 +483,7 @@ const RedLine = styled.div<IRedLine>`
 	font-size: 11px;
 	width: 100%;
 	pointer-events: none;
+	z-index: 2;
 
 	span {
 		background-color: red;

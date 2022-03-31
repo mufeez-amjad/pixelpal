@@ -128,7 +128,8 @@ export class OutlookCalendar extends BaseCalendar {
 						calendar,
 						// TODO(mufeez): conference
 						conference: [],
-						url: event.webLink!
+						url: event.webLink!,
+						description: event.body?.content || ''
 					};
 				});
 

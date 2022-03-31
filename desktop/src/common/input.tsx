@@ -213,7 +213,7 @@ export interface DropdownOptions {
 	items: Option[];
 }
 interface DropdownProps {
-	value: any;
+	value: string;
 	options: DropdownOptions[];
 	onSelectValue: (data: Option['data']) => void;
 	Icon?: IconType;
@@ -221,13 +221,12 @@ interface DropdownProps {
 export const Dropdown = ({value: initialValue, options, Icon, onSelectValue}: DropdownProps): JSX.Element => {
 	const [isDropped, setIsDropped] = React.useState(false);
 
-	const [value, setValue] = React.useState('');
+	const [value, setValue] = React.useState(initialValue);
 	const [option, setOption] = React.useState<Option | null>(null);
-
 
 	React.useEffect(() => {
 		if (!isDropped && !option) {
-			setValue('');
+			setValue(initialValue);
 		}
 	}, [isDropped]);
 
