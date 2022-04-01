@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app, autoUpdater } from 'electron';
 import { createAppWindow } from './window/AppWindow';
 import { createNotificationWindow } from './window/NotificationWindow';
 import { migrate, startDatabaseService } from './services/db/DatabaseService';
@@ -20,6 +20,15 @@ async function init() {
 	initHandlers();
 
 	await migrate();
+}
+
+const server = 'https://electron-release-server-hazel.vercel.app/';
+autoUpdater.setFeedURL({ url: `${server}/update/${process.platform}/${app.getVersion()}`});
+
+if (process.env.NODE_ENV === 'production') {
+	setInterval(() => {
+		autoUpdater.checkForUpdates();
+	}, 60 * 1000); // every hour
 }
 
 app.whenReady().then(async () => {
