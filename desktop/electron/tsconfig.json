@@ -22,5 +22,5 @@
 		"noEmitOnError": true,
 		"jsx": "react-jsx"
 	},
-	"include": ["./**/*"],
+	"include": ["./**/*", "./**/*.{html}"],
 }

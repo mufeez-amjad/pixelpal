@@ -6,7 +6,7 @@
 	"homepage": "./",
 	"scripts": {
 		"start": "react-scripts start",
-		"build": "react-scripts build && tsc -p ./electron",
+		"build": "react-scripts build && tsc -p ./electron && npm run copy",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
 		"lint": "eslint src/**/*.js src/**/*.jsx",
@@ -15,7 +15,8 @@
 		"electron:start": "wait-on tcp:3000 && electron .",
 		"migrate:make": "knex migrate:make",
 		"prepare": "cd .. && husky install",
-		"release": "electron-builder"
+		"release": "electron-builder",
+		"copy": "copyfiles -u 1 \"./electron/**/*.{css,html,webp}\" \"./build/\""
 	},
 	"build": {
 		"extends": null,
@@ -91,6 +92,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.16.0",
 		"@typescript-eslint/parser": "^5.16.0",
 		"concurrently": "^7.0.0",
+		"copyfiles": "^2.4.1",
 		"cross-env": "^7.0.3",
 		"electron": "^17.2.0",
 		"electron-builder": "^22.14.13",

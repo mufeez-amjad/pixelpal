@@ -2,9 +2,11 @@ import { app, autoUpdater } from 'electron';
 import { createAppWindow } from './window/AppWindow';
 import { createNotificationWindow } from './window/NotificationWindow';
 import { migrate, startDatabaseService } from './services/db/DatabaseService';
-// import { startSchedulerService } from './services/scheduler/SchedulerService';
 import { initHandlers } from './ipcHandlers';
 import 'reflect-metadata';
+
+import { createNotification, setGlobalStyles } from './services/notification';
+import { startSchedulerService } from './services/scheduler/CalendarScheduler';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('@electron/remote/main').initialize();
@@ -15,7 +17,7 @@ async function init() {
 	createNotificationWindow();
 
 	startDatabaseService();
-	// startSchedulerService();
+	startSchedulerService();
 
 	initHandlers();
 
@@ -23,7 +25,7 @@ async function init() {
 }
 
 const server = 'https://electron-release-server-hazel.vercel.app/';
-autoUpdater.setFeedURL({ url: `${server}/update/${process.platform}/${app.getVersion()}`});
+autoUpdater.setFeedURL({ url: `${server}/update/${process.platform}/${app.getVersion()}` });
 
 if (process.env.NODE_ENV === 'production') {
 	setInterval(() => {

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @charset "UTF-8";
+
+        html {
+            box-sizing: border-box
+        }
+
+        *,
+        :after,
+        :before {
+            box-sizing: inherit
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: transparent;
+            user-select: none;
+        }
+
+        #notification-container,
+        body,
+        html {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .col:not(:last-child) {
+            margin-right: 4px;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .row:not(:first-child) {
+            margin-top: 4px;
+        }
+
+        .separator {
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        #container {
+            position: absolute;
+            top: 0;
+            right: 0;
+
+            font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", 
+            "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans",
+            "Helvetica Neue", "blueprint-icons-16", sans-serif;
+        }
+
+        .content {
+            display: flex;
+            height: 70px;
+            font-size: 14px;
+            background-color: #fff;
+
+			margin: 10px;
+            margin-right: 50px;
+            padding: 16px 18px;
+            border-radius: 12px;
+
+			box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+
+            justify-content: space-between;
+        }
+
+        .notification h1 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+
+            width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn {
+            all: unset;
+            cursor: pointer;
+            
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 6px 8px;
+            border: rgb(182, 182, 182) 1px solid;
+            border-radius: 4px;
+        }
+
+        .icon-btn img {
+            width: 24px;
+            height: 24px;
+
+            margin-right: 4px;
+        }
+
+        #pixelpal {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 80px;
+            width: auto;
+            /* display: none; */
+        }
+
+        .animate-in {
+            animation: slideIn .4s ease-in;
+        }
+
+        .animate-out {
+            animation: slideOut .4s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            0% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+    </style>
+    <script>
+        // const ipc = require('electron').ipcRenderer;
+        
+        // ipc.on('notification-add', (e, html) => {
+        //     const container = document.getElementById('notification-container');
+        //     const domParser = new DOMParser();
+        //     const parsedElement = domParser.parseFromString(html, "text/html").body.children[0];
+
+        //     if (parsedElement) {
+        //         parsedElement.classList.add('animate-in');
+
+        //         parsedElement.addEventListener('mouseenter', () => {
+        //             ipc.send('set-ignore-mouse-events', false);
+        //         });
+        //         parsedElement.addEventListener('mouseleave', () => {
+        //             ipc.send('set-ignore-mouse-events', true, { forward: true });
+        //         });
+
+        //         parsedElement.addEventListener('click', () => {
+        //             ipc.send('notification-clicked', parsedElement.getAttribute('id'));
+        //         })
+
+        //         function findChildButton(node) {
+        //             if (node.tagName == 'BUTTON') {
+        //                 return node;
+        //             }
+
+        //             if (node.hasChildNodes) {
+        //                 for (const child of node.childNodes) {
+        //                     const button = findChildButton(child);
+        //                     if (button) {
+        //                         return button;
+        //                     }
+        //                 }
+        //             }
+        //         }
+
+        //         const button = findChildButton(parsedElement);
+
+        //         if (button) {
+        //             button.addEventListener('click', () => {
+        //                 ipc.send('notification-btn-clicked', parsedElement.getAttribute('id'));
+        //             });
+        //         }
+
+        //         container.insertBefore(parsedElement, container.firstChild);
+        //     }
+        // });
+
+        // ipc.on('notification-remove', (e, id) => {
+        //     const notification = document.getElementById(id);
+
+        //     notification.classList.remove('animate-in');
+        //     notification.classList.add('animate-out');
+
+        //     setTimeout(() => {
+        //         notification.parentElement.removeChild(notification);
+        //     }, 1000);
+        // });
+
+        // ipc.on('custom-styles', (e, css) => {
+        //     const style = document.createElement('style');
+        //     style.type = 'text/css';
+        //     style.innerHTML = css;
+
+        //     document.querySelector('head').appendChild(style);
+        // });
+
+        window.onload = function () {
+            const pp = document.getElementById('pixelpal');
+            if (pp) {
+                setTimeout(() => {
+                    pp.src = './wave.gif';
+                }, 1000);
+            }
+
+            const el = document.getElementsByClassName('content')[0];
+            if (el) {
+                el.style.display = 'none';
+                setTimeout(() => {
+                    el.style.display = 'flex';
+                }, 400);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="container">
+        <div class="notification">
+            <div class="content animate-in">
+                <div class="col">
+                    <div class="row">
+                        <h1>Storage pre-mortem</h1>
+                    </div>
+                    <div class="row">
+                        <span>now</span>
+                        <span class="separator">•</span>
+                        <span>3-4pm</span>
+                    </div>
+                </div>
+                <button class="btn icon-btn">
+                    <img src="./meet.webp" />
+                    Join meeting
+                </button>
+            </div>
+            <img id="pixelpal" src="./pop_up.gif" />
+        </div>
+        
+        <!-- inserted notifications here -->
+    </div>
+</body>
+
+</html>
