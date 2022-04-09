@@ -238,6 +238,6 @@ export default function getStyledEvents({
 			width: event.width,
 			xOffset: Math.max(0, event.xOffset),
 		},
-		divided: event.xOffset > 0
+		divided: event.width < 100
 	}));
 }
