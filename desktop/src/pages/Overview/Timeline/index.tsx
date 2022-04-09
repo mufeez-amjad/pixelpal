@@ -589,6 +589,8 @@ const EventContainer = styled.div<IEventContainer>`
 
 	min-height: fit-content !important;
 
+	overflow: hidden;
+
 	display: block;
 	color: white;
 
