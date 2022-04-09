@@ -7,6 +7,7 @@ import useDebounce from '../../../hooks/use_debounce';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { EventState, setEvent } from '../../../store/calendar';
 import { Theme } from '../../../theme';
+import getStyledEvents, { getHeight, getOffsetTop, RenderedEvent } from './util';
 
 const hours = [
 	'12 AM',
@@ -48,6 +49,7 @@ interface MousePositionRange {
 	current: number | null;
 	dragging: boolean;
 }
+
 interface Props {
 	events: IEvent[];
 	date: Date;
@@ -58,7 +60,7 @@ function Timeline({events, date}: Props): JSX.Element {
 	const dispatch = useAppDispatch();
 	const event = useAppSelector((state) => state.calendar.event);
 	
-	const [scheduledEvents, setScheduledEvents] = React.useState<IEvent[][]>([]);
+	const [scheduledEvents, setScheduledEvents] = React.useState<RenderedEvent[]>([]);
 	const [allDayEvents, setAllDayEvents] = React.useState<IEvent[]>([]);
 
 	/* 
@@ -160,7 +162,8 @@ function Timeline({events, date}: Props): JSX.Element {
 	}, [debouncedSelectedRange, mousePosition.dragging]);
 
 	React.useEffect(() => {
-		setScheduledEvents(groupIntoNonOverlapping((events || []).filter(event => event.allDay == undefined || event.allDay === false)));
+		const renderedEvents = getStyledEvents({events: (events || []).filter(event => event.allDay == undefined || event.allDay === false), minimumStartDifference: 10});
+		setScheduledEvents(renderedEvents);
 		setAllDayEvents((events || []).filter(event => event.allDay));
 	}, [events]);
 
@@ -191,24 +194,30 @@ function Timeline({events, date}: Props): JSX.Element {
 	}, []);
 
 	const scheduled = React.useMemo(() => {
-		return scheduledEvents.flatMap(group => {
-			return group.map((event, i) => {
-				const width = 100 / group.length;
-				return (
-					<Event 
-						event={event}
-						key={`${event.name}-${i}-${event.start.toISOString()}-${event.end.toISOString()}`}
-						style={{
-							width: `${width}%`,
-							left: `${width * i}%`
-						}}
-						divided={group.length > 1}
-						onClick={() => dispatch(setEvent({event, state: EventState.selected}))}
-					/>
-				);
-			});
+		const selectedEvent = event;
+		const eventsToShow = scheduledEvents;
+		// if (event?.value) {
+		// 	eventsToShow = eventsToShow.filter(e => e.event.id == event.value.id);
+		// }
+
+		return scheduledEvents.map((event, i) => {
+			return (
+				<Event 
+					event={event.event}
+					key={`${event.event.name}-${i}-${event.event.start.toISOString()}-${event.event.end.toISOString()}`}
+					style={{
+						top: `${event.styles.top}px`,
+						height: `${event.styles.height}px`,
+						width: `${event.styles.width}%`,
+						left: `${event.styles.xOffset}%`,
+					}}
+					divided={event.divided}
+					onClick={() => dispatch(setEvent({event: event.event, state: EventState.selected}))}
+					selected={selectedEvent?.value.id == event.event.id}
+				/>
+			);
 		});
-	}, [scheduledEvents]);
+	}, [scheduledEvents, event]);
 
 	const selectedEventRef = React.useRef<null | HTMLDivElement>(null);
 
@@ -218,11 +227,17 @@ function Timeline({events, date}: Props): JSX.Element {
 		}
 
 		if (event?.value) {
+			const height = getHeight(event.value.start, event.value.end, event.value.allDay);
+			const offsetTop = getOffsetTop(event.value.start, event.value.end, event.value.allDay);
 			return (
-				<Event 
+				<Event
 					event={event.value}
-					zIndex={2}
+					selected
 					ref={selectedEventRef}
+					style={{
+						top: `${offsetTop}px`,
+						height: `${height}px`,
+					}}
 				/>
 			);
 		}
@@ -505,27 +520,10 @@ interface EventProps {
 	style?: CSSProperties;
 	divided?: boolean;
 	onClick?: () => void;
-	zIndex?: number;
+	selected?: boolean
 }
 // eslint-disable-next-line react/display-name
-const Event = React.forwardRef<HTMLDivElement, EventProps>(({event, style, divided, zIndex, onClick}, ref) => {
-	const offsetStart = !event.allDay ? (event.start.getHours() + event.start.getMinutes() / 60) * hourHeight: 0;
-	
-	const height = React.useMemo(() => {
-		const duration = intervalToDuration({
-			start: event.start,
-			end: event.end
-		});
-
-		if (event.allDay) {
-			return 0;
-		}
-
-		if (duration.hours != null && duration.minutes != null) {
-			return (duration.hours + duration.minutes / 60) * hourHeight;
-		}
-	}, [event]);
-
+const Event = React.forwardRef<HTMLDivElement, EventProps>(({event, style, divided, selected, onClick}, ref) => {
 	const [start, end] = React.useMemo(() => {
 		const formatTime = (date: Date) => {
 			if (date.getMinutes()) {
@@ -539,13 +537,11 @@ const Event = React.forwardRef<HTMLDivElement, EventProps>(({event, style, divid
 
 	return (
 		<EventContainer
-			zIndex={zIndex || 1}
-			offsetStart={offsetStart}
+			selected={selected}
 			color={event.calendar.color}
 			darkerColor={shadeColor(event.calendar.color, -20)}
-			height={height || 'fit-content'}
+			divided={divided}
 			style={style}
-			divided={divided !== undefined && divided === true}
 			onMouseDown={(e) => e.stopPropagation()}
 			onClick={onClick}
 			ref={ref}
@@ -554,21 +550,19 @@ const Event = React.forwardRef<HTMLDivElement, EventProps>(({event, style, divid
 				{event.name && <div>
 					{event.name}
 				</div>}
-				{!event.allDay && <Time id='time'>
+				{!event.allDay && <span id='time'>
 					{start} - {end}
-				</Time>}
+				</span>}
 			</div>
 		</EventContainer>
 	);
 });
 
 interface IEventContainer {
-	offsetStart: number;
 	color: string;
 	darkerColor: string;
-	height: number | string;
-	divided: boolean;
-	zIndex: number;
+	selected?: boolean;
+	divided?: boolean;
 }
 
 const EventContainer = styled.div<IEventContainer>`
@@ -576,19 +570,24 @@ const EventContainer = styled.div<IEventContainer>`
 
 	position: absolute;
 	background-color: ${({color}) => color};
-	opacity: 0.9;
+	
 	border-left: 3px solid ${({darkerColor}) => darkerColor};
 	width: 100%;
 	font-size: 10px;
 	font-weight: 500;
-	top: ${({offsetStart}) => offsetStart}px;
-	z-index: ${({zIndex}) => zIndex};
+	${({selected}) => selected ? `
+		z-index: 2;
+		box-shadow: 0px 0px 15px 3px rgba(0,0,0,0.3);
+		opacity: 1;
+	` : `
+		z-index: 1;
+		opacity: 0.9;
+	`};
 
 	border-radius: 4px;
 	padding-left: 4px;
 
 	min-height: fit-content !important;
-	height: ${({height}) => isNaN(Number(height)) ? height: `${height}px`};
 
 	display: block;
 	color: white;
@@ -597,8 +596,8 @@ const EventContainer = styled.div<IEventContainer>`
 		cursor: default;
 		filter: brightness(97%);
 	}
-
-	${({ divided, height }) => !divided && height < 10 && `
+	
+	${({ divided }) => !divided && `
 		align-content: center;
   	`}
 	
@@ -610,14 +609,14 @@ const EventContainer = styled.div<IEventContainer>`
 		`: `
 		flex-direction: row;
 		`};
-	}
-`;
 
-const Time = styled.span`
-	font-weight: 400;
+		span {
+			font-weight: 400;
 
-	&:not(:first-child) {
-		margin-left: 4px;
+			&:not(:first-child) {
+				${({divided}) => !divided && 'margin-left: 4px;'};
+			}
+		}
 	}
 `;
 
@@ -647,59 +646,3 @@ function shadeColor(color: string, percent: number) {
 
 export default Timeline;
 
-function groupIntoNonOverlapping(events?: IEvent[]): IEvent[][] {
-	if (!events?.length) {
-		return [];
-	}
-
-	events.sort(function (a, b) {
-		if (a.end < b.end)
-			return 1;
-		if (a.end > b.end)
-			return -1;
-		return 0;
-	});
-
-	const groups = [];
-
-	const getMaxEnd = (events: IEvent[]) => {
-		if (events.length == 0) return false;
-		events.sort(function (a, b) {
-			if (a.end < b.end)
-				return 1;
-			if (a.end > b.end)
-				return -1;
-			return 0;
-		});
-		return events[0].end;
-	};
-
-	let group = 0;
-	groups.push([events[0]]);
-
-	for (let i = 1, l = events.length; i < l; i++) {
-		if (events[i].start >= events[i - 1].start && 
-			events[i].start < getMaxEnd(groups[group])) {
-			groups[group].push(events[i]);
-		} else {
-			group++;
-			groups[group] = [events[i]];
-		}
-	}
-	
-	for (let i = 0; i < groups.length; i++) {
-		groups[i] = groups[i].sort((a, b) => {
-			if (isSameMinute(a.start, b.start)) {
-				if (isAfter(a.end, b.end)) {
-					return -1;
-				} else {
-					return 1;
-				}
-				
-			} else {
-				return a.start.getTime() - b.start.getTime();
-			}
-		});
-	}
-	return groups;
-}
