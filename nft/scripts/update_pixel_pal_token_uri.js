@@ -54,6 +54,8 @@ const NFT_ABI = [
 	}
 ];
 
+const newBaseURI = 'test'
+
 async function main() {
 	const network =
 		NETWORK === 'mainnet' || NETWORK === 'live' ? 'mainnet' : 'rinkeby';
@@ -76,24 +78,15 @@ async function main() {
 	console.log('original ', result);
 
 	result = await nftContract.methods
-		.updateBaseURI('test')
+		.updateBaseURI(newBaseURI)
 		.send({ from: OWNER_ADDRESS });
 	console.log('updating ', result);
 
 	result = await nftContract.methods
 		.tokenURI(0)
 		.call({ from: OWNER_ADDRESS });
-	console.log('after update 1 ', result);
+	console.log('after update ', result);
 
-	result = await nftContract.methods
-		.updateBaseURI('ipfs://QmUfQX5WiXRf3YiG6raVCXKH9T4zWHP7pqZNPA35ssZbwG/')
-		.send({ from: OWNER_ADDRESS });
-	console.log('updating ', result);
-
-	result = await nftContract.methods
-		.tokenURI(0)
-		.call({ from: OWNER_ADDRESS });
-	console.log('after update 2 ', result);
 	exit();
 }
 
