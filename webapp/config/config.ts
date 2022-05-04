@@ -15,7 +15,10 @@ function getConfig(env: string): AppConfig {
 			port: parseInt(process.env.PORT!),
 			db: {
 				client: 'postgres',
-				connection: process.env.PG_CONNECTION_STRING!
+				connection: {
+					connectionString: process.env.DATABASE_URL,
+					ssl: { rejectUnauthorized: false },
+				}
 			}
 		};
 	default:

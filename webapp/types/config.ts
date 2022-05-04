@@ -1,7 +1,6 @@
+import { Knex } from "knex";
+
 export interface AppConfig {
 	port: number;
-	db: {
-		client: string;
-		connection: string;
-	};
+	db: Knex.Config
 }
