@@ -9,7 +9,7 @@ import "./ERC721Tradable.sol";
  * PixelPal - a contract for my non-fungible PixelPals.
  */
 contract PixelPal is ERC721Tradable {
-    string baseURI = "ipfs://QmUfQX5WiXRf3YiG6raVCXKH9T4zWHP7pqZNPA35ssZbwG/";
+    string baseURI = "ipfs://QmUfQX5WiXRf3YiG6raVCXKH9T4zWHP7pqZNPA35ssZbwG/";  // TODO change to correct ipfs uri
     address constant teamWalletAddress = 0x47FB0BE414D32C5c3d59935b860528Dc88bBec54; //TODO change to team wallet
 
     constructor(address _proxyRegistryAddress)
