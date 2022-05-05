@@ -16,8 +16,6 @@ export class NFTHandler extends ApiHandler {
 			throw new ApiError(404, `Couldn't find address for PPID ${ppid}`);
 		}
 
-		console.log('got user');
-
 		const agent = new Agent({
 			rejectUnauthorized: false // at time of writing, there are certificate expired issues
 		});
@@ -38,7 +36,6 @@ export class NFTHandler extends ApiHandler {
 		if (response.data.assets.length === 0) return []
 
 		try {
-			console.log('before');
 			const res = await axios.all(
 				response.data.assets.map((asset: any) => axios.get(asset.token_metadata, { httpsAgent: agent }))
 			);
