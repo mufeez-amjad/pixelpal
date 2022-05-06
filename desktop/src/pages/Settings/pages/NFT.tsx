@@ -2,19 +2,31 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Title } from './common';
 
+const { ipcRenderer } = window.require('electron');
+
 import axios from 'axios';
 
 export default function NFT(): JSX.Element {
-	const PPID = 'ppid_fake'; // TODO use localStorage.getItem('PPID')
+	const PPID = 'ppid_fake'; // TODO (Michael) use localStorage.getItem('PPID') once wallet connection works
 
 	const [msg, setMsg] = useState('Hi');
 	const [inventory, setInventory] = useState([]);
-	const [selectedPP, setSelectedPP] = useState({});
 
 	// call the backend once at the start to get inventory for this ppid
 	useEffect(() => {
 		setMsg('Loading');
+		refresh();
+	}, []);
 
+	const savePixelPal = (pixelpal: any) => {
+		localStorage.setItem('NFT_IMG', getIpfsUrl(pixelpal.image));
+	};
+
+	const getIpfsUrl = (url: string) => {
+		return 'https://ipfs.io/ipfs/' + url.substring(7);
+	};
+
+	const refresh = () => {
 		/*
 		NOTE: Format of reponse from backend is:
 			[
@@ -41,28 +53,26 @@ export default function NFT(): JSX.Element {
 		}).catch((err) => {
 			setMsg('Unable to connect to OpenSea. Please try again later');
 		});
-	}, []);
-
-	const savePixelPal = (pixelpal: any) => {
-		localStorage.setItem('img', getIpfsUrl(pixelpal.image));
 	};
 
-	const getIpfsUrl = (url: string) => {
-		return 'https://ipfs.io/ipfs/' + url.substring(7);
+	const connectWallet = () => {
+		ipcRenderer.invoke('externalLink', 'https://pixelpal-test.herokuapp.com/connect');
 	};
 
 	return (
 		<Container>
 			<h1>NFT</h1>
+			<h3>Your Pixel Pal ID is: {PPID}</h3>
+			<button onClick={() => connectWallet()}> Connect Another Wallet</button>
+			<button onClick={refresh}>Refresh</button>
 			<div>{msg}</div>
 			{
 				inventory.map((pixelpal: any) => 
-					<div key={pixelpal['name']} onClick={() => setSelectedPP(pixelpal)}>
+					<div key={pixelpal['name']} onClick={() => savePixelPal(pixelpal)}>
 						{pixelpal['name']}
 						<img src={getIpfsUrl(pixelpal.image)}/>
 					</div>)
 			}
-			<button onClick={savePixelPal}>Save</button>
 		</Container>
 	);
 }

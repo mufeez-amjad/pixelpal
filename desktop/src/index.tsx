@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HashRouter, Route, Routes, useNavigate } from 'react-router-dom';
 
@@ -18,13 +18,111 @@ import { ThemeProvider } from 'styled-components';
 import { lightTheme } from './theme';
 import { useLocalStorage } from './hooks/use_localstorage';
 
+import { nanoid } from 'nanoid';
+import NFT from './pages/Settings/pages/NFT';
+import axios from 'axios';
+
 const App = () => {
+	const [showGuide, setShowGuide] = useState(false);
+	const [PPID, setPPID] = useState<string | null>('');
+
+	React.useEffect(() => {
+		const temp = true;	// TODO (Michael or Mufeez) remove
+		if (temp || localStorage.getItem('firstStartup') != 'false') {
+			// Setup the PPID of this application
+			const ppid = nanoid(16);
+			setPPID(ppid);
+			localStorage.setItem('PPID', ppid);
+			localStorage.setItem('firstStartup', 'false');
+
+			setShowGuide(true);
+		} else {
+
+			//validate that user still owns pixel pal
+			// if they still own one, allow access to the app
+			// otherwise, show the first startup guide
+			if (validateInventory()) {
+				setPPID(localStorage.getItem('PPID'));
+			} else {
+				setShowGuide(true);
+			}
+		}
+	}, []);
+
+	const validateInventory = (): boolean => {
+		axios.get(
+			'https://pixelpal-test.herokuapp.com/nft/' + PPID, // TODO change to mainnet
+		).then(function (response) {
+			console.log('Fetched inventory: ' + response);
+			if (response.data.length == 0) {
+				return false;
+			}
+		}).catch((err) => {
+			console.log('Unable to verify ownership: Unable to connect to OpenSea');
+			return true;
+		});
+
+		return true;
+	};
+
 	return (
-		<Provider store={store}>
-			<HashRouter>
-				<RoutesComponent />
-			</HashRouter>			
-		</Provider>
+		showGuide ? <GuidePage ppid={PPID} setShowGuide={setShowGuide} /> :
+			<Provider store={store}>
+				<HashRouter>
+					<RoutesComponent />
+				</HashRouter>
+			</Provider>
+	);
+
+};
+
+const GuidePage = (props: any) => {
+	const [step, setStep] = useState(0);
+	const [msg, setMsg] = useState('');
+
+	const connectWallet = () => {
+		ipcRenderer.invoke('externalLink', 'https://pixelpal-test.herokuapp.com/connect');
+		setStep(1);
+	};
+
+	const validateNFTSelection = () => {
+		if (localStorage.getItem('NFT_IMG') == null) {
+			setMsg('Error: No pixel pal selected.');
+		} else {
+			props.setShowGuide(false);
+		}
+	};
+
+	return (
+		<div>
+			{
+				step == 0 ?
+					<div>
+						<h1>Hello 👋</h1>
+
+						<p>Welcome to Pixel Pal! </p>
+
+						<p>To begin, please connect your Metamask wallet holding one or more Pixel Pals by clicking the Connect button. You can update your connected wallet later in Settings. </p>
+
+						<h3>Your Pixel Pal ID is: {props.ppid}</h3>
+
+						<button onClick={() => connectWallet()}> Connect</button>
+					</div>
+					: null
+			}
+
+			{
+				step == 1 ?
+					<div>
+						<p>Select your Pixel Pal. Note: it may take up to 24 hours for OpenSea to register your ownership.</p>
+						<NFT />
+						<p>{msg}</p>
+						<button onClick={() => validateNFTSelection()}>Next</button>
+					</div>
+					: null
+			}
+		</div>
+
 	);
 };
 
@@ -48,7 +146,7 @@ const RoutesComponent = () => {
 				{/* <Route path="/notification" component={Notification} /> */}
 			</Routes>
 		</ThemeProvider>
-		
+
 	);
 };
 
