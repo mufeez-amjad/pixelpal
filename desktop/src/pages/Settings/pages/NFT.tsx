@@ -19,7 +19,7 @@ export default function NFT(): JSX.Element {
 	}, []);
 
 	const savePixelPal = (pixelpal: any) => {
-		localStorage.setItem('NFT_IMG', getIpfsUrl(pixelpal.image));
+		localStorage.setItem('NFT_IMG', getIpfsUrl(pixelpal.image));	// TODO (Michael) use proper asset animations
 	};
 
 	const getIpfsUrl = (url: string) => {
@@ -63,6 +63,7 @@ export default function NFT(): JSX.Element {
 		<Container>
 			<h1>NFT</h1>
 			<h3>Your Pixel Pal ID is: {PPID}</h3>
+			<button onClick={() => navigator.clipboard.writeText(PPID)}>Copy</button>
 			<button onClick={() => connectWallet()}> Connect Another Wallet</button>
 			<button onClick={refresh}>Refresh</button>
 			<div>{msg}</div>

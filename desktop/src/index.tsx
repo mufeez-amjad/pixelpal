@@ -30,7 +30,7 @@ const App = () => {
 		const temp = true;	// TODO (Michael or Mufeez) remove
 		if (temp || localStorage.getItem('firstStartup') != 'false') {
 			// Setup the PPID of this application
-			const ppid = nanoid(16);
+			const ppid = 'ppid_' + nanoid(16);
 			setPPID(ppid);
 			localStorage.setItem('PPID', ppid);
 			localStorage.setItem('firstStartup', 'false');
@@ -40,10 +40,11 @@ const App = () => {
 
 			//validate that user still owns pixel pal
 			// if they still own one, allow access to the app
-			// otherwise, show the first startup guide
+			// otherwise, delete cached NFT assets and show the first startup guide
 			if (validateInventory()) {
 				setPPID(localStorage.getItem('PPID'));
 			} else {
+				localStorage.removeItem('NFT_IMG');	// TODO (Michael) use proper asset animations
 				setShowGuide(true);
 			}
 		}
@@ -86,7 +87,7 @@ const GuidePage = (props: any) => {
 	};
 
 	const validateNFTSelection = () => {
-		if (localStorage.getItem('NFT_IMG') == null) {
+		if (localStorage.getItem('NFT_IMG') == null) {	// TODO (Michael) use proper asset animations
 			setMsg('Error: No pixel pal selected.');
 		} else {
 			props.setShowGuide(false);
@@ -105,6 +106,7 @@ const GuidePage = (props: any) => {
 						<p>To begin, please connect your Metamask wallet holding one or more Pixel Pals by clicking the Connect button. You can update your connected wallet later in Settings. </p>
 
 						<h3>Your Pixel Pal ID is: {props.ppid}</h3>
+						<button onClick={() => navigator.clipboard.writeText(props.ppid)}>Copy</button>
 
 						<button onClick={() => connectWallet()}> Connect</button>
 					</div>
