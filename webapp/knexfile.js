@@ -1,6 +1,7 @@
+const { config } = require('./dist/config/config');
+
 module.exports = {
-  client: 'postgres',
-  connection: 'postgres://test:test@localhost:5432/pixelpal',
+  ...config.db,
   migrations: {
     directory: './migrations',
     table_name: 'migrations',

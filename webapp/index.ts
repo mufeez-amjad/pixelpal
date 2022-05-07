@@ -18,14 +18,14 @@ const nftHander = new NFTHandler(db);
 
 app.use(express.static(path.join(__dirname, 'build')));
 
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
 app.post('/auth', handle(authHandler.registerPublicKey.bind(authHandler)));
 app.get('/nft/:ppid', handle(nftHander.getPixelpalsForPPID.bind(nftHander)));
 app.get('/ping', (_req, res) => {
 	res.status(200).json({ 'message': 'pong!' });
+});
+
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 if (require.main === module) {

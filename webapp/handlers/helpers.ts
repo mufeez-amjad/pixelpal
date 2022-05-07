@@ -9,7 +9,6 @@ export function handle<Params, Body, Returns>(
 ) => Promise<void> {
 	return async (req, res) => {
 		res.set('Access-Control-Allow-Origin', '*');
-		console.log('hello');
 		
 		try {
 			const returns = await fn(req.params, req.body);
@@ -19,6 +18,8 @@ export function handle<Params, Body, Returns>(
 				res.status(e.status).json({ error: e.message });
 			} else if (typeof e === 'string') {
 				res.status(500).json({ error: e });
+			} else {
+				res.status(500).json({ error: 'got unknown error' });
 			}
 		}
 	};

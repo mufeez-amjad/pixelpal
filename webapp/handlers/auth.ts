@@ -11,7 +11,6 @@ export class AuthHandler extends ApiHandler {
 		const { ppid, address, signature } = body;
 		console.log('got %s %s %s', ppid, address, signature);
 		
-
 		// Verify signature
 		const signedBy = ethers.utils.verifyMessage(ppid, signature);
 		if (address !== signedBy) {
@@ -30,7 +29,7 @@ export class AuthHandler extends ApiHandler {
 			);
 		}
 
-		await this.db<User>('users').insert({ ppid, address: '0x3cc1Fc89867aee0061E151c5AE8ed3F9088348aB' });
+		await this.db<User>('users').insert({ ppid, address });
 		return 'ok!';
 	}
 }
