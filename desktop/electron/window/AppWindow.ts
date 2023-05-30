@@ -1,11 +1,11 @@
 import os from 'os';
-import { app, BrowserWindow, Tray, Menu } from 'electron';
+import { app, BrowserWindow, Tray, Menu, Point, Rectangle } from 'electron';
 import { Display } from 'electron/main';
 import path from 'path';
 import AppTray from '../tray';
 import { getMixpanelInstance } from '../services/mixpanel/MixpanelService';
 
-import { getCurrentDisplay } from '../util';
+import { getCurrentDisplay, getCursorPosition, getDisplayForClick } from '../util';
 
 const WINDOW_WIDTH = 340;
 const WINDOW_HEIGHT = 540;
@@ -49,7 +49,10 @@ export class AppWindow extends BrowserWindow {
 
 		if (options.tray) {
 			this.tray = options.tray;
-			this.tray.on('click', () => this.toggleWindow());
+			this.tray.on('click', () => {
+				console.log(getCursorPosition());
+				this.toggleWindow();
+			});
 		}
 
 		if (options.autoHide) {
@@ -57,7 +60,6 @@ export class AppWindow extends BrowserWindow {
 		}
 		this.setMenu(null);
 		this.setURL(options.path);
-		this.align(options.position);
 	}
 
 	setURL = (urlPath?: string): void => {
@@ -103,19 +105,14 @@ export class AppWindow extends BrowserWindow {
 		this.show();
 	};
 
-	align = (position?: any): void => {
+	align = (): void => {
 		let x, y;
-		if (position) {
-			x = position.x;
-			y = position.y;
-		} else {
-			try {
-				const alignTo = this.calculatePosition();
-				x = alignTo.x;
-				y = alignTo.y;
-			} catch (err) {
-				console.log(err);
-			}
+		try {
+			const alignTo = this.calculatePosition();
+			x = alignTo.x;
+			y = alignTo.y;
+		} catch (err) {
+			console.log(err);
 		}
 
 		this.setBounds({
@@ -130,7 +127,7 @@ export class AppWindow extends BrowserWindow {
 		if (!this.tray) {
 			throw Error('Tray is undefined!');
 		}
-
+		
 		const display: Display = getCurrentDisplay();
 		const screenBounds = display.bounds;
 

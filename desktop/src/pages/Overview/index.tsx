@@ -82,7 +82,7 @@ function Overview(): JSX.Element {
 					<div
 						style={{
 							padding: 20,
-							paddingBottom: 4
+							paddingBottom: 0,
 						}}
 					>
 						<TopButtonsContainer>
@@ -122,9 +122,6 @@ function Overview(): JSX.Element {
 						event={event.value}
 					/>}
 				</div>
-				<Character>
-					<img style={{ width: 100, height: 100 }} src={stand} />
-				</Character>
 			</Top>
 			<Bottom>
 				<Timeline

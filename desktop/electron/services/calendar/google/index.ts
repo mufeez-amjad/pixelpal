@@ -27,8 +27,8 @@ export class GoogleCalendar extends BaseCalendar {
 		super(google);
 
 		const opts = {
-			clientId: secretAccountKey.installed.client_id,
-			clientSecret: secretAccountKey.installed.client_secret,
+			clientId: secretAccountKey.client_id,
+			clientSecret: secretAccountKey.private_key,
 			scopes: [
 				'https://www.googleapis.com/auth/calendar.readonly',
 				'https://www.googleapis.com/auth/calendar.events',
