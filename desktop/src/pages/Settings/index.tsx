@@ -10,6 +10,7 @@ import General from './pages/General';
 import Calendar from './pages/Calendar';
 import Customization from './pages/Customization';
 import { Theme } from '../../theme';
+import NFT from './pages/NFT';
 
 const paths = [
 	{
@@ -103,7 +104,7 @@ function Settings({setTheme}: Props): JSX.Element {
 						<Route path="/customization"  element={<Customization setTheme={setTheme} />} />
 						<Route path="/notifications"  element={<>Notifications</>} />
 						<Route path="/calendars"  element={<Calendar />} />
-						<Route path="/nft"  element={<>NFT</>} />
+						<Route path="/nft"  element={<NFT />} />
 						<Route path="/conferencing"  element={<>Conferencing</>} />
 					</Routes>
 				</Split>
